@@ -1,6 +1,5 @@
 #include "mog/base/Scene.h"
 #include "mog/core/Engine.h"
-#include "mog/core/TouchEventManager.h"
 
 using namespace mog;
 

@@ -2,6 +2,7 @@
 #define TouchEventListener_h
 
 #include <memory>
+#include <set>
 #include <functional>
 #include "mog/core/plain_objects.h"
 #include "mog/core/Touch.h"
@@ -24,22 +25,29 @@ namespace mog {
 
         void setOnTapEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTapEvent);
         void setOnTouchBeginEvent(function<bool(const Touch &t, const shared_ptr<Entity> &e)> onTouchBeginEvent);
-        void setOnTouchMoveEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchMoveEvent);
+        void setOnTouchDragEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchDragEvent);
         void setOnTouchEndEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchEndEvent);
-        bool isTouchBegan();
-        
+        void setOnTouchEnterEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchEnterEvent);
+        void setOnTouchOverEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchOverEvent);
+        void setOnTouchExitEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchExitEvent);
+
         void setEnable(bool enabled);
+        bool isTouchBegan(unsigned int touchId);
+        bool isTouchEntered(unsigned int touchId);
         
     protected:
         TouchEventListener();
-        bool touchBegan = false;
         bool enabled = true;
-        int touchId = 0;
+        set<unsigned int> touchBeganIds;
+        set<unsigned int> touchEnteredIds;
 
         function<void(const Touch &t, const shared_ptr<Entity> &e)> onTapEvent;
         function<bool(const Touch &t, const shared_ptr<Entity> &e)> onTouchBeginEvent;
-        function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchMoveEvent;
+        function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchDragEvent;
         function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchEndEvent;
+        function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchEnterEvent;
+        function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchOverEvent;
+        function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchExitEvent;
     };
 }
 

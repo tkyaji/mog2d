@@ -1,7 +1,6 @@
 #include "mog/base/Entity.h"
 #include "mog/base/Group.h"
 #include "mog/core/Engine.h"
-#include "mog/core/TouchEventManager.h"
 #include "mog/core/TouchEventListener.h"
 #include "mog/core/Tween.h"
 #include <math.h>
@@ -61,7 +60,7 @@ void Entity::extractEvent(float delta) {
     auto self = static_pointer_cast<Entity>(shared_from_this());
     
     if (this->touchEnable && (!this->swallowTouches || this->touchListeners.size() > 0)) {
-        TouchEventManager::getInstance()->pushEntity(self);
+        Engine::getInstance()->pushTouchableEntity(self);
     }
     
     if (this->tweens.size() > 0) {
@@ -422,6 +421,8 @@ void Entity::removeAllTouchEvents() {
 }
 
 void Entity::fireTouchBeginEvent(const Touch &touch) {
+    if (!this->touchEnable) return;
+    
     auto self = static_pointer_cast<Entity>(shared_from_this());
     for (auto pair : this->touchListeners) {
         auto listener = pair.second;
@@ -430,6 +431,8 @@ void Entity::fireTouchBeginEvent(const Touch &touch) {
 }
 
 void Entity::fireTouchMoveEvent(const Touch &touch) {
+    if (!this->touchEnable) return;
+    
     auto self = static_pointer_cast<Entity>(shared_from_this());
     for (auto pair : this->touchListeners) {
         auto listener = pair.second;
@@ -438,6 +441,8 @@ void Entity::fireTouchMoveEvent(const Touch &touch) {
 }
 
 void Entity::fireTouchEndEvent(const Touch &touch) {
+    if (!this->touchEnable) return;
+    
     auto self = static_pointer_cast<Entity>(shared_from_this());
     for (auto pair : this->touchListeners) {
         auto listener = pair.second;

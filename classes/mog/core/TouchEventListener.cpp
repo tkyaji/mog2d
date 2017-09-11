@@ -9,10 +9,6 @@ shared_ptr<TouchEventListener> TouchEventListener::create() {
 }
 
 TouchEventListener::TouchEventListener() {
-    this->touchBegan = false;
-    this->enabled = true;
-    this->eventId = 0;
-    this->touchId = -1;
 }
 
 TouchEventListener::~TouchEventListener() {
@@ -21,35 +17,68 @@ TouchEventListener::~TouchEventListener() {
 void TouchEventListener::touchBegin(const Touch &touch, const shared_ptr<Entity> &entity) {
     if (!this->enabled) return;
     
+    if (this->onTouchEnterEvent) {
+        this->onTouchEnterEvent(touch, entity);
+    }
+    this->touchEnteredIds.insert(touch.touchId);
+    
     if (this->onTouchBeginEvent) {
         if (!this->onTouchBeginEvent(touch, entity)) return;
     }
-    
-    this->touchBegan = true;
-    this->touchId = touch.touchId;
+    this->touchBeganIds.insert(touch.touchId);
 }
 
 void TouchEventListener::touchMove(const Touch &touch, const shared_ptr<Entity> &entity) {
-    if (!this->enabled || !this->touchBegan || this->touchId != touch.touchId) return;
-
-    if (this->onTouchMoveEvent) {
-        this->onTouchMoveEvent(touch, entity);
+    if (!this->enabled) return;
+    
+    if (this->isTouchBegan(touch.touchId)) {
+        if (this->onTouchDragEvent) {
+            this->onTouchDragEvent(touch, entity);
+        }
+    }
+    
+    if (entity->contains(touch.position)) {
+        if (this->isTouchEntered(touch.touchId)) {
+            if (this->onTouchOverEvent) {
+                this->onTouchOverEvent(touch, entity);
+            }
+        } else {
+            if (this->onTouchEnterEvent) {
+                this->onTouchEnterEvent(touch, entity);
+            }
+            this->touchEnteredIds.insert(touch.touchId);
+        }
+    } else {
+        if (this->isTouchEntered(touch.touchId)) {
+            if (this->onTouchExitEvent) {
+                this->onTouchExitEvent(touch, entity);
+            }
+            this->touchEnteredIds.erase(touch.touchId);
+        }
     }
 }
 
 void TouchEventListener::touchEnd(const Touch &touch, const shared_ptr<Entity> &entity) {
-    if (!this->enabled || !this->touchBegan || this->touchId != touch.touchId) return;
+    if (!this->enabled) return;
     
-    if (this->onTouchEndEvent) {
-        this->onTouchEndEvent(touch, entity);
-    }
-    if (entity->contains(touch.position)) {
-        if (this->onTapEvent) {
-            this->onTapEvent(touch, entity);
+    if (this->isTouchBegan(touch.touchId)) {
+        if (this->onTouchEndEvent) {
+            this->onTouchEndEvent(touch, entity);
         }
+        if (entity->contains(touch.position)) {
+            if (this->onTapEvent) {
+                this->onTapEvent(touch, entity);
+            }
+        }
+        this->touchBeganIds.erase(touch.touchId);
     }
-    this->touchBegan = false;
-    this->touchId = -1;
+    
+    if (this->isTouchEntered(touch.touchId)) {
+        if (this->onTouchExitEvent) {
+            this->onTouchExitEvent(touch, entity);
+        }
+        this->touchEnteredIds.erase(touch.touchId);
+    }
 }
 
 void TouchEventListener::setOnTapEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTapEvent) {
@@ -60,18 +89,34 @@ void TouchEventListener::setOnTouchBeginEvent(function<bool(const Touch &t, cons
     this->onTouchBeginEvent = onTouchBeginEvent;
 }
 
-void TouchEventListener::setOnTouchMoveEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchMoveEvent) {
-    this->onTouchMoveEvent = onTouchMoveEvent;
+void TouchEventListener::setOnTouchDragEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchDragEvent) {
+    this->onTouchDragEvent = onTouchDragEvent;
 }
 
 void TouchEventListener::setOnTouchEndEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchEndEvent) {
     this->onTouchEndEvent = onTouchEndEvent;
 }
 
-bool TouchEventListener::isTouchBegan() {
-    return this->touchBegan;
+void TouchEventListener::setOnTouchEnterEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchEnterEvent) {
+    this->onTouchEnterEvent = onTouchEnterEvent;
+}
+
+void TouchEventListener::setOnTouchOverEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchOverEvent) {
+    this->onTouchOverEvent = onTouchOverEvent;
+}
+
+void TouchEventListener::setOnTouchExitEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchExitEvent) {
+    this->onTouchExitEvent = onTouchExitEvent;
 }
 
 void TouchEventListener::setEnable(bool enabled) {
     this->enabled = enabled;
+}
+
+bool TouchEventListener::isTouchBegan(unsigned int touchId) {
+    return this->touchBeganIds.count(touchId) > 0;
+}
+
+bool TouchEventListener::isTouchEntered(unsigned int touchId) {
+    return this->touchEnteredIds.count(touchId) > 0;
 }

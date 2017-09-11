@@ -149,7 +149,8 @@ void AppBase::loadSceneMain(const shared_ptr<Scene> &scene, Transition transitio
 
 void AppBase::loadSceneWithTransition(const shared_ptr<Scene> &scene, float duration, Easing easing, LoadMode loadMode, float loadSceneValue,
                                       function<void(shared_ptr<Entity> current, shared_ptr<Entity> next, float value)> onModify) {
-    TouchEventManager::getInstance()->setTouchEnable(false);
+    bool touchEnable = Engine::getInstance()->isTouchEnable();
+    Engine::getInstance()->setTouchEnable(false);
     
     auto loadingScene = make_shared<LoadingScene>();
     
@@ -179,10 +180,10 @@ void AppBase::loadSceneWithTransition(const shared_ptr<Scene> &scene, float dura
         }
         onModify(current, next, v);
     });
-    tween->setOnFinishEvent([loadingScene, this, scene](const shared_ptr<mog::Entity> &e) {
+    tween->setOnFinishEvent([loadingScene, this, scene, touchEnable](const shared_ptr<mog::Entity> &e) {
         loadingScene->removeAll();
         this->currentScene = scene;
-        TouchEventManager::getInstance()->setTouchEnable(true);
+        Engine::getInstance()->setTouchEnable(touchEnable);
     });
     loadingScene->runTween(tween);
 }
@@ -340,19 +341,19 @@ float AppBase::getScreenScale() {
 }
 
 void AppBase::setTouchEnable(bool enable) {
-    TouchEventManager::getInstance()->setTouchEnable(enable);
+    Engine::getInstance()->setTouchEnable(enable);
 }
 
 void AppBase::setMultiTouchEnable(bool enable) {
-    TouchEventManager::getInstance()->setMultiTouchEnable(enable);
+    Engine::getInstance()->setMultiTouchEnable(enable);
 }
 
 bool AppBase::isTouchEnable() {
-    return TouchEventManager::getInstance()->isTouchEnable();
+    return Engine::getInstance()->isTouchEnable();
 }
 
 bool AppBase::isMultiTouchEnable() {
-    return TouchEventManager::getInstance()->isMultiTouchEnable();
+    return Engine::getInstance()->isMultiTouchEnable();
 }
 
 void AppBase::setStatsViewEnable(bool enable) {

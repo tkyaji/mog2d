@@ -35,7 +35,6 @@ Engine *Engine::initInstance() {
 }
 
 Engine::Engine() {
-    this->touchEventManager = TouchEventManager::initialize();
     AudioPlayer::initialize();
     NativeCallbackManager::initialize();
     
@@ -128,7 +127,7 @@ void Engine::onDrawFrame(map<unsigned int, TouchInput> touches) {
     
     this->frameCount++;
     
-    TouchEventManager::getInstance()->fireTouchListeners(touches);
+    this->fireTouchListeners(touches);
     NativeCallbackManager::getInstance()->invokeCallback();
     
     this->invokeOnUpdateFunc();
@@ -292,6 +291,90 @@ long long Engine::getTimerElapsed() {
 
 float Engine::getTimerElapsedSec() {
     return this->getTimerElapsed() * 0.000001f;
+}
+
+void Engine::fireTouchListeners(map<unsigned int, TouchInput> touches) {
+    float scale = this->getApp()->getScreenScale();
+    float density = this->getDeviceDensity();
+    float uptime = this->getTimerElapsedSec();
+    
+    for (auto pair : touches) {
+        unsigned int touchId = pair.first;
+        auto touchInput = pair.second;
+        auto vp = Point(touchInput.x, touchInput.y);
+        auto p = vp * density / scale;
+        auto touch = Touch(touchId, p, vp, uptime);
+        
+        if (this->prevTouches.count(touchId) == 0) {
+            touch.startTime = uptime;
+            touch.startPosition = p;
+            touch.startViewPosition = vp;
+        } else {
+            auto prevTouch = this->prevTouches[touchId];
+            touch.startTime = prevTouch.startTime;
+            touch.deltaTime = uptime - prevTouch.uptime;
+            touch.startPosition = prevTouch.startPosition;
+            touch.startViewPosition = prevTouch.startViewPosition;
+            touch.deltaPosition = p - prevTouch.position;
+            touch.deltaViewPosition = vp - prevTouch.viewPosition;
+        }
+        
+        if (this->touchEnable) {
+            bool isSwallowTouches = true;
+            
+            for (int i = (int)this->touchableEntities.size() - 1; i >= 0; i--) {
+                auto entity = this->touchableEntities[i];
+                
+                if (touchInput.action == TouchAction::TouchDown || touchInput.action == TouchAction::TouchDownUp) {
+                    if (isSwallowTouches && entity->contains(p)) {
+                        entity->fireTouchBeginEvent(touch);
+                        
+                        if (!entity->isSwallowTouches()) {
+                            isSwallowTouches = false;
+                        }
+                    }
+                }
+                if (touchInput.action == TouchAction::TouchMove) {
+                    entity->fireTouchMoveEvent(touch);
+                }
+                if (touchInput.action == TouchAction::TouchUp || touchInput.action == TouchAction::TouchDownUp) {
+                    entity->fireTouchEndEvent(touch);
+                }
+            }
+        }
+        
+        if (touchInput.action == TouchAction::TouchUp || touchInput.action == TouchAction::TouchDownUp) {
+            this->prevTouches.erase(touchId);
+        } else {
+            this->prevTouches[touchId] = touch;
+        }
+        
+        if (!this->multiTouchEnable) {
+            break;
+        }
+    }
+    
+    this->touchableEntities.clear();
+}
+
+void Engine::pushTouchableEntity(const shared_ptr<Entity> &entity) {
+    this->touchableEntities.emplace_back(entity);
+}
+
+void Engine::setTouchEnable(bool enable) {
+    this->touchEnable = enable;
+}
+
+void Engine::setMultiTouchEnable(bool enable) {
+    this->multiTouchEnable = enable;
+}
+
+bool Engine::isTouchEnable() {
+    return this->touchEnable;
+}
+
+bool Engine::isMultiTouchEnable() {
+    return this->multiTouchEnable;
 }
 
 unsigned int Engine::registerOnUpdateFunc(function<void(unsigned int funcId)> onUpdateFunc) {

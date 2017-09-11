@@ -45,7 +45,6 @@
 		B2B472F71F0E79840043D501 /* Texture2D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2B4729F1F0E79840043D501 /* Texture2D.cpp */; };
 		B2B472F81F0E79840043D501 /* TextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2B472A11F0E79840043D501 /* TextureAtlas.cpp */; };
 		B2B472F91F0E79840043D501 /* TouchEventListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2B472A41F0E79840043D501 /* TouchEventListener.cpp */; };
-		B2B472FA1F0E79840043D501 /* TouchEventManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2B472A61F0E79840043D501 /* TouchEventManager.cpp */; };
 		B2B472FB1F0E79840043D501 /* aes.c in Sources */ = {isa = PBXBuildFile; fileRef = B2B472AB1F0E79840043D501 /* aes.c */; };
 		B2B472FC1F0E79840043D501 /* json.c in Sources */ = {isa = PBXBuildFile; fileRef = B2B472AE1F0E79840043D501 /* json.c */; };
 		B2B472FD1F0E79840043D501 /* sha256.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2B472B01F0E79840043D501 /* sha256.cpp */; };
@@ -62,6 +61,7 @@
 		B2B473081F0E79840043D501 /* MogView.m in Sources */ = {isa = PBXBuildFile; fileRef = B2B472D11F0E79840043D501 /* MogView.m */; };
 		B2B473091F0E79840043D501 /* MogViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B2B472D31F0E79840043D501 /* MogViewController.m */; };
 		B2B4730B1F0E79930043D501 /* assets_ios in Resources */ = {isa = PBXBuildFile; fileRef = B2B4730A1F0E79930043D501 /* assets_ios */; };
+		B2C2970D1F669623004A1399 /* SampleScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2C2970B1F669623004A1399 /* SampleScene.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -149,8 +149,6 @@
 		B2B472A31F0E79840043D501 /* Touch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Touch.h; sourceTree = "<group>"; };
 		B2B472A41F0E79840043D501 /* TouchEventListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TouchEventListener.cpp; sourceTree = "<group>"; };
 		B2B472A51F0E79840043D501 /* TouchEventListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchEventListener.h; sourceTree = "<group>"; };
-		B2B472A61F0E79840043D501 /* TouchEventManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TouchEventManager.cpp; sourceTree = "<group>"; };
-		B2B472A71F0E79840043D501 /* TouchEventManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchEventManager.h; sourceTree = "<group>"; };
 		B2B472A81F0E79840043D501 /* TouchInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchInput.h; sourceTree = "<group>"; };
 		B2B472A91F0E79840043D501 /* Transform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Transform.h; sourceTree = "<group>"; };
 		B2B472AB1F0E79840043D501 /* aes.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = aes.c; sourceTree = "<group>"; };
@@ -189,6 +187,8 @@
 		B2B472D21F0E79840043D501 /* MogViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogViewController.h; sourceTree = "<group>"; };
 		B2B472D31F0E79840043D501 /* MogViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MogViewController.m; sourceTree = "<group>"; };
 		B2B4730A1F0E79930043D501 /* assets_ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets_ios; path = ../../assets_ios; sourceTree = "<group>"; };
+		B2C2970B1F669623004A1399 /* SampleScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SampleScene.cpp; sourceTree = "<group>"; };
+		B2C2970C1F669623004A1399 /* SampleScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SampleScene.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -282,6 +282,8 @@
 			children = (
 				B2B472561F0E79840043D501 /* App.cpp */,
 				B2B472571F0E79840043D501 /* App.h */,
+				B2C2970B1F669623004A1399 /* SampleScene.cpp */,
+				B2C2970C1F669623004A1399 /* SampleScene.h */,
 			);
 			path = app;
 			sourceTree = "<group>";
@@ -373,8 +375,6 @@
 				B2B472A31F0E79840043D501 /* Touch.h */,
 				B2B472A41F0E79840043D501 /* TouchEventListener.cpp */,
 				B2B472A51F0E79840043D501 /* TouchEventListener.h */,
-				B2B472A61F0E79840043D501 /* TouchEventManager.cpp */,
-				B2B472A71F0E79840043D501 /* TouchEventManager.h */,
 				B2B472A81F0E79840043D501 /* TouchInput.h */,
 				B2B472A91F0E79840043D501 /* Transform.h */,
 				B215D8631F2A40FC00095E55 /* KeyEvent.h */,
@@ -557,6 +557,7 @@
 				B2B472FC1F0E79840043D501 /* json.c in Sources */,
 				B2B472EA1F0E79840043D501 /* Collision.cpp in Sources */,
 				B2B472D91F0E79840043D501 /* BatchingGroup.cpp in Sources */,
+				B2C2970D1F669623004A1399 /* SampleScene.cpp in Sources */,
 				B2B473071F0E79840043D501 /* MogStatsView.mm in Sources */,
 				B2B472DB1F0E79840043D501 /* DrawEntity.cpp in Sources */,
 				B2B472E21F0E79840043D501 /* RoundedRectangle.cpp in Sources */,
@@ -591,7 +592,6 @@
 				B2B472EC1F0E79840043D501 /* DataStore.cpp in Sources */,
 				B2B472DC1F0E79840043D501 /* Entity.cpp in Sources */,
 				B2B473091F0E79840043D501 /* MogViewController.m in Sources */,
-				B2B472FA1F0E79840043D501 /* TouchEventManager.cpp in Sources */,
 				B2B472D51F0E79840043D501 /* App.cpp in Sources */,
 				B2B472F31F0E79840043D501 /* plain_objects.cpp in Sources */,
 			);

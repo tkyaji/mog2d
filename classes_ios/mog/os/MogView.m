@@ -22,6 +22,9 @@
     self = [super initWithFrame:frame];
     if (!self) return self;
     
+    _nextTouchId = 1;
+    _touchIdDict = [NSMutableDictionary<NSNumber *, NSNumber *> new];
+    
     [self initGL];
     [self setUserInteractionEnabled:YES];
     [self setMultipleTouchEnabled:YES];

@@ -1,5 +1,4 @@
 #include "mog/base/DrawEntity.h"
-#include "mog/core/TouchEventManager.h"
 #include "mog/core/Engine.h"
 
 using namespace mog;

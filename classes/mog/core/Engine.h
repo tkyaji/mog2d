@@ -4,7 +4,6 @@
 #include <memory>
 #include <unordered_map>
 #include "mog/Constants.h"
-#include "mog/core/TouchEventManager.h"
 #include "mog/core/TouchInput.h"
 #include "mog/core/KeyEvent.h"
 #include "mog/core/NativeClass.h"
@@ -60,6 +59,12 @@ namespace mog {
         void setStatsViewEnable(bool enable);
         void setStatsViewAlignment(Alignment alignment);
 
+        void setTouchEnable(bool enable);
+        void setMultiTouchEnable(bool enable);
+        bool isTouchEnable();
+        bool isMultiTouchEnable();
+        void pushTouchableEntity(const shared_ptr<Entity> &entity);
+
         unsigned int registerOnUpdateFunc(function<void(unsigned int funcId)> onUpdateFunc);
         void removeOnUpdateFunc(unsigned int funcId);
 
@@ -95,16 +100,21 @@ namespace mog {
         unordered_map<unsigned int, function<void(unsigned int funcId)>> onUpdateFuncsToAdd;
         vector<unsigned int> onUpdateFuncIdsToRemove;
         
-        TouchEventManager *touchEventManager;
         void invokeOnUpdateFunc();
         
     private:
         bool displaySizeChanged = false;
         bool statsViewChanged = false;
+        bool touchEnable = true;
+        bool multiTouchEnable = true;
+        vector<shared_ptr<Entity>> touchableEntities;
+        unordered_map<int, Touch> prevTouches;
 
         void initParameters();
         void setViewPortScale();
         void initScreen();
+        
+        void fireTouchListeners(map<unsigned int, TouchInput> touches);
     };
 }
 

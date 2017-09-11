@@ -8,13 +8,13 @@ namespace mog {
     class Touch {
     public:
         Touch() {}
-        Touch(int touchId, const Point &position, const Point &viewPosition, float uptime) {
+        Touch(unsigned int touchId, const Point &position, const Point &viewPosition, float uptime) {
             this->touchId = touchId;
             this->position = position;
             this->viewPosition = viewPosition;
             this->uptime = uptime;
         }
-        int touchId = 0;
+        unsigned int touchId = 0;
         float uptime = 0;
         float deltaTime = 0;
         float startTime = 0;
