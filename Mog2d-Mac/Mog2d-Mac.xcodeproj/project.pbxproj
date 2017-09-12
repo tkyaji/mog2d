@@ -40,7 +40,6 @@
 		B24025FA1F38C5DE009FF29E /* Texture2D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B24025C51F38C5DE009FF29E /* Texture2D.cpp */; };
 		B24025FB1F38C5DE009FF29E /* TextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B24025C71F38C5DE009FF29E /* TextureAtlas.cpp */; };
 		B24025FC1F38C5DE009FF29E /* TouchEventListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B24025CA1F38C5DE009FF29E /* TouchEventListener.cpp */; };
-		B24025FD1F38C5DE009FF29E /* TouchEventManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B24025CC1F38C5DE009FF29E /* TouchEventManager.cpp */; };
 		B24025FE1F38C5DE009FF29E /* Tween.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B24025D01F38C5DE009FF29E /* Tween.cpp */; };
 		B24025FF1F38C5DE009FF29E /* aes.c in Sources */ = {isa = PBXBuildFile; fileRef = B24025D31F38C5DE009FF29E /* aes.c */; };
 		B24026001F38C5DE009FF29E /* json.c in Sources */ = {isa = PBXBuildFile; fileRef = B24025D61F38C5DE009FF29E /* json.c */; };
@@ -137,8 +136,6 @@
 		B24025C91F38C5DE009FF29E /* Touch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Touch.h; sourceTree = "<group>"; };
 		B24025CA1F38C5DE009FF29E /* TouchEventListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TouchEventListener.cpp; sourceTree = "<group>"; };
 		B24025CB1F38C5DE009FF29E /* TouchEventListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchEventListener.h; sourceTree = "<group>"; };
-		B24025CC1F38C5DE009FF29E /* TouchEventManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TouchEventManager.cpp; sourceTree = "<group>"; };
-		B24025CD1F38C5DE009FF29E /* TouchEventManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchEventManager.h; sourceTree = "<group>"; };
 		B24025CE1F38C5DE009FF29E /* TouchInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchInput.h; sourceTree = "<group>"; };
 		B24025CF1F38C5DE009FF29E /* Transform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Transform.h; sourceTree = "<group>"; };
 		B24025D01F38C5DE009FF29E /* Tween.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Tween.cpp; sourceTree = "<group>"; };
@@ -351,8 +348,6 @@
 				B24025C91F38C5DE009FF29E /* Touch.h */,
 				B24025CA1F38C5DE009FF29E /* TouchEventListener.cpp */,
 				B24025CB1F38C5DE009FF29E /* TouchEventListener.h */,
-				B24025CC1F38C5DE009FF29E /* TouchEventManager.cpp */,
-				B24025CD1F38C5DE009FF29E /* TouchEventManager.h */,
 				B24025CE1F38C5DE009FF29E /* TouchInput.h */,
 				B24025CF1F38C5DE009FF29E /* Transform.h */,
 				B24025D01F38C5DE009FF29E /* Tween.cpp */,
@@ -571,7 +566,6 @@
 				B24026291F38CAD0009FF29E /* MogFunction.m in Sources */,
 				B24025E61F38C5DE009FF29E /* Polygon.cpp in Sources */,
 				B24025F81F38C5DE009FF29E /* PubSub.cpp in Sources */,
-				B24025FD1F38C5DE009FF29E /* TouchEventManager.cpp in Sources */,
 				B24025F11F38C5DE009FF29E /* Engine.cpp in Sources */,
 				B24025FF1F38C5DE009FF29E /* aes.c in Sources */,
 				B24026241F38CAD0009FF29E /* NativeClass.mm in Sources */,

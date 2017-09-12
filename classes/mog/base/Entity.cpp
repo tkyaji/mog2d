@@ -498,8 +498,8 @@ shared_ptr<OBB> Entity::getOBB() {
                         this->renderer->matrix[1] * this->renderer->matrix[1]);
     float scaleY = sqrt(this->renderer->matrix[4] * this->renderer->matrix[4] +
                         this->renderer->matrix[5] * this->renderer->matrix[5]);
-    float x = this->renderer->matrix[12] * 0.5f;
-    float y = this->renderer->matrix[13] * 0.5f;
+    float x = this->renderer->matrix[12] / this->transform->screenScale;
+    float y = this->renderer->matrix[13] / this->transform->screenScale;
     auto vec1 = Vec2(this->renderer->matrix[0] / scaleX, this->renderer->matrix[1] / scaleX,
                      this->transform->size.width * scaleX);
     auto vec2 = Vec2(this->renderer->matrix[4] / scaleY, this->renderer->matrix[5] / scaleY,
