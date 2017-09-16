@@ -17,43 +17,51 @@ TouchEventListener::~TouchEventListener() {
 void TouchEventListener::touchBegin(const Touch &touch, const shared_ptr<Entity> &entity) {
     if (!this->enabled) return;
     
+    unsigned long long tid = ((unsigned long long)entity->getEntityId() << 32) + touch.touchId;
+    
     if (this->onTouchEnterEvent) {
         this->onTouchEnterEvent(touch, entity);
     }
-    this->touchEnteredIds.insert(touch.touchId);
+    this->touchEnteredIds.insert(tid);
+    
+    if (this->onTouchOverEvent) {
+        this->onTouchOverEvent(touch, entity);
+    }
     
     if (this->onTouchBeginEvent) {
         if (!this->onTouchBeginEvent(touch, entity)) return;
     }
-    this->touchBeganIds.insert(touch.touchId);
+    this->touchBeganIds.insert(tid);
 }
 
 void TouchEventListener::touchMove(const Touch &touch, const shared_ptr<Entity> &entity) {
     if (!this->enabled) return;
     
-    if (this->isTouchBegan(touch.touchId)) {
+    unsigned long long tid = ((unsigned long long)entity->getEntityId() << 32) + touch.touchId;
+    
+    if (this->isTouchBegan(tid)) {
         if (this->onTouchDragEvent) {
             this->onTouchDragEvent(touch, entity);
         }
     }
     
     if (entity->contains(touch.position)) {
-        if (this->isTouchEntered(touch.touchId)) {
-            if (this->onTouchOverEvent) {
-                this->onTouchOverEvent(touch, entity);
-            }
-        } else {
+        if (!this->isTouchEntered(tid)) {
             if (this->onTouchEnterEvent) {
                 this->onTouchEnterEvent(touch, entity);
             }
-            this->touchEnteredIds.insert(touch.touchId);
+            this->touchEnteredIds.insert(tid);
         }
+        if (this->onTouchOverEvent) {
+            this->onTouchOverEvent(touch, entity);
+        }
+        
     } else {
-        if (this->isTouchEntered(touch.touchId)) {
+        if (this->isTouchEntered(tid)) {
             if (this->onTouchExitEvent) {
                 this->onTouchExitEvent(touch, entity);
             }
-            this->touchEnteredIds.erase(touch.touchId);
+            this->touchEnteredIds.erase(tid);
         }
     }
 }
@@ -61,7 +69,9 @@ void TouchEventListener::touchMove(const Touch &touch, const shared_ptr<Entity> 
 void TouchEventListener::touchEnd(const Touch &touch, const shared_ptr<Entity> &entity) {
     if (!this->enabled) return;
     
-    if (this->isTouchBegan(touch.touchId)) {
+    unsigned long long tid = ((unsigned long long)entity->getEntityId() << 32) + touch.touchId;
+    
+    if (this->isTouchBegan(tid)) {
         if (this->onTouchEndEvent) {
             this->onTouchEndEvent(touch, entity);
         }
@@ -70,14 +80,14 @@ void TouchEventListener::touchEnd(const Touch &touch, const shared_ptr<Entity> &
                 this->onTapEvent(touch, entity);
             }
         }
-        this->touchBeganIds.erase(touch.touchId);
+        this->touchBeganIds.erase(tid);
     }
     
-    if (this->isTouchEntered(touch.touchId)) {
+    if (this->isTouchEntered(tid)) {
         if (this->onTouchExitEvent) {
             this->onTouchExitEvent(touch, entity);
         }
-        this->touchEnteredIds.erase(touch.touchId);
+        this->touchEnteredIds.erase(tid);
     }
 }
 
@@ -113,10 +123,10 @@ void TouchEventListener::setEnable(bool enabled) {
     this->enabled = enabled;
 }
 
-bool TouchEventListener::isTouchBegan(unsigned int touchId) {
+bool TouchEventListener::isTouchBegan(unsigned long long touchId) {
     return this->touchBeganIds.count(touchId) > 0;
 }
 
-bool TouchEventListener::isTouchEntered(unsigned int touchId) {
+bool TouchEventListener::isTouchEntered(unsigned long long touchId) {
     return this->touchEnteredIds.count(touchId) > 0;
 }

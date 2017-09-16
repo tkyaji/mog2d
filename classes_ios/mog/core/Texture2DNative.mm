@@ -1,89 +1,55 @@
-#include "mog/Constants.h"
+#import "mog/Constants.h"
 #import "Texture2DNative.h"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import <CoreText/CoreText.h>
 #import "Texture2D.h"
 
 using namespace mog;
 
+unordered_map<string, string> Texture2DNative::registeredFontNames;
 
-/*
-#define PVR_TEXTURE_FLAG_TYPE_MASK	0xff
-
-static char gPVRTexIdentifier[] = "PVR!";
-
-enum {
-    kPVRTextureFlagTypePVRTC_2 = 24,
-    kPVRTextureFlagTypePVRTC_4
-};
-
-typedef struct _PVRTexHeader {
-    uint32_t headerLength;
-    uint32_t height;
-    uint32_t width;
-    uint32_t numMipmaps;
-    uint32_t flags;
-    uint32_t dataLength;
-    uint32_t bpp;
-    uint32_t bitmaskRed;
-    uint32_t bitmaskGreen;
-    uint32_t bitmaskBlue;
-    uint32_t bitmaskAlpha;
-    uint32_t pvrTag;
-    uint32_t numSurfs;
-} PVRTexHeader;
-
-void Texture2DNative::loadPvrImage(Texture2D *tex2d, const char *filename) {
-    NSString *filenameStr = [NSString stringWithUTF8String:filename];
+string Texture2DNative::registerCustomFont(const char *fontFilename) {
+    string fontFilenameStr = fontFilename;
+    if (registeredFontNames.count(fontFilenameStr) > 0) {
+        return registeredFontNames[fontFilenameStr];
+    }
+    
+    NSString *filenameStr = [NSString stringWithFormat:@"assets_mac/%s", fontFilename];
     NSString *path = [[NSBundle mainBundle] pathForResource:filenameStr ofType:nil];
-    if (!path) {
-        LOGE("Texture2DNative::loadPvrImage: Resource is not found.");
-        LOGE(filename);
-        return;
-    }
-
-    NSData* data = [NSData dataWithContentsOfFile:path];
-    PVRTexHeader* header = (PVRTexHeader *)[data bytes];
-    
-    uint32_t pvrTag = CFSwapInt32LittleToHost(header->pvrTag);
-    
-    if (gPVRTexIdentifier[0] != ((pvrTag >>  0) & 0xff) ||
-        gPVRTexIdentifier[1] != ((pvrTag >>  8) & 0xff) ||
-        gPVRTexIdentifier[2] != ((pvrTag >> 16) & 0xff) ||
-        gPVRTexIdentifier[3] != ((pvrTag >> 24) & 0xff)) {
-        return;
-    }
-    
-    uint32_t flags = CFSwapInt32LittleToHost(header->flags);
-    uint32_t formatFlags = flags & PVR_TEXTURE_FLAG_TYPE_MASK;
-    
-    if (formatFlags == kPVRTextureFlagTypePVRTC_4 || formatFlags == kPVRTextureFlagTypePVRTC_2){
-        tex2d->filename = filename;
-        tex2d->width = CFSwapInt32LittleToHost(header->width);
-        tex2d->height = CFSwapInt32LittleToHost(header->height);
-        tex2d->dataLength = CFSwapInt32LittleToHost(header->dataLength);
-        
-        GLubyte* rawData = (GLubyte *)malloc(sizeof(GLubyte) * tex2d->dataLength);
-        memcpy(rawData, (void *)((unsigned long)[data bytes] + sizeof(PVRTexHeader)), tex2d->dataLength);
-        tex2d->data = rawData;
-
-        tex2d->isFlip = true;
-        if (formatFlags == kPVRTextureFlagTypePVRTC_4) {
-            tex2d->textureType = TextureType::PVRTC4;
-            tex2d->bitsPerPixel = 4;
-        } else {
-            tex2d->textureType = TextureType::PVRTC2;
-            tex2d->bitsPerPixel = 2;
+    if (path == nil) {
+        filenameStr = [NSString stringWithFormat:@"assets/%s", fontFilename];
+        path = [[NSBundle mainBundle] pathForResource:filenameStr ofType:nil];
+        if (path == nil) {
+            return "";
         }
     }
-}
-*/
-
-void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFace, float height) {
-    NSString *textStr = [NSString stringWithUTF8String:text];
-    NSString *fontFaceStr = [NSString stringWithUTF8String:fontFace];
-    if (!textStr || textStr.length == 0) return;
     
+    NSData *nsData = [NSData dataWithContentsOfFile:path];
+    CFErrorRef error;
+    CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)nsData);
+    CGFontRef font = CGFontCreateWithDataProvider(provider);
+    NSString *fontName = (__bridge NSString *)CGFontCopyFullName(font);
+    if (!CTFontManagerRegisterGraphicsFont(font, &error)) {
+        CFStringRef errorDescription = CFErrorCopyDescription(error);
+        NSLog(@"Failed to load font: %@", errorDescription);
+        CFRelease(errorDescription);
+    }
+    CFRelease(font);
+    CFRelease(provider);
+    
+    string fontNameStr = fontName.UTF8String;
+    registeredFontNames[fontFilenameStr] = fontNameStr;
+    
+    return fontNameStr;
+}
+
+void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFilename, float height) {
+    NSString *textStr = [NSString stringWithUTF8String:text];
+    string fontFace = registerCustomFont(fontFilename);
+    if (fontFace.length() == 0) return;
+    
+    NSString *fontFaceStr = [NSString stringWithUTF8String:fontFace.c_str()];
     UIFont* font = nil;
     if (fontSize == 0) {
         fontSize = (float)[UIFont systemFontSize];

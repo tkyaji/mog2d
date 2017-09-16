@@ -1,15 +1,53 @@
-#include "mog/Constants.h"
+#import "mog/Constants.h"
 #import "Texture2DNative.h"
 #import <Cocoa/Cocoa.h>
 #import "Texture2D.h"
 
 using namespace mog;
 
-void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFace, float height) {
-    NSString *textStr = [NSString stringWithUTF8String:text];
-    NSString *fontFaceStr = [NSString stringWithUTF8String:fontFace];
-    if (!textStr || textStr.length == 0) return;
+unordered_map<string, string> Texture2DNative::registeredFontNames;
+
+string Texture2DNative::registerCustomFont(const char *fontFilename) {
+    string fontFilenameStr = fontFilename;
+    if (registeredFontNames.count(fontFilenameStr) > 0) {
+        return registeredFontNames[fontFilenameStr];
+    }
     
+    NSString *filenameStr = [NSString stringWithFormat:@"assets_mac/%s", fontFilename];
+    NSString *path = [[NSBundle mainBundle] pathForResource:filenameStr ofType:nil];
+    if (path == nil) {
+        filenameStr = [NSString stringWithFormat:@"assets/%s", fontFilename];
+        path = [[NSBundle mainBundle] pathForResource:filenameStr ofType:nil];
+        if (path == nil) {
+            return "";
+        }
+    }
+    
+    NSData *nsData = [NSData dataWithContentsOfFile:path];
+    CFErrorRef error;
+    CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)nsData);
+    CGFontRef font = CGFontCreateWithDataProvider(provider);
+    NSString *fontName = (__bridge NSString *)CGFontCopyFullName(font);
+    if (!CTFontManagerRegisterGraphicsFont(font, &error)) {
+        CFStringRef errorDescription = CFErrorCopyDescription(error);
+        NSLog(@"Failed to load font: %@", errorDescription);
+        CFRelease(errorDescription);
+    }
+    CFRelease(font);
+    CFRelease(provider);
+    
+    string fontNameStr = fontName.UTF8String;
+    registeredFontNames[fontFilenameStr] = fontNameStr;
+    
+    return fontNameStr;
+}
+
+void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFilename, float height) {
+    NSString *textStr = [NSString stringWithUTF8String:text];
+    string fontFace = registerCustomFont(fontFilename);
+    if (fontFace.length() == 0) return;
+    
+    NSString *fontFaceStr = [NSString stringWithUTF8String:fontFace.c_str()];    
     NSFont* font = nil;
     if (fontSize == 0) {
         fontSize = (float)[NSFont systemFontSize];

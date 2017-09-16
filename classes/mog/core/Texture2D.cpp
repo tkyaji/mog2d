@@ -59,9 +59,9 @@ shared_ptr<Texture2D> Texture2D::createWithImage(unsigned char *image, int lengt
     return tex2d;
 }
 
-shared_ptr<Texture2D> Texture2D::createWithText(string text, float fontSize, string fontFace, float height) {
+shared_ptr<Texture2D> Texture2D::createWithText(string text, float fontSize, string fontFilename, float height) {
     auto tex2d = make_shared<Texture2D>();
-    tex2d->loadFontTexture(text, fontSize, fontFace, height);
+    tex2d->loadFontTexture(text, fontSize, fontFilename, height);
     return tex2d;
 }
 
@@ -135,9 +135,9 @@ bool Texture2D::readBytesAsset(string filename, unsigned char **data, int *len, 
     return false;
 }
 
-void Texture2D::loadFontTexture(string text, float fontSize, string fontFace, float height) {
+void Texture2D::loadFontTexture(string text, float fontSize, string fontFilename, float height) {
     Density den = Engine::getInstance()->getDensity();
-    Texture2DNative::loadFontTexture(this, text.c_str(), fontSize * den.value, fontFace.c_str(), height * den.value);
+    Texture2DNative::loadFontTexture(this, text.c_str(), fontSize * den.value, fontFilename.c_str(), height * den.value);
     this->density = den;
 }
 

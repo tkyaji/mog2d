@@ -17,48 +17,48 @@ LocalizedText::LocalizedText(string textKey, ...) {
 
 #pragma - Label
 
-shared_ptr<Label> Label::create(string textKey, float fontSize, string fontFace, float height) {
+shared_ptr<Label> Label::create(string textKey, float fontSize, string fontFilename, float height) {
     auto label = shared_ptr<Label>(new Label());
-    label->init(textKey, fontSize, fontFace, height);
+    label->init(textKey, fontSize, fontFilename, height);
     return label;
 }
 
-shared_ptr<Label> Label::create(const LocalizedText &localizedText, float fontSize, string fontFace, float height) {
+shared_ptr<Label> Label::create(const LocalizedText &localizedText, float fontSize, string fontFilename, float height) {
     auto label = shared_ptr<Label>(new Label());
-    label->init(localizedText.text, fontSize, fontFace, height);
+    label->init(localizedText.text, fontSize, fontFilename, height);
     return label;
 }
 
 Label::Label() {
 }
 
-void Label::init(string text, float fontSize, string fontFace, float height) {
-    this->texture = Texture2D::createWithText(text, fontSize, fontFace, height);
+void Label::init(string text, float fontSize, string fontFilename, float height) {
+    this->texture = Texture2D::createWithText(text, fontSize, fontFilename, height);
     
     this->text = text;
     this->fontSize = fontSize;
-    this->fontFace = fontFace;
+    this->fontFilename = fontFilename;
     this->height = height;
     this->transform->size.width = this->texture->width / this->texture->density.value;
     this->transform->size.height = this->texture->height / this->texture->density.value;
 }
 
-void Label::setText(string text, float fontSize, string fontFace, float height) {
+void Label::setText(string text, float fontSize, string fontFilename, float height) {
     if (fontSize <= 0) {
         fontSize = this->fontSize;
     }
-    if (fontFace.length() == 0) {
-        fontFace = this->fontFace;
+    if (fontFilename.length() == 0) {
+        fontFilename = this->fontFilename;
     }
     
-    this->init(text, fontSize, fontFace, height);
+    this->init(text, fontSize, fontFilename, height);
     
     this->reRenderFlag |= RERENDER_ALL;
     this->setReRenderFlag(RERENDER_ALL);
 }
 
-void Label::setText(const LocalizedText &localizedText, float fontSize, string fontFace, float height) {
-    this->setText(localizedText.text, fontSize, fontFace, height);
+void Label::setText(const LocalizedText &localizedText, float fontSize, string fontFilename, float height) {
+    this->setText(localizedText.text, fontSize, fontFilename, height);
 }
 
 string Label::getText() {
@@ -66,7 +66,7 @@ string Label::getText() {
 }
 
 void Label::setFontSize(float fontSize) {
-    this->init(this->text, fontSize, this->fontFace, this->height);
+    this->init(this->text, fontSize, this->fontFilename, this->height);
 }
 
 float Label::getFontSize() {
@@ -78,7 +78,7 @@ void Label::setFontFace(string fontFace) {
 }
 
 string Label::getFontFace() {
-    return this->fontFace;
+    return this->fontFilename;
 }
 
 shared_ptr<Label> Label::clone() {
@@ -97,6 +97,6 @@ void Label::copyFrom(const shared_ptr<Entity> &src) {
     auto srcLabel = static_pointer_cast<Label>(src);
     this->text = srcLabel->text;
     this->fontSize = srcLabel->fontSize;
-    this->fontFace = srcLabel->fontFace;
+    this->fontFilename = srcLabel->fontFilename;
     this->height = srcLabel->height;
 }

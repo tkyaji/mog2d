@@ -53,7 +53,7 @@ namespace mog {
         
         static shared_ptr<Texture2D> createWithImage(string filename);
         static shared_ptr<Texture2D> createWithImage(unsigned char *image, int length);
-        static shared_ptr<Texture2D> createWithText(string text, float fontSize, string fontFace = "", float height = 0);
+        static shared_ptr<Texture2D> createWithText(string text, float fontSize, string fontFilename = "", float height = 0);
         static shared_ptr<Texture2D> createWithColor(TextureType textureType, const Color &color, int width, int height, Density density = Density::x1_0);
         static shared_ptr<Texture2D> createWithRGBA(unsigned char *data, int width, int height, Density density = Density::x1_0);
         
@@ -67,7 +67,7 @@ namespace mog {
     private:
         void loadTexture(string filename);
         bool readBytesAsset(string filename, unsigned char **data, int *len, Density *density);
-        void loadFontTexture(string text, float fontSize, string fontFace = "", float height = 0);
+        void loadFontTexture(string text, float fontSize, string fontFilename = "", float height = 0);
         void loadColorTexture(TextureType textureType, const Color &color, int width, int height, Density density = Density::x1_0);
     };
 }

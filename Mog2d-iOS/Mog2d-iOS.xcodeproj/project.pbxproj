@@ -67,6 +67,7 @@
 /* Begin PBXFileReference section */
 		B215D8631F2A40FC00095E55 /* KeyEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KeyEvent.h; sourceTree = "<group>"; };
 		B240267A1F408469009FF29E /* stb_vorbis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_vorbis.h; sourceTree = "<group>"; };
+		B25501F71F6D809E00D1353A /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		B26615671EF4FC9F004D1A1A /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
 		B2A101721ED713DD00A2EB8A /* Mog2d-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mog2d-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2A101761ED713DD00A2EB8A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -255,6 +256,7 @@
 		B2A103391ED716BB00A2EB8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B25501F71F6D809E00D1353A /* CoreText.framework */,
 				B26615671EF4FC9F004D1A1A /* GameKit.framework */,
 				B2A1034A1ED725BD00A2EB8A /* QuartzCore.framework */,
 				B2A103441ED7170200A2EB8A /* AudioToolbox.framework */,

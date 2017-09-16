@@ -29,8 +29,8 @@ public class TextBitmap {
         }
     }
 
-    public static Result createFontTexture(Activity activity, String text, float fontSize, String fontFace, boolean isBold, boolean isItalic, int height) {
-        Paint forePaint = getFontPaint(activity, fontSize, fontFace, isBold, isItalic);
+    public static Result createFontTexture(Activity activity, String text, float fontSize, String fontFilename, boolean isBold, boolean isItalic, int height) {
+        Paint forePaint = getFontPaint(activity, fontSize, fontFilename, isBold, isItalic);
         Paint.FontMetrics metrics = forePaint.getFontMetrics();
 
         Paint backPaint = new Paint();
@@ -64,9 +64,9 @@ public class TextBitmap {
         return new Result(buffer.array(), textWidth, textHeight);
     }
 
-    private static Paint getFontPaint(Activity activity, float fontSize, String fontFace, boolean isBold, boolean isItalic) {
+    private static Paint getFontPaint(Activity activity, float fontSize, String fontFilename, boolean isBold, boolean isItalic) {
         Paint paint = new Paint();
-        Typeface typeface = getTypeFace(activity, fontFace);
+        Typeface typeface = getTypeFace(activity, fontFilename);
         if (isBold && isItalic) {
             paint.setTypeface(Typeface.create(typeface, Typeface.BOLD_ITALIC));
         } else if (isBold) {
@@ -82,37 +82,25 @@ public class TextBitmap {
         return paint;
     }
 
-    private static Typeface getTypeFace(Activity activity, String fontFace) {
+    private static Typeface getTypeFace(Activity activity, String fontFilename) {
         Typeface typeface = Typeface.DEFAULT;
-        if (fontFace == null || fontFace.length() == 0) {
+        if (fontFilename == null || fontFilename.length() == 0) {
             return typeface;
         }
 
-        String lowerCase = fontFace.toLowerCase();
+        String lowerCase = fontFilename.toLowerCase();
         if (lowerCase.equals("serif")) {
             return Typeface.SERIF;
         } else if (lowerCase.equals("sans_serif")) {
             return Typeface.SANS_SERIF;
         } else if (lowerCase.equals("monospace")) {
             return Typeface.MONOSPACE;
-        } else if (fontFace.contains(".")) {
-            try {
-                activity.getAssets().open(fontFace);
-                return Typeface.createFromAsset(activity.getAssets(), fontFace);
-            } catch (IOException e) {
-                Log.e(TAG, "Font file is not found. font=" + fontFace);
-            }
         } else {
             try {
-                activity.getAssets().open(fontFace + ".ttf");
-                return Typeface.createFromAsset(activity.getAssets(), fontFace + ".ttf");
+                activity.getAssets().open(fontFilename);
+                return Typeface.createFromAsset(activity.getAssets(), fontFilename);
             } catch (IOException e) {
-                try {
-                    activity.getAssets().open(fontFace + ".otf");
-                    return Typeface.createFromAsset(activity.getAssets(), fontFace + ".otf");
-                } catch (IOException ee) {
-                    Log.e(TAG, "Font file is not found. font=" + fontFace);
-                }
+                Log.e(TAG, "Font file is not found. fontFile=" + fontFilename);
             }
         }
         return Typeface.DEFAULT;

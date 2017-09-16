@@ -23,17 +23,17 @@ namespace mog {
     
     class Label : public DrawEntity {
     public:
-        static shared_ptr<Label> create(string text, float fontSize, string fontFace = "", float height = 0);
-        static shared_ptr<Label> create(const LocalizedText &localizedText, float fontSize, string fontFace = "", float height = 0);
+        static shared_ptr<Label> create(string text, float fontSize, string fontFilename = "", float height = 0);
+        static shared_ptr<Label> create(const LocalizedText &localizedText, float fontSize, string fontFilename = "", float height = 0);
         
-        void setText(string text, float fontSize = 0, string fontFace = "", float height = 0);
-        void setText(const LocalizedText &localizedText, float fontSize = 0, string fontFace = "", float height = 0);
+        void setText(string text, float fontSize = 0, string fontFilename = "", float height = 0);
+        void setText(const LocalizedText &localizedText, float fontSize = 0, string fontFilename = "", float height = 0);
         string getText();
         
         void setFontSize(float fontSize);
         float getFontSize();
         
-        void setFontFace(string fontFace);
+        void setFontFace(string fontFilename);
         string getFontFace();
         
         shared_ptr<Label> clone();
@@ -41,11 +41,11 @@ namespace mog {
 
     protected:
         Label();
-        void init(string text, float fontSize, string fontFace = "", float height = 0);
+        void init(string text, float fontSize, string fontFilename = "", float height = 0);
         
         string text;
         float fontSize;
-        string fontFace;
+        string fontFilename;
         float height;
         
         virtual void copyFrom(const shared_ptr<Entity> &src) override;

@@ -231,7 +231,7 @@ void Engine::setScreenSizeBasedOnHeight(float height) {
 
 void Engine::setScreenSizeBasedOnWidth(float width) {
     auto displaySize = this->getDisplaySize();
-    float scale = displaySize.width / width;
+    float scale = width / displaySize.width;
     float height = displaySize.height * scale;
     this->screenSize = Size(width, height);
 }

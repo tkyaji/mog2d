@@ -17,13 +17,14 @@ void Circle::init(float radius) {
     this->radius = radius;
     this->transform->size = Size(radius * 2, radius * 2);
     
+    int radiusi = (int)(radius * this->transform->screenScale * 0.5f);
     float v = 1.0f;
-    float r = radius - v;
-    int length = (int)(radius * radius + 0.5f) * 4;
+    float r = radiusi - v;
+    int length = (int)(radiusi * radiusi) * 4;
     unsigned char *data = new unsigned char[length];
-    for (int y = 0; y < radius; y++) {
-        for (int x = 0; x < radius; x++) {
-            int i = y * radius * 4 + x * 4;
+    for (int y = 0; y < radiusi; y++) {
+        for (int x = 0; x < radiusi; x++) {
+            int i = y * radiusi * 4 + x * 4;
             data[i + 0] = 255;
             data[i + 1] = 255;
             data[i + 2] = 255;
@@ -77,7 +78,7 @@ void Circle::bindVertices(float *vertices, int *idx, bool bakeTransform) {
     auto offset = Point(m[12], m[13]);
     
     Point size = Point(this->transform->size.width * this->transform->screenScale,
-                      this->transform->size.height * this->transform->screenScale);
+                       this->transform->size.height * this->transform->screenScale);
     float xx[3] = {
         0,
         size.x * 0.5f,
@@ -140,19 +141,20 @@ float Circle::getRadius() {
 }
 
 void Circle::setRadius(float radius) {
-    
-}
-
-bool Circle::contains(const Point &point) {
-    return false;
-}
-
-bool Circle::collidesWith(const shared_ptr<Entity> &other) {
-    return false;
+    this->init(radius);
+    this->setReRenderFlag(RERENDER_ALL);
 }
 
 shared_ptr<CIRCLE> Circle::getCIRCLE() {
-    return shared_ptr<CIRCLE>(new CIRCLE(this->transform->position.x, this->transform->position.y, this->getRadius()));
+    float scaleX = sqrt(this->renderer->matrix[0] * this->renderer->matrix[0] +
+                        this->renderer->matrix[1] * this->renderer->matrix[1]);
+    float scaleY = sqrt(this->renderer->matrix[4] * this->renderer->matrix[4] +
+                        this->renderer->matrix[5] * this->renderer->matrix[5]);
+    auto position = Point(this->renderer->matrix[12], this->renderer->matrix[13]) / this->transform->screenScale;
+    auto size = this->transform->size * Point(scaleX, scaleY);
+    float centerX = position.x + size.width * 0.5f;
+    float centerY = position.y + size.height * 0.5f;
+    return shared_ptr<CIRCLE>(new CIRCLE(centerX, centerY, this->getRadius()));
 }
 
 shared_ptr<Collider> Circle::getCollider() {

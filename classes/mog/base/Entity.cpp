@@ -94,7 +94,7 @@ void Entity::bindVertex() {
     this->getIndiciesNum(&indiciesNum);
     int verticesNum = 0;
     this->getVerticesNum(&verticesNum);
-
+    
     auto indices = new short[indiciesNum];
     int idx = 0;
     this->bindIndices(indices, &idx, 0);
@@ -119,7 +119,7 @@ void Entity::bindVertices(float *vertices, int *idx, bool bakeTransform) {
     } else {
         m = Renderer::identityMatrix;
     }
-
+    
     auto v1 = Point(m[0], m[1]);
     auto v2 = Point(m[4], m[5]);
     auto p1 = Point::zero;

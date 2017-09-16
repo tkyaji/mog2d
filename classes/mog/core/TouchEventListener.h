@@ -32,14 +32,14 @@ namespace mog {
         void setOnTouchExitEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchExitEvent);
 
         void setEnable(bool enabled);
-        bool isTouchBegan(unsigned int touchId);
-        bool isTouchEntered(unsigned int touchId);
+        bool isTouchBegan(unsigned long long touchId);
+        bool isTouchEntered(unsigned long long touchId);
         
     protected:
         TouchEventListener();
         bool enabled = true;
-        set<unsigned int> touchBeganIds;
-        set<unsigned int> touchEnteredIds;
+        set<unsigned long long> touchBeganIds;
+        set<unsigned long long> touchEnteredIds;
 
         function<void(const Touch &t, const shared_ptr<Entity> &e)> onTapEvent;
         function<bool(const Touch &t, const shared_ptr<Entity> &e)> onTouchBeginEvent;
