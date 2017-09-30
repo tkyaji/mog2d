@@ -11,7 +11,6 @@
     CVDisplayLinkRef _displayLink;
     mog::Engine *_engine;
     float _fps;
-    BOOL _engineInitialized;
     map<unsigned int, mog::TouchInput> _touches;
 }
 
@@ -32,12 +31,13 @@
     _engine->setNativeObject(MOG_ENGINE_CONTROLLER, mog::NativeObject::create((__bridge void *)self));
      */
     
-    auto app = shared_ptr<mog::App>(new mog::App());
-    _engine->setApp(app);
-    
     _fps = DEFAULT_FPS;
     
     return self;
+}
+
+- (void)initEngine {
+    _engine->initEngine(make_shared<mog::App>());
 }
 
 static CVReturn renderCallback(CVDisplayLinkRef displayLink,
@@ -71,10 +71,6 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
 
 - (void)startEngine {
     [self startDraw];
-    if (!_engineInitialized) {
-        _engine->initEngine();
-        _engineInitialized = YES;
-    }
     _engine->startEngine();
 }
 

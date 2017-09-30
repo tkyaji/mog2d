@@ -45,18 +45,21 @@ string Texture2DNative::registerCustomFont(const char *fontFilename) {
 }
 
 void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFilename, float height) {
-    NSString *textStr = [NSString stringWithUTF8String:text];
-    string fontFace = registerCustomFont(fontFilename);
-    if (fontFace.length() == 0) return;
-    
-    NSString *fontFaceStr = [NSString stringWithUTF8String:fontFace.c_str()];
     UIFont* font = nil;
-    if (fontSize == 0) {
-        fontSize = (float)[UIFont systemFontSize];
-    }
     
-    if (fontFaceStr && fontFaceStr.length > 0) {
-        font = [UIFont fontWithName:fontFaceStr size:fontSize];
+    NSString *textStr = [NSString stringWithUTF8String:text];
+    if (fontFilename != nullptr && strlen(fontFilename) > 0) {
+        string fontFace = registerCustomFont(fontFilename);
+        if (fontFace.length() == 0) {
+            fontFace = fontFilename;
+        }
+        NSString *fontFaceStr = [NSString stringWithUTF8String:fontFace.c_str()];
+        if (fontSize == 0) {
+            fontSize = (float)[UIFont systemFontSize];
+        }
+        if (fontFaceStr && fontFaceStr.length > 0) {
+            font = [UIFont fontWithName:fontFaceStr size:fontSize];
+        }
     }
     if (!font) {
         font = [UIFont systemFontOfSize:fontSize];

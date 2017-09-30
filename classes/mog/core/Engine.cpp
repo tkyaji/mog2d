@@ -10,7 +10,6 @@
 #include "mog/core/AudioPlayer.h"
 #include "mog/core/DataStore.h"
 #include "mog/core/NativePlugin.h"
-#include "mog/os/MogStatsView.h"
 
 using namespace mog;
 
@@ -41,30 +40,16 @@ Engine::Engine() {
     this->renderer = make_shared<Renderer>();
     
 #ifdef MOG_DEBUG
-    this->statsViewEnable = true;
+    bool statsEnable = true;
 #else
-    this->statsViewEnable = false;
+    bool statsEnable = false;
 #endif
+    this->stats = MogStats::create(statsEnable);
 }
 
-void Engine::initEngine(bool loadApp) {
+void Engine::initEngine(shared_ptr<AppBase> app) {
     this->initParameters();
-    
-    if (this->statsViewEnable) {
-        MogStatsView::setEnable(true);
-    }
-
-    if (this->app) {
-        if (loadApp) {
-            this->app->onLoad();
-
-        } else {
-            auto scene = this->app->getCurrentScene();
-            if (scene) {
-                scene->getRootGroup()->setReRenderFlagToChild(RERENDER_ALL);
-            }
-        }
-    }
+    this->app = app;
 }
 
 void Engine::terminateEngine() {
@@ -83,6 +68,10 @@ void Engine::startEngine() {
     
     AudioPlayer::onResume();
     if (this->app) {
+        if (!this->appLoaded) {
+            this->app->onLoad();
+            this->appLoaded = true;
+        }
         this->app->onResume();
     }
 }
@@ -119,11 +108,7 @@ void Engine::onDrawFrame(map<unsigned int, TouchInput> touches) {
         this->app->drawFrame(delta);
     }
     
-#ifdef MOG_DEBUG
-    if (this->statsViewEnable && this->frameCount % 4 == 0) {
-        MogStatsView::setStats(delta, Renderer::drawCallCounter, Entity::instanceNumCounter);
-    }
-#endif
+    this->stats->drawFrame(delta);
     
     this->frameCount++;
     
@@ -167,10 +152,6 @@ void Engine::initScreen() {
     this->displaySizeChanged = false;
 }
 
-void Engine::setApp(const shared_ptr<AppBase> &app) {
-    this->app = app;
-}
-
 shared_ptr<AppBase> Engine::getApp() {
     return this->app;
 }
@@ -204,6 +185,11 @@ Size Engine::getScreenSize() {
 }
 
 void Engine::setDisplaySize(const Size &size, float deviceDensity) {
+    if (approximately(this->displaySize.width, size.width) &&
+            approximately(this->displaySize.height, size.height) &&
+            approximately(this->deviceDensity, deviceDensity)) {
+        return;
+    }
     this->displaySize = size;
     this->deviceDensity = deviceDensity;
     
@@ -266,12 +252,11 @@ void Engine::onKeyEvent(const KeyEvent &keyEvent) {
 }
 
 void Engine::setStatsViewEnable(bool enable) {
-    MogStatsView::setEnable(enable);
-    this->statsViewEnable = enable;
+    this->stats->setEnable(enable);
 }
 
 void Engine::setStatsViewAlignment(Alignment alignment) {
-    MogStatsView::setAlignment(alignment);
+    this->stats->setAlignment(alignment);
 }
 
 void Engine::startTimer() {

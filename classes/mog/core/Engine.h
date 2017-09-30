@@ -7,6 +7,7 @@
 #include "mog/core/TouchInput.h"
 #include "mog/core/KeyEvent.h"
 #include "mog/core/NativeClass.h"
+#include "mog/core/MogStats.h"
 #include "mog/base/AppBase.h"
 
 using namespace std;
@@ -18,7 +19,7 @@ namespace mog {
         static Engine *getInstance();
         static Engine *initInstance();
 
-        void initEngine(bool loadApp = true);
+        void initEngine(shared_ptr<AppBase> app);
         void terminateEngine();
         void startEngine();
         void stopEngine();
@@ -28,7 +29,6 @@ namespace mog {
         void onKeyEvent(const KeyEvent &keyEvent);
 
         shared_ptr<AppBase> getApp();
-        void setApp(const shared_ptr<AppBase> &app);
         
         shared_ptr<NativeObject> getNativeObject(string name);
         void setNativeObject(string name, const shared_ptr<NativeObject> &nObj);
@@ -75,9 +75,9 @@ namespace mog {
         shared_ptr<AppBase> app;
         unordered_map<string, shared_ptr<NativeObject>> nativeObjects;
         shared_ptr<Renderer> renderer;
+        shared_ptr<MogStats> stats;
         bool running = false;
         unsigned long long frameCount = 0;
-        bool statsViewEnable = false;
         Size displaySize = Size::zero;
         Size screenSize = Size::zero;
         Color color = Color::black;
@@ -93,7 +93,6 @@ namespace mog {
         long long timerBackupTime = 0;
         float lastElapsedSec = 0;
         
-        
         GLuint framebufferStack[8];
         int framebufferStackIndex = -1;
         unordered_map<unsigned int, function<void(unsigned int funcId)>> onUpdateFuncs;
@@ -103,6 +102,7 @@ namespace mog {
         void invokeOnUpdateFunc();
         
     private:
+        bool appLoaded = false;
         bool displaySizeChanged = false;
         bool statsViewChanged = false;
         bool touchEnable = true;

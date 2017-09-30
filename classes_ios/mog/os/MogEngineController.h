@@ -7,6 +7,7 @@
 @interface MogEngineController : NSObject <MogTouchEventDelegate>
 
 - (instancetype)initWithMog:(MogViewController *)viewController view:(MogView *)view;
+- (void)initEngine;
 - (void)startEngine;
 - (void)stopEngine;
 - (void)didReceiveMemoryWarning;

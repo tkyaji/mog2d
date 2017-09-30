@@ -11,7 +11,6 @@
     CADisplayLink *_displayLink;
     mog::Engine *_engine;
     float _fps;
-    BOOL _engineInitialized;
     map<unsigned int, mog::TouchInput> _touches;
 }
 
@@ -28,9 +27,6 @@
     _engine->setNativeObject(MOG_VIEW_CONTROLLER, mog::NativeObject::create((__bridge void *)viewController));
     _engine->setNativeObject(MOG_VIEW, mog::NativeObject::create((__bridge void *)view));
     _engine->setNativeObject(MOG_ENGINE_CONTROLLER, mog::NativeObject::create((__bridge void *)self));
-    
-    auto app = shared_ptr<mog::App>(new mog::App());
-    _engine->setApp(app);
     
     _fps = DEFAULT_FPS;
     
@@ -58,12 +54,12 @@
     _displayLink = nil;
 }
 
+- (void)initEngine {
+    _engine->initEngine(make_shared<mog::App>());
+}
+
 - (void)startEngine {
     [self startDraw];
-    if (!_engineInitialized) {
-        _engine->initEngine();
-        _engineInitialized = YES;
-    }
     _engine->startEngine();
 }
 

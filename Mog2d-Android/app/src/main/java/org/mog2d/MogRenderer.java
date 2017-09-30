@@ -17,9 +17,6 @@ public class MogRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
         this.fps = MogJniBridge.getDefaultFps();
-        if (Build.VERSION.SDK_INT <= 21) {
-            this.fps = 30;
-        }
         MogJniBridge.onSurfaceCreated();
     }
 

@@ -7,8 +7,14 @@ using namespace mog;
 
 unordered_map<string, shared_ptr<Data>> DataStore::caches;
 unordered_map<string, bool> DataStore::unsaved;
+mutex DataStore::mtx;
 
 bool DataStore::hasKey(string key) {
+    std::lock_guard<std::mutex> lock(mtx);
+    return _hasKey(key);
+}
+
+bool DataStore::_hasKey(string key) {
     if (DataStore::caches.count(key) > 0) return true;
     
     string file = _getStoreFilePath(key);
@@ -17,11 +23,21 @@ bool DataStore::hasKey(string key) {
 }
 
 void DataStore::remove(string key) {
+    std::lock_guard<std::mutex> lock(mtx);
+    _remove(key);
+}
+
+void DataStore::_remove(string key) {
     string file = _getStoreFilePath(key);
     std::remove(file.c_str());
 }
 
 void DataStore::removeAll() {
+    std::lock_guard<std::mutex> lock(mtx);
+    _removeAll();
+}
+
+void DataStore::_removeAll() {
     DIR* dp = opendir(_getStoreDirectory().c_str());
     if (dp == NULL) return;
     
@@ -36,6 +52,11 @@ void DataStore::removeAll() {
 }
 
 void DataStore::save() {
+    std::lock_guard<std::mutex> lock(mtx);
+    _save();
+}
+
+void DataStore::_save() {
     for (auto &kv : DataStore::unsaved) {
         if (kv.second) {
             auto data = DataStore::caches[kv.first];
@@ -46,6 +67,11 @@ void DataStore::save() {
 }
 
 void DataStore::save(string key) {
+    std::lock_guard<std::mutex> lock(mtx);
+    _save(key);
+}
+
+void DataStore::_save(string key) {
     auto data = DataStore::caches[key];
     if (data) {
         DataStore::serialize(key, *data.get());
@@ -53,6 +79,3 @@ void DataStore::save(string key) {
     }
 }
 
-void DataStore::enableEncryption(string key) {
-    
-}

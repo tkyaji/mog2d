@@ -43,20 +43,18 @@ add_library(
     ${PROJ_DIR}/classes/mog/core/Texture2D.cpp
     ${PROJ_DIR}/classes/mog/core/TextureAtlas.cpp
     ${PROJ_DIR}/classes/mog/core/TouchEventListener.cpp
-    ${PROJ_DIR}/classes/mog/core/TouchEventManager.cpp
+    ${PROJ_DIR}/classes/mog/core/MogStats.cpp
     ${PROJ_DIR}/classes/mog/libs/sha256.cpp
     ${PROJ_DIR}/classes/mog/libs/aes.c
     ${PROJ_DIR}/classes/mog/libs/json.c
 
     ${PROJ_DIR}/classes_android/mog/core/AudioPlayerNative.cpp
-    ${PROJ_DIR}/classes_android/mog/core/EngineNative.cpp
     ${PROJ_DIR}/classes_android/mog/core/FileUtilsNative.cpp
     ${PROJ_DIR}/classes_android/mog/core/mog_functions_native.cpp
     ${PROJ_DIR}/classes_android/mog/core/PreferenceNative.cpp
     ${PROJ_DIR}/classes_android/mog/core/Texture2DNative.cpp
     ${PROJ_DIR}/classes_android/mog/core/NativeClass.cpp
     ${PROJ_DIR}/classes_android/mog/os/Java_MogJniBridge.cpp
-    ${PROJ_DIR}/classes_android/mog/os/MogStatsView.cpp
 
     ${PROJ_DIR}/classes/app/App.cpp
     ${PROJ_DIR}/classes/app/SampleScene.cpp

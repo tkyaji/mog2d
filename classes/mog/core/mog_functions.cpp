@@ -76,5 +76,12 @@ float smoothstep(float edge0, float edge1, float x) {
     return t * t * (3 - 2 * t );
 }
 
-
-
+bool approximately(float a, float b) {
+    if (a > b) {
+        return a - b < 0.00000000000001f;
+    } else if (a < b) {
+        return b - a < 0.00000000000001f;
+    } else {
+        return true;
+    }
+}

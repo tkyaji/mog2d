@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <OpenAL/OpenAL.h>
 #include <AudioToolbox/AudioToolbox.h>
-#include "AudioPlayer.h"
+#include "mog/core/AudioPlayer.h"
 
 using namespace std;
 
@@ -28,7 +28,6 @@ namespace mog {
         static bool loadFromAssetNative(ALuint buffer, const char *filename);
         static void *getOpenALAudioData(CFURLRef fileURL, ALsizei* dataSize,
                                         ALenum* dataFormat, ALsizei *sampleRate, bool *loaded);
-
     };
 
     

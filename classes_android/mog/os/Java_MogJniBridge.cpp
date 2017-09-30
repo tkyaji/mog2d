@@ -29,9 +29,6 @@ public:
         this->engine->setNativeObject(MOG_ACTIVITY, NativeObject::create(jActivity));
         this->engine->setNativeObject(MOG_AASET_MANAGER, NativeObject::create(jAssetManager));
         this->scaleFactor = scaleFactor;
-
-        this->app = make_shared<App>();
-        this->engine->setApp(app);
     }
 
     void onDestroy(JNIEnv* env, jobject obj) {
@@ -58,15 +55,12 @@ public:
     }
 
     void onSurfaceCreated(JNIEnv* env, jobject obj) {
+        this->engine->initEngine(make_shared<App>());
     }
 
     void onSurfaceChanged(JNIEnv* env, jobject obj, jint w, jint h) {
         this->engine->setDisplaySize(Size(w, h), this->scaleFactor);
         this->engine->setScreenSizeBasedOnHeight(BASE_SCREEN_HEIGHT);
-        if (!this->initialized) {
-            this->engine->initEngine();
-            this->initialized = true;
-        }
         this->engine->startEngine();
     }
 
@@ -105,11 +99,9 @@ private:
 
     static MogRenderer *instance;
     Engine *engine;
-    shared_ptr<App> app;
     float scaleFactor;
     map<unsigned int, TouchInput> touches;
     std::mutex mtx;
-    bool initialized = false;
 };
 MogRenderer *MogRenderer::instance;
 
