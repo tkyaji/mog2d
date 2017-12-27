@@ -11,6 +11,7 @@
 using namespace std;
 
 namespace mog {
+    class Engine;
     
     enum class Transition {
         None,
@@ -45,9 +46,9 @@ namespace mog {
     
     class AppBase : public enable_shared_from_this<AppBase> {
     public:
-        static AppBase *getApp();
-        
         AppBase();
+        
+        void setEngine(const shared_ptr<Engine> &engine);
         
         void loadScene(const shared_ptr<Scene> &scene);
         void loadScene(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing = Easing::Linear);
@@ -125,8 +126,7 @@ namespace mog {
             }
         };
         
-        static AppBase *app;
-
+        weak_ptr<Engine> engine;
         shared_ptr<PubSub> pubsub;
         vector<shared_ptr<Scene>> sceneStack;
         

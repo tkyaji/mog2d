@@ -3,13 +3,12 @@
 #import "app/App.h"
 #import "mog/Constants.h"
 #import "mog/core/NativeClass.h"
-//#import "mog/os/IOSHelper.h"
 
 @implementation MogEngineController {
     MogViewController *_mogViewController;
     MogView *_mogView;
     CVDisplayLinkRef _displayLink;
-    mog::Engine *_engine;
+    shared_ptr<mog::Engine> _engine;
     float _fps;
     map<unsigned int, mog::TouchInput> _touches;
 }
@@ -18,26 +17,19 @@
     self = [super init];
     if (!self) return self;
     
-    _engine = mog::Engine::initInstance();
-    _engine->setDisplaySize(mog::Size(view.glWidth, view.glHeight), view.scaleFactor);
-    _engine->setScreenSizeBasedOnHeight(view.frame.size.height);
+    _engine = mog::Engine::create(make_shared<mog::App>());
+    _engine->setDisplaySize(mog::Size(view.glWidth, view.glHeight));
+    _engine->setScreenSizeBasedOnHeight(BASE_SCREEN_HEIGHT);
     _mogViewController = viewController;
     _mogView = view;
     
-    // TODO
-    /*
     _engine->setNativeObject(MOG_VIEW_CONTROLLER, mog::NativeObject::create((__bridge void *)viewController));
     _engine->setNativeObject(MOG_VIEW, mog::NativeObject::create((__bridge void *)view));
     _engine->setNativeObject(MOG_ENGINE_CONTROLLER, mog::NativeObject::create((__bridge void *)self));
-     */
     
     _fps = DEFAULT_FPS;
     
     return self;
-}
-
-- (void)initEngine {
-    _engine->initEngine(make_shared<mog::App>());
 }
 
 static CVReturn renderCallback(CVDisplayLinkRef displayLink,
@@ -84,7 +76,7 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
 }
 
 - (void)terminateEngine {
-    _engine->terminateEngine();
+    _engine = nullptr;
 }
 
 - (void)setFps:(float)fps {
@@ -95,9 +87,11 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
 
 - (void)drawFrame {
     @synchronized (self) {
+        if (!_displayLink) return;
+        
         [_mogView.glContext lock];
         
-        mog::Engine::getInstance()->onDrawFrame(_touches);
+        _engine->onDrawFrame(_touches);
         _touches.clear();
         
         [_mogView.glContext flushBuffer];

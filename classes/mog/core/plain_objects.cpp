@@ -26,52 +26,51 @@ Point::Point(const Size &size) {
     this->y = size.height;
 }
 
-Point Point::operator=(const Point &p) {
-    this->x = p.x;
-    this->y = p.y;
-    return *this;
-}
-
-Point Point::operator+(const Point &p) {
+Point Point::operator+(const Point &p) const {
     return Point(this->x + p.x, this->y + p.y);
 }
 
-Point Point::operator-(const Point &p) {
+Point Point::operator-(const Point &p) const {
     return Point(this->x - p.x, this->y - p.y);
 }
 
-Point Point::operator*(const Point &p) {
+Point Point::operator*(const Point &p) const {
     return Point(this->x * p.x, this->y * p.y);
 }
 
-Point Point::operator/(const Point &p) {
+Point Point::operator/(const Point &p) const {
     return Point(this->x / p.x, this->y / p.y);
 }
 
-Point Point::operator+(float value) {
+Point Point::operator+(float value) const {
     return Point(this->x + value, this->y + value);
 }
 
-Point Point::operator-(float value) {
+Point Point::operator-(float value) const {
     return Point(this->x - value, this->y - value);
 }
 
-Point Point::operator*(float value) {
+Point Point::operator*(float value) const {
     return Point(this->x * value, this->y * value);
 }
 
-Point Point::operator/(float value) {
+Point Point::operator/(float value) const {
     return Point(this->x / value, this->y / value);
 }
 
-bool Point::operator==(const Point &p) {
+bool Point::operator==(const Point &p) const {
     return this->x == p.x && this->y == p.y;
+}
+
+bool Point::operator!=(const Point &p) const {
+    return !(*this == p);
 }
 
 
 #pragma - Size
 
 Size Size::zero(0, 0);
+Size Size::half(0.5f, 0.5f);
 Size Size::one(1, 1);
 
 Size::Size() {
@@ -92,46 +91,70 @@ Size::Size(const Point &point) {
     this->height = point.y;
 }
 
-Size Size::operator=(const Size &size) {
-    this->width = size.width;
-    this->height = size.height;
-    return *this;
-}
-
-Size Size::operator+(const Size &size) {
+Size Size::operator+(const Size &size) const {
     return Size(this->width + size.width, this->height + size.height);
 }
 
-Size Size::operator-(const Size &size) {
+Size Size::operator-(const Size &size) const {
     return Size(this->width - size.width, this->height - size.height);
 }
 
-Size Size::operator*(const Size &size) {
+Size Size::operator*(const Size &size) const {
     return Size(this->width * size.width, this->height * size.height);
 }
 
-Size Size::operator/(const Size &size) {
+Size Size::operator/(const Size &size) const {
     return Size(this->width / size.width, this->height / size.height);
 }
 
-Size Size::operator+(float value) {
+Size Size::operator+(float value) const {
     return Size(this->width + value, this->height + value);
 }
 
-Size Size::operator-(float value) {
+Size Size::operator-(float value) const {
     return Size(this->width - value, this->height - value);
 }
 
-Size Size::operator*(float value) {
+Size Size::operator*(float value) const {
     return Size(this->width * value, this->height * value);
 }
 
-Size Size::operator/(float value) {
+Size Size::operator/(float value) const {
     return Size(this->width / value, this->height / value);
 }
 
-bool Size::operator==(const Size &size) {
+bool Size::operator==(const Size &size) const {
     return this->width == size.width && this->height == size.height;
+}
+
+bool Size::operator!=(const Size &size) const {
+    return !(*this == size);
+}
+
+
+#pragma - Rect
+
+Rect Rect::zero(0, 0, 0, 0);
+
+Rect::Rect() {
+}
+
+Rect::Rect(const Point &position, const Size &size) {
+    this->position = position;
+    this->size = size;
+}
+
+Rect::Rect(float x, float y, float width, float height) {
+    this->position = Point(x, y);
+    this->size = Size(width, height);
+}
+
+bool Rect::operator==(const Rect &rect) const {
+    return this->position == rect.position && this->size == rect.size;
+}
+
+bool Rect::operator!=(const Rect &rect) const {
+    return !(*this == rect);
 }
 
 
@@ -152,14 +175,18 @@ Color::Color(float r, float g, float b, float a) {
     this->a = a;
 }
 
-Color Color::operator*(const Color &c) {
+Color Color::operator*(const Color &c) const {
     return Color(this->r * c.r, this->g * c.g, this->b * c.b, this->a * c.a);
 }
 
-Color Color::operator*(float c) {
+Color Color::operator*(float c) const {
     return Color(this->r * c, this->g * c, this->b * c, this->a * c);
 }
 
-bool Color::operator==(const Color &c) {
+bool Color::operator==(const Color &c) const {
     return (this->r == c.r && this->g == c.g && this->b == c.b && this->a == c.a);
+}
+
+bool Color::operator!=(const Color &c) const {
+    return !(*this == c);
 }

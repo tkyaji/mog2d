@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		B254E0D31F360B16008DD68C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2A103441ED7170200A2EB8A /* AudioToolbox.framework */; };
+		B27388B31F8E54D300654BD9 /* Device.mm in Sources */ = {isa = PBXBuildFile; fileRef = B27388B11F8E54D300654BD9 /* Device.mm */; };
+		B27388B91F8E583800654BD9 /* Density.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B27388B81F8E583800654BD9 /* Density.cpp */; };
 		B28D5F371F794BC300F37D62 /* MogStats.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B28D5F351F794BC300F37D62 /* MogStats.cpp */; };
 		B2A101771ED713DD00A2EB8A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B2A101761ED713DD00A2EB8A /* main.m */; };
 		B2A101821ED713DD00A2EB8A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B2A101811ED713DD00A2EB8A /* Assets.xcassets */; };
@@ -69,6 +71,11 @@
 		B240267A1F408469009FF29E /* stb_vorbis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_vorbis.h; sourceTree = "<group>"; };
 		B25501F71F6D809E00D1353A /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		B26615671EF4FC9F004D1A1A /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
+		B27388B11F8E54D300654BD9 /* Device.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Device.mm; sourceTree = "<group>"; };
+		B27388B21F8E54D300654BD9 /* Device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Device.h; sourceTree = "<group>"; };
+		B27388B41F8E56DC00654BD9 /* Density.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Density.h; sourceTree = "<group>"; };
+		B27388B81F8E583800654BD9 /* Density.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Density.cpp; sourceTree = "<group>"; };
+		B27388BA1F8E670400654BD9 /* ConstantsNative.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConstantsNative.h; sourceTree = "<group>"; };
 		B28D5F351F794BC300F37D62 /* MogStats.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MogStats.cpp; sourceTree = "<group>"; };
 		B28D5F361F794BC300F37D62 /* MogStats.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MogStats.h; sourceTree = "<group>"; };
 		B2A101721ED713DD00A2EB8A /* Mog2d-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mog2d-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -176,7 +183,6 @@
 		B2B472C21F0E79840043D501 /* PreferenceNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PreferenceNative.mm; sourceTree = "<group>"; };
 		B2B472C41F0E79840043D501 /* Texture2DNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Texture2DNative.h; sourceTree = "<group>"; };
 		B2B472C51F0E79840043D501 /* Texture2DNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Texture2DNative.mm; sourceTree = "<group>"; };
-		B2B472C71F0E79840043D501 /* IOSHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IOSHelper.h; sourceTree = "<group>"; };
 		B2B472C81F0E79840043D501 /* MogAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogAppDelegate.h; sourceTree = "<group>"; };
 		B2B472C91F0E79840043D501 /* MogAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MogAppDelegate.m; sourceTree = "<group>"; };
 		B2B472CA1F0E79840043D501 /* MogEngineController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogEngineController.h; sourceTree = "<group>"; };
@@ -382,6 +388,8 @@
 				B215D8631F2A40FC00095E55 /* KeyEvent.h */,
 				B28D5F351F794BC300F37D62 /* MogStats.cpp */,
 				B28D5F361F794BC300F37D62 /* MogStats.h */,
+				B27388B41F8E56DC00654BD9 /* Density.h */,
+				B27388B81F8E583800654BD9 /* Density.cpp */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -425,6 +433,7 @@
 				B2B472B81F0E79840043D501 /* core */,
 				B2B472C61F0E79840043D501 /* os */,
 				B2B472D41F0E79840043D501 /* plugins */,
+				B27388BA1F8E670400654BD9 /* ConstantsNative.h */,
 			);
 			path = mog;
 			sourceTree = "<group>";
@@ -444,6 +453,8 @@
 				B2B472C21F0E79840043D501 /* PreferenceNative.mm */,
 				B2B472C41F0E79840043D501 /* Texture2DNative.h */,
 				B2B472C51F0E79840043D501 /* Texture2DNative.mm */,
+				B27388B21F8E54D300654BD9 /* Device.h */,
+				B27388B11F8E54D300654BD9 /* Device.mm */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -451,7 +462,6 @@
 		B2B472C61F0E79840043D501 /* os */ = {
 			isa = PBXGroup;
 			children = (
-				B2B472C71F0E79840043D501 /* IOSHelper.h */,
 				B2B472C81F0E79840043D501 /* MogAppDelegate.h */,
 				B2B472C91F0E79840043D501 /* MogAppDelegate.m */,
 				B2B472CA1F0E79840043D501 /* MogEngineController.h */,
@@ -588,8 +598,10 @@
 				B2B472F01F0E79840043D501 /* Tween.cpp in Sources */,
 				B2B472FF1F0E79840043D501 /* FileUtilsNative.mm in Sources */,
 				B2B472EF1F0E79840043D501 /* Http.cpp in Sources */,
+				B27388B31F8E54D300654BD9 /* Device.mm in Sources */,
 				B2B473011F0E79840043D501 /* NativeClass.mm in Sources */,
 				B2B472D81F0E79840043D501 /* AppBase.cpp in Sources */,
+				B27388B91F8E583800654BD9 /* Density.cpp in Sources */,
 				B2B472E51F0E79840043D501 /* Slice9Sprite.cpp in Sources */,
 				B2B472EC1F0E79840043D501 /* DataStore.cpp in Sources */,
 				B2B472DC1F0E79840043D501 /* Entity.cpp in Sources */,
@@ -647,8 +659,8 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"DEBUG=1",
-					"MOG_DEBUG=1",
-					"MOG_IOS=1",
+					MOG_DEBUG,
+					MOG_IOS,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -695,7 +707,7 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
-					"MOG_IOS=1",
+					MOG_IOS,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;

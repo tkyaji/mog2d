@@ -8,15 +8,16 @@
 namespace mog {
     class Rectangle : public Polygon {
     public:
-        static shared_ptr<Rectangle> create(const Size &size);
-        
+        static shared_ptr<Rectangle> create(const Size &size, bool isRatio = false);
+
         shared_ptr<Rectangle> clone();
         virtual shared_ptr<Entity> cloneEntity() override;
-        
+        virtual EntityType getEntityType() override;
+
     protected:
         Rectangle();
         
-        void init(const Size &size);
+        void init(const Size &size, bool isRatio = false);
     };
 }
 

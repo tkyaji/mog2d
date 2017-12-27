@@ -687,6 +687,12 @@ shared_ptr<TweenDelay> TweenDelay::create(float delayTime) {
     return shared_ptr<TweenDelay>(new TweenDelay(delayTime));
 }
 
+shared_ptr<TweenDelay> TweenDelay::create(float delayTime, function<void(const shared_ptr<Entity> &e)> callback) {
+    auto delay = shared_ptr<TweenDelay>(new TweenDelay(delayTime));
+    delay->setOnFinishEvent(callback);
+    return delay;
+}
+
 TweenDelay::TweenDelay(float delayTime) : Tween(0, 0, 0, Easing::Linear, LoopType::None, 0, delayTime) {
 }
 

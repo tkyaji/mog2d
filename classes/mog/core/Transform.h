@@ -4,10 +4,9 @@
 #include <memory>
 #include "mog/core/plain_objects.h"
 
-using namespace std;
-
 namespace mog {
-    class Transform : public enable_shared_from_this<Transform> {
+    
+    class Transform : public std::enable_shared_from_this<Transform> {
     public:
         Transform() {
         }
@@ -18,16 +17,14 @@ namespace mog {
         Point scale = Point::one;
         float rotation = 0;
         Color color = Color::white;
-        float screenScale;
         
-        void copyFrom(const shared_ptr<Transform> &src) {
+        void copyFrom(const std::shared_ptr<Transform> &src) {
             this->anchor = src->anchor;
             this->position = src->position;
             this->size = src->size;
             this->scale = src->scale;
             this->rotation = src->rotation;
             this->color = src->color;
-            this->screenScale = src->screenScale;
         }
     };
 }

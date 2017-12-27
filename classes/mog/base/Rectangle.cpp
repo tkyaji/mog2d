@@ -2,16 +2,16 @@
 
 using namespace mog;
 
-shared_ptr<Rectangle> Rectangle::create(const Size &size) {
+shared_ptr<Rectangle> Rectangle::create(const Size &size, bool isRatio) {
     auto rectangle = shared_ptr<Rectangle>(new Rectangle());
-    rectangle->init(size);
+    rectangle->init(size, isRatio);
     return rectangle;
 }
 
 Rectangle::Rectangle() {
 }
 
-void Rectangle::init(const Size &size) {
+void Rectangle::init(const Size &size, bool isRatio) {
     vector<Point> vertexPoints;
     vertexPoints.emplace_back(Point(0, 0));
     vertexPoints.emplace_back(Point(0, size.height));
@@ -19,8 +19,13 @@ void Rectangle::init(const Size &size) {
     vertexPoints.emplace_back(size);
     Polygon::init(vertexPoints);
     
-    this->transform->size.width = size.width;
-    this->transform->size.height = size.height;
+    if (isRatio) {
+        this->setSize(size, true);
+        this->transform->size = Size::one;
+    } else {
+        this->size = size;
+        this->transform->size = size;
+    }
 }
 
 shared_ptr<Rectangle> Rectangle::clone() {
@@ -32,4 +37,8 @@ shared_ptr<Entity> Rectangle::cloneEntity() {
     auto rectangle = shared_ptr<Rectangle>(new Rectangle());
     rectangle->copyFrom(shared_from_this());
     return rectangle;
+}
+
+EntityType Rectangle::getEntityType() {
+    return EntityType::Rectangle;
 }

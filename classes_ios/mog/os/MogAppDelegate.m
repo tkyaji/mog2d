@@ -57,12 +57,12 @@
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
-    [_mogViewController applicationWillTerminate:application];
-    
     for (NSObject<UIApplicationDelegate> *delegatePlugin in _delegatePlugins) {
         if (![delegatePlugin respondsToSelector:@selector(applicationWillTerminate:)]) continue;
         [delegatePlugin applicationWillTerminate:application];
     }
+    
+    [_mogViewController applicationWillTerminate:application];
 }
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application {

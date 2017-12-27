@@ -12,15 +12,16 @@
 
 using namespace std;
 
+extern void *enabler;
+
 namespace mog {
         
-    class Engine {
+    class Engine : public enable_shared_from_this<Engine> {
     public:
-        static Engine *getInstance();
-        static Engine *initInstance();
+        static shared_ptr<Engine> create(const shared_ptr<AppBase> &app);
+        
+        ~Engine();
 
-        void initEngine(shared_ptr<AppBase> app);
-        void terminateEngine();
         void startEngine();
         void stopEngine();
         
@@ -41,9 +42,7 @@ namespace mog {
         Size getDisplaySize();
         Size getScreenSize();
         float getScreenScale();
-        float getDeviceDensity();
-        void setDisplaySize(const Size &size, float deviceDensity);
-        Density getDensity();
+        void setDisplaySize(const Size &size);
         void setScreenSizeBasedOnHeight(float height);
         void setScreenSizeBasedOnWidth(float width);
         
@@ -56,8 +55,9 @@ namespace mog {
         long long getTimerElapsed();
         float getTimerElapsedSec();
         
-        void setStatsViewEnable(bool enable);
-        void setStatsViewAlignment(Alignment alignment);
+        void setStatsEnable(bool enable);
+        void setStatsAlignment(Alignment alignment);
+        shared_ptr<MogStats> getStats();
 
         void setTouchEnable(bool enable);
         void setMultiTouchEnable(bool enable);
@@ -69,8 +69,7 @@ namespace mog {
         void removeOnUpdateFunc(unsigned int funcId);
 
     protected:
-        static Engine *instance;
-        static unsigned int onUpdateFuncIdCounter;
+        unsigned int onUpdateFuncIdCounter;
         
         shared_ptr<AppBase> app;
         unordered_map<string, shared_ptr<NativeObject>> nativeObjects;
@@ -81,20 +80,15 @@ namespace mog {
         Size displaySize = Size::zero;
         Size screenSize = Size::zero;
         Color color = Color::black;
-        Density density = Density::x1_0;
-        float deviceDensity = 1.0f;
 
         Engine();
 
         int frameCountForFps = 0;
         bool timerRunning = false;
         long long timerStartTime = 0;
-        long long timerPauseTime = 0;
         long long timerBackupTime = 0;
         float lastElapsedSec = 0;
         
-        GLuint framebufferStack[8];
-        int framebufferStackIndex = -1;
         unordered_map<unsigned int, function<void(unsigned int funcId)>> onUpdateFuncs;
         unordered_map<unsigned int, function<void(unsigned int funcId)>> onUpdateFuncsToAdd;
         vector<unsigned int> onUpdateFuncIdsToRemove;
@@ -102,9 +96,8 @@ namespace mog {
         void invokeOnUpdateFunc();
         
     private:
-        bool appLoaded = false;
+        bool initialized = false;
         bool displaySizeChanged = false;
-        bool statsViewChanged = false;
         bool touchEnable = true;
         bool multiTouchEnable = true;
         vector<shared_ptr<Entity>> touchableEntities;

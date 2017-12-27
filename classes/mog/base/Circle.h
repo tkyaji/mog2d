@@ -20,9 +20,9 @@ namespace mog {
         virtual void bindVertexTexCoords(float *vertexTexCoords, int *idx, float x, float y, float w, float h) override;
         
         virtual shared_ptr<Entity> cloneEntity() override;
-        
         shared_ptr<Circle> clone();
-        
+        virtual EntityType getEntityType() override;
+
     protected:
         float radius = 0;
         

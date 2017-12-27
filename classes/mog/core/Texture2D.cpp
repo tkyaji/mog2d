@@ -2,7 +2,6 @@
 #include "mog/core/Texture2D.h"
 #include "mog/core/Texture2DNative.h"
 #include "mog/core/FileUtils.h"
-#include "mog/core/Engine.h"
 #include <stdlib.h>
 #include <vector>
 #define STB_IMAGE_IMPLEMENTATION
@@ -15,41 +14,16 @@ const Density Density::x1_5 = Density(1);
 const Density Density::x2_0 = Density(2);
 const Density Density::x3_0 = Density(3);
 const Density Density::x4_0 = Density(4);
-#ifdef MOG_IOS
-vector<Density> Density::allDensities = {Density::x1_0, Density::x2_0, Density::x3_0};
-#else
-vector<Density> Density::allDensities = {Density::x1_0, Density::x1_5, Density::x2_0, Density::x3_0, Density::x4_0};
-#endif
 
-Density::Density(int idx) {
-    switch (idx) {
-        case 0:
-            this->value = 1.0f;
-            this->directory = "@1x";
-            break;
-        case 1:
-            this->value = 1.5f;
-            this->directory = "@1_5x";
-            break;
-        case 2:
-            this->value = 2.0f;
-            this->directory = "@2x";
-            break;
-        case 3:
-            this->value = 3.0f;
-            this->directory = "@3x";
-            break;
-        case 4:
-            this->value = 4.0f;
-            this->directory = "@4x";
-            break;
-    }
-    this->idx = idx;
+shared_ptr<Texture2D> Texture2D::createWithAsset(string filename) {
+    auto tex2d = make_shared<Texture2D>();
+    tex2d->loadTextureAsset(filename);
+    return tex2d;
 }
 
-shared_ptr<Texture2D> Texture2D::createWithImage(string filename) {
+shared_ptr<Texture2D> Texture2D::createWithFile(string filepath, Density density) {
     auto tex2d = make_shared<Texture2D>();
-    tex2d->loadTexture(filename);
+    tex2d->loadTextureFile(filepath, density);
     return tex2d;
 }
 
@@ -93,7 +67,7 @@ Texture2D::~Texture2D() {
     }
 }
 
-void Texture2D::loadTexture(string filename) {
+void Texture2D::loadTextureAsset(string filename) {
     unsigned char *buffer = nullptr;
     int len = 0;
     Density den = Density::x1_0;
@@ -105,11 +79,20 @@ void Texture2D::loadTexture(string filename) {
     this->filename = filename;
     this->density = den;
     this->loadImageFromBuffer(buffer, len);
-    free(buffer);
+    safe_free(buffer);
+}
+
+void Texture2D::loadTextureFile(string filepath, Density density) {
+    this->density = density;
+    unsigned char *buffer = nullptr;
+    int len = 0;
+    FileUtils::readDataFromFile(filepath, &buffer, &len);
+    this->loadImageFromBuffer(buffer, len);
+    safe_free(buffer);
 }
 
 bool Texture2D::readBytesAsset(string filename, unsigned char **data, int *len, Density *density) {
-    Density den = Engine::getInstance()->getDensity();
+    Density den = Density::getCurrent();
     if (FileUtils::readBytesAsset(den.directory + "/" + filename, data, len)) {
         *density = den;
         return true;
@@ -136,7 +119,7 @@ bool Texture2D::readBytesAsset(string filename, unsigned char **data, int *len, 
 }
 
 void Texture2D::loadFontTexture(string text, float fontSize, string fontFilename, float height) {
-    Density den = Engine::getInstance()->getDensity();
+    Density den = Density::getCurrent();
     Texture2DNative::loadFontTexture(this, text.c_str(), fontSize * den.value, fontFilename.c_str(), height * den.value);
     this->density = den;
 }
@@ -144,17 +127,6 @@ void Texture2D::loadFontTexture(string text, float fontSize, string fontFilename
 GLenum toGLFormat(TextureType textureType) {
     GLenum format = GL_RGBA;
     switch (textureType){
-            /*
-             case TextureType::PVRTC2:
-             glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG,
-             this->width, this->height, 0, this->dataLength, this->data);
-             break;
-             
-             case TextureType::PVRTC4:
-             glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG,
-             this->width, this->height, 0, this->dataLength, this->data);
-             break;
-             */
         case TextureType::RGBA:
             format = GL_RGBA;
             break;

@@ -33,11 +33,15 @@ namespace mog {
         void setFontSize(float fontSize);
         float getFontSize();
         
-        void setFontFace(string fontFilename);
-        string getFontFace();
+        void setFontFilename(string fontFilename);
+        string getFontFilename();
         
+        void setFontHeight(float height);
+        float getFontHeight();
+
         shared_ptr<Label> clone();
         virtual shared_ptr<Entity> cloneEntity() override;
+        virtual EntityType getEntityType() override;
 
     protected:
         Label();

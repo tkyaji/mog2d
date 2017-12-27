@@ -14,10 +14,10 @@
 using namespace std;
 
 namespace mog {
+    class Engine;
+    
     class Renderer {
     public:
-        static unsigned int drawCallCounter;
-        
         static float identityMatrix[16];
 
         int indicesNum = 0;
@@ -39,9 +39,9 @@ namespace mog {
         void bindVertexSub(float *vertices, int verticesNum, int offset = 0);
         void bindColorsVertexSub(float *vertexColors, int size, int offset = 0);
 
-        void drawFrame(const shared_ptr<Transform> &transform);
+        void drawFrame(const shared_ptr<Transform> &transform, float screenScale);
 
-        void applyTransform(const shared_ptr<Transform> &transform, bool enableColor = true);
+        void applyTransform(const shared_ptr<Transform> &transform, float screenScale, bool enableColor = true);
         void getMatrix(float *matrix);
         void setMatrix(float *matrix);
         void pushMatrix();

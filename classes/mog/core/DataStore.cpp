@@ -17,7 +17,7 @@ bool DataStore::hasKey(string key) {
 bool DataStore::_hasKey(string key) {
     if (DataStore::caches.count(key) > 0) return true;
     
-    string file = _getStoreFilePath(key);
+    string file = getStoreFilePath(key);
     struct stat st;
     return (stat(file.c_str(), &st) == 0);
 }
@@ -28,7 +28,7 @@ void DataStore::remove(string key) {
 }
 
 void DataStore::_remove(string key) {
-    string file = _getStoreFilePath(key);
+    string file = getStoreFilePath(key);
     std::remove(file.c_str());
 }
 
@@ -38,17 +38,18 @@ void DataStore::removeAll() {
 }
 
 void DataStore::_removeAll() {
-    DIR* dp = opendir(_getStoreDirectory().c_str());
+    DIR* dp = opendir(getStoreDirectory().c_str());
     if (dp == NULL) return;
     
     struct dirent* dt;
     while ((dt = readdir(dp)) != NULL) {
         if (dt->d_type == DT_REG) {
-            string file = _getStoreDirectory() + dt->d_name;
+            string file = getStoreDirectory() + dt->d_name;
             std::remove(file.c_str());
         }
     }
-    std::remove(_getStoreDirectory().c_str());
+    std::remove(getStoreDirectory().c_str());
+    DataStore::caches.clear();
 }
 
 void DataStore::save() {
@@ -60,7 +61,7 @@ void DataStore::_save() {
     for (auto &kv : DataStore::unsaved) {
         if (kv.second) {
             auto data = DataStore::caches[kv.first];
-            DataStore::serialize(kv.first, *data.get());
+            DataStore::_serialize(kv.first, *data.get());
         }
     }
     DataStore::unsaved.clear();
@@ -74,8 +75,12 @@ void DataStore::save(string key) {
 void DataStore::_save(string key) {
     auto data = DataStore::caches[key];
     if (data) {
-        DataStore::serialize(key, *data.get());
+        DataStore::_serialize(key, *data.get());
         DataStore::unsaved.erase(key);
     }
+}
+
+void DataStore::clearCache() {
+    DataStore::caches.clear();
 }
 

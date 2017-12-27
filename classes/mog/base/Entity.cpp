@@ -2,30 +2,22 @@
 #include "mog/base/Group.h"
 #include "mog/core/Engine.h"
 #include "mog/core/TouchEventListener.h"
+#include "mog/core/MogStats.h"
 #include "mog/core/Tween.h"
 #include <math.h>
 
 using namespace mog;
 
-unsigned int Entity::entityIdCounter = 0;
-int Entity::instanceNumCounter = 0;
-
 Entity::Entity() : colliderShape(ColliderShape::Rect) {
-    this->entityId = ++Entity::entityIdCounter;
+    MogStats::instanceCount++;
+    
     this->renderer = make_shared<Renderer>();
     this->transform = make_shared<Transform>();
-    this->transform->screenScale = Engine::getInstance()->getScreenScale();
     this->tweenIdsToRemove.reserve(16);
-    
-    Entity::instanceNumCounter++;
 }
 
 Entity::~Entity() {
-    Entity::instanceNumCounter--;
-}
-
-unsigned int Entity::getEntityId() {
-    return this->entityId;
+    MogStats::instanceCount--;
 }
 
 shared_ptr<Group> Entity::getGroup() {
@@ -34,10 +26,18 @@ shared_ptr<Group> Entity::getGroup() {
 
 void Entity::setGroup(shared_ptr<Group> group) {
     this->group = group;
+    this->dirtyFlag |= DIRTY_POSITION;
 }
 
 shared_ptr<Renderer> Entity::getRenderer() {
     return this->renderer;
+}
+
+void Entity::updateFrame(const shared_ptr<Engine> &engine, float delta) {
+    this->screenScale = engine->getScreenScale();
+    this->updatePositionAndSize();
+    this->extractEvent(engine, delta);
+    this->onUpdate(delta);
 }
 
 void Entity::drawFrame(float delta) {
@@ -48,19 +48,14 @@ void Entity::drawFrame(float delta) {
         this->reRenderFlag = 0;
     }
     
-    this->renderer->drawFrame(this->transform);
+    this->renderer->drawFrame(this->transform, this->screenScale);
 }
 
-void Entity::updateFrame(float delta) {
-    this->extractEvent(delta);
-    this->onUpdate(delta);
-}
-
-void Entity::extractEvent(float delta) {
+void Entity::extractEvent(const shared_ptr<Engine> &engine, float delta) {
     auto self = static_pointer_cast<Entity>(shared_from_this());
     
     if (this->touchEnable && (!this->swallowTouches || this->touchListeners.size() > 0)) {
-        Engine::getInstance()->pushTouchableEntity(self);
+        engine->pushTouchableEntity(self);
     }
     
     if (this->tweens.size() > 0) {
@@ -81,7 +76,7 @@ void Entity::onUpdate(float delta) {
 
 void Entity::updateMatrix() {
     this->renderer->pushMatrix();
-    this->renderer->applyTransform(this->transform, false);
+    this->renderer->applyTransform(this->transform, this->screenScale, false);
     this->renderer->popMatrix();
 }
 
@@ -113,7 +108,7 @@ void Entity::bindVertices(float *vertices, int *idx, bool bakeTransform) {
     float *m;
     if (bakeTransform) {
         this->renderer->pushMatrix();
-        this->renderer->applyTransform(this->transform, false);
+        this->renderer->applyTransform(this->transform, this->screenScale, false);
         m = this->renderer->matrix;
         this->renderer->popMatrix();
     } else {
@@ -123,8 +118,8 @@ void Entity::bindVertices(float *vertices, int *idx, bool bakeTransform) {
     auto v1 = Point(m[0], m[1]);
     auto v2 = Point(m[4], m[5]);
     auto p1 = Point::zero;
-    auto p2 = v2 * this->transform->size.height * this->transform->screenScale;
-    auto p3 = v1 * this->transform->size.width * this->transform->screenScale;
+    auto p2 = v2 * this->transform->size.height * this->screenScale;
+    auto p3 = v1 * this->transform->size.width * this->screenScale;
     auto p4 = p2 + p3;
     auto offset = Point(m[12], m[13]);
     
@@ -189,6 +184,12 @@ void Entity::setAnchor(const Point &position) {
     this->setReRenderFlag(RERENDER_VERTEX);
 }
 
+void Entity::setAnchor(float x, float y) {
+    this->transform->anchor.x = x;
+    this->transform->anchor.y = y;
+    this->setReRenderFlag(RERENDER_VERTEX);
+}
+
 void Entity::setAnchorX(float x) {
     this->transform->anchor.x = x;
     this->setReRenderFlag(RERENDER_VERTEX);
@@ -212,40 +213,107 @@ float Entity::getAnchorY() {
 }
 
 void Entity::setPosition(const Point &position) {
-    this->transform->position = position;
+    this->position = position;
     this->setReRenderFlag(RERENDER_VERTEX);
+    this->dirtyFlag |= DIRTY_POSITION;
 }
 
 void Entity::setPosition(float x, float y) {
-    this->transform->position.x = x;
-    this->transform->position.y = y;
+    this->position.x = x;
+    this->position.y = y;
     this->setReRenderFlag(RERENDER_VERTEX);
+    this->dirtyFlag |= DIRTY_POSITION;
 }
 
 void Entity::setPositionX(float x) {
-    this->transform->position.x = x;
+    this->position.x = x;
     this->setReRenderFlag(RERENDER_VERTEX);
+    this->dirtyFlag |= DIRTY_POSITION;
 }
 
 void Entity::setPositionY(float y) {
-    this->transform->position.y = y;
+    this->position.y = y;
     this->setReRenderFlag(RERENDER_VERTEX);
+    this->dirtyFlag |= DIRTY_POSITION;
 }
 
 Point Entity::getPosition() {
-    return this->transform->position;
+    return this->position;
 }
 
 float Entity::getPositionX() {
-    return this->transform->position.x;
+    return this->position.x;
 }
 
 float Entity::getPositionY() {
-    return this->transform->position.y;
+    return this->position.y;
+}
+
+Point Entity::getPositionFrom(Point origin) {
+    if (auto group = this->group.lock()) {
+        if (origin == this->origin) {
+            return this->getPosition();
+        }
+
+        auto parentSize = group->getSize();
+        Point offset1 = parentSize * this->origin;
+        Point offset2 = parentSize * origin;
+        return this->getPosition() + offset1 - offset2;
+        
+    } else {
+        return this->getPosition();
+    }
+}
+
+Point Entity::getPositionFrom(float x, float y) {
+    return this->getPositionFrom(Point(x, y));
+}
+
+void Entity::setOrigin(Point origin) {
+    this->origin = origin;
+    this->setReRenderFlag(RERENDER_VERTEX);
+    this->dirtyFlag |= DIRTY_POSITION;
+}
+
+void Entity::setOrigin(float x, float y) {
+    this->origin.x = x;
+    this->origin.y = y;
+    this->setReRenderFlag(RERENDER_VERTEX);
+    this->dirtyFlag |= DIRTY_POSITION;
+}
+
+void Entity::setOriginX(float x) {
+    this->origin.x = x;
+    this->setReRenderFlag(RERENDER_VERTEX);
+    this->dirtyFlag |= DIRTY_POSITION;
+}
+
+void Entity::setOriginY(float y) {
+    this->origin.y = y;
+    this->setReRenderFlag(RERENDER_VERTEX);
+    this->dirtyFlag |= DIRTY_POSITION;
+}
+
+Point Entity::getOrigin() {
+    return this->origin;
+}
+
+float Entity::getOriginX() {
+    return this->origin.x;
+}
+
+float Entity::getOriginY() {
+    return this->origin.y;
 }
 
 void Entity::setScale(float scale) {
     this->setScale(Point(scale, scale));
+    this->setReRenderFlag(RERENDER_VERTEX);
+}
+
+void Entity::setScale(float scaleX, float scaleY) {
+    this->transform->scale.x = scaleX;
+    this->transform->scale.y = scaleY;
     this->setReRenderFlag(RERENDER_VERTEX);
 }
 
@@ -285,37 +353,68 @@ float Entity::getRotation() {
     return this->transform->rotation;
 }
 
-void Entity::setWidth(float width) {
-    this->transform->size.width = width;
+void Entity::setWidth(float width, bool isRatio) {
+    this->size.width = width;
     this->setReRenderFlag(RERENDER_VERTEX);
+    this->dirtyFlag |= DIRTY_SIZE;
+    this->ratioWidth = isRatio;
 }
 
 float Entity::getWidth() {
-    return this->transform->size.width;
+    return this->getSize().width;
 }
 
-void Entity::setHeight(float height) {
-    this->transform->size.height = height;
+float Entity::getWidthValue() {
+    return this->size.width;
+}
+
+void Entity::setHeight(float height, bool isRatio) {
+    this->size.height = height;
     this->setReRenderFlag(RERENDER_VERTEX);
+    this->dirtyFlag |= DIRTY_SIZE;
+    this->ratioHeight = isRatio;
 }
 
 float Entity::getHeight() {
-    return this->transform->size.height;
+    return this->getSize().height;
 }
 
-void Entity::setSize(const Size &size) {
-    this->transform->size = size;
-    this->setReRenderFlag(RERENDER_VERTEX);
+float Entity::getHeightValue() {
+    return this->size.height;
 }
 
-void Entity::setSize(float width, float height) {
-    this->transform->size.width = width;
-    this->transform->size.height = height;
+void Entity::setSize(const Size &size, bool isRatio) {
+    this->size = size;
+    this->ratioWidth = isRatio;
+    this->ratioHeight = isRatio;
     this->setReRenderFlag(RERENDER_VERTEX);
+    this->dirtyFlag |= DIRTY_SIZE;
+}
+
+void Entity::setSize(float width, float height, bool isRatio) {
+    this->size.width = width;
+    this->size.height = height;
+    this->ratioWidth = isRatio;
+    this->ratioHeight = isRatio;
+    this->setReRenderFlag(RERENDER_VERTEX);
+    this->dirtyFlag |= DIRTY_SIZE;
 }
 
 Size Entity::getSize() {
+    this->updatePositionAndSize();
     return this->transform->size;
+}
+
+Size Entity::getSizeValue() {
+    return this->size;
+}
+
+bool Entity::isRatioWidth() {
+    return this->ratioWidth;
+}
+
+bool Entity::isRatioHeight() {
+    return this->ratioHeight;
 }
 
 void Entity::setColor(const Color &color) {
@@ -371,7 +470,7 @@ shared_ptr<Texture2D> Entity::getTexture() {
 }
 
 Point Entity::getAbsolutePosition() {
-    return Point(this->renderer->matrix[12] / this->transform->screenScale, this->renderer->matrix[13] / this->transform->screenScale);
+    return Point(this->renderer->matrix[12] / this->screenScale, this->renderer->matrix[13] / this->screenScale);
 }
 
 Point Entity::getAbsoluteScale() {
@@ -384,6 +483,14 @@ Point Entity::getAbsoluteScale() {
 
 Point Entity::getAbsoluteSize() {
     return this->getSize() * this->getAbsoluteScale();
+}
+
+string Entity::getName() {
+    return this->name;
+}
+
+void Entity::setName(string name) {
+    this->name = name;
 }
 
 string Entity::getTag() {
@@ -484,8 +591,17 @@ void Entity::cancelAllTweens() {
     this->tweens.clear();
 }
 
-shared_ptr<Group> Entity::findParentGroup(string tag) {
-    shared_ptr<Entity> e = static_pointer_cast<Entity>(shared_from_this());
+shared_ptr<Group> Entity::findParentByName(string name) {
+    shared_ptr<Entity> e = shared_from_this();
+    while (auto g = e->getGroup()) {
+        if (g->getName() == name) return g;
+        e = g;
+    }
+    return nullptr;
+}
+
+shared_ptr<Group> Entity::findParentByTag(string tag) {
+    shared_ptr<Entity> e = shared_from_this();
     while (auto g = e->getGroup()) {
         if (g->getTag() == tag) return g;
         e = g;
@@ -498,8 +614,8 @@ shared_ptr<OBB> Entity::getOBB() {
                         this->renderer->matrix[1] * this->renderer->matrix[1]);
     float scaleY = sqrt(this->renderer->matrix[4] * this->renderer->matrix[4] +
                         this->renderer->matrix[5] * this->renderer->matrix[5]);
-    float x = this->renderer->matrix[12] / this->transform->screenScale;
-    float y = this->renderer->matrix[13] / this->transform->screenScale;
+    float x = this->renderer->matrix[12] / this->screenScale;
+    float y = this->renderer->matrix[13] / this->screenScale;
     auto vec1 = Vec2(this->renderer->matrix[0] / scaleX, this->renderer->matrix[1] / scaleX,
                      this->transform->size.width * scaleX);
     auto vec2 = Vec2(this->renderer->matrix[4] / scaleY, this->renderer->matrix[5] / scaleY,
@@ -514,7 +630,7 @@ shared_ptr<OBB> Entity::getOBB() {
 shared_ptr<AABB> Entity::getAABB() {
     auto v1 = Point(this->renderer->matrix[0], this->renderer->matrix[1]);
     auto v2 = Point(this->renderer->matrix[4], this->renderer->matrix[5]);
-    auto offset = Point(this->renderer->matrix[12], this->renderer->matrix[13]) / this->transform->screenScale;
+    auto offset = Point(this->renderer->matrix[12], this->renderer->matrix[13]) / this->screenScale;
     auto size = this->transform->size;
     auto p1 = Point::zero;
     auto p2 = Point(v1.x * size.width, v1.y * size.width);
@@ -548,13 +664,47 @@ void Entity::addTextureTo(const shared_ptr<TextureAtlas> &textureAtlas) {
     textureAtlas->addTexture(this->getTexture());
 }
 
-shared_ptr<Entity> Entity::cloneEntity() {
-    auto entity = shared_ptr<Entity>(new Entity());
-    entity->copyFrom(shared_from_this());
-    return entity;
-}
-
 void Entity::copyFrom(const shared_ptr<Entity> &src) {
     this->texture = src->texture;
     this->transform->copyFrom(src->transform);
 }
+
+void Entity::updatePositionAndSize() {
+    if ((this->dirtyFlag & DIRTY_POSITION) == DIRTY_POSITION) {
+        this->transform->position = this->getPositionFrom(Point::zero);
+        this->reRenderFlag |= RERENDER_VERTEX;
+    }
+    
+    if ((this->dirtyFlag & DIRTY_SIZE) == DIRTY_SIZE) {
+        float w = 0;
+        float h = 0;
+        
+        if (this->ratioWidth) {
+            if (auto group = this->group.lock()) {
+                w = group->getWidth() * this->size.width;
+            }
+        } else {
+            w = this->size.width;
+        }
+        
+        if (this->ratioHeight) {
+            if (auto group = this->group.lock()) {
+                h = group->getHeight() * this->size.height;
+            }
+        } else {
+            h = this->size.height;
+        }
+        
+        if (!approximately(w, this->transform->size.width)) {
+            this->transform->size.width = w;
+            this->reRenderFlag |= RERENDER_VERTEX;
+        }
+        if (!approximately(h, this->transform->size.height)) {
+            this->transform->size.height = h;
+            this->reRenderFlag |= RERENDER_VERTEX;
+        }
+    }
+
+    this->dirtyFlag = 0;
+}
+

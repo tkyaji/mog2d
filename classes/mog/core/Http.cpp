@@ -22,6 +22,7 @@ Http::Request::~Request() {
 
 void Http::Request::sendGet() {
     this->startTime = getTimestamp();
+    /*
     this->onUpdateFuncId = Engine::getInstance()->registerOnUpdateFunc([this](unsigned int funcId) {
         if (!this->request) {
             this->request = http_get(this->url.c_str(), NULL);
@@ -49,6 +50,7 @@ void Http::Request::sendGet() {
         }
         this->cancel();
     });
+     */
 }
 
 void Http::Request::invokeCallback(Http::Status status) {
@@ -59,7 +61,7 @@ void Http::Request::invokeCallback(Http::Status status) {
 
 void Http::Request::cancel() {
     if (this->onUpdateFuncId > 0) {
-        Engine::getInstance()->removeOnUpdateFunc(this->onUpdateFuncId);
+//        Engine::getInstance()->removeOnUpdateFunc(this->onUpdateFuncId);
         this->onUpdateFuncId = 0;
     }
     if (this->request) {

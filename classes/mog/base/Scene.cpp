@@ -26,6 +26,7 @@ shared_ptr<AppBase> Scene::getApp() {
 
 void Scene::setApp(const shared_ptr<AppBase> &app) {
     this->app = app;
+    this->rootGroup->setSize(app->getScreenSize());
 }
 
 shared_ptr<Group> Scene::getRootGroup() {

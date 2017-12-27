@@ -20,4 +20,5 @@ namespace mog {
         static string registerCustomFont(const char *fontFilename);
     };
 }
+
 #endif /* Texture2DNative_h */

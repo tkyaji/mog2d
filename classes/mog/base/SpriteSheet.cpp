@@ -2,9 +2,9 @@
 
 using namespace mog;
 
-shared_ptr<SpriteSheet> SpriteSheet::create(string filename, unsigned int frameCount, const Size &frameSize, int margin, Point startPosition) {
+shared_ptr<SpriteSheet> SpriteSheet::create(const shared_ptr<Sprite> sprite, const Size &frameSize, unsigned int frameCount, unsigned int margin) {
     auto spriteSheet =  shared_ptr<SpriteSheet>(new SpriteSheet());
-    spriteSheet->init(filename, frameCount, frameSize, margin, startPosition);
+    spriteSheet->init(sprite, frameSize, frameCount, margin);
     return spriteSheet;
 }
 
@@ -12,23 +12,37 @@ SpriteSheet::SpriteSheet() {
     this->dynamicDraw = true;
 }
 
-void SpriteSheet::init(string filename, unsigned int frameCount, const Size &frameSize, int margin, Point startPosition) {
+void SpriteSheet::init(const shared_ptr<Sprite> sprite, const Size &frameSize, unsigned int frameCount, unsigned int margin) {
+    this->texture = sprite->getTexture();
+    this->filename = sprite->getFilename();
+    this->transform->size = frameSize;
+    this->size = frameSize;
+    this->rect = sprite->getRect();
     this->frameSize = frameSize;
+    
+    this->initFrames(frameCount, margin);
+}
+
+void SpriteSheet::initFrames(unsigned int frameCount, unsigned int margin) {
+    float _margin = (float)margin / this->texture->density.value;
+    int cols = (this->rect.size.width + _margin) / (frameSize.width + _margin);
+    int rows = (this->rect.size.height + _margin) / (frameSize.height + _margin);
+    
+    if (frameCount == 0) {
+        frameCount = (unsigned int)(cols, rows);
+    }
+
+    this->frameCount = frameCount;
     this->margin = margin;
-    this->startPosition = startPosition;
-    this->texture = Texture2D::createWithImage(filename);
-    
+
+    this->framePoints.clear();
     this->framePoints.reserve(frameCount);
-    
-    Size texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
-    int cols = (texSize.width - startPosition.x + margin) / (frameSize.width + margin);
-    int rows = (texSize.height - startPosition.y + margin) / (frameSize.height + margin);
     
     int r = 0;
     int c = 0;
     for (int i = 0; i < frameCount; i++) {
-        float x = c * (frameSize.width + margin) + startPosition.x;
-        float y = r * (frameSize.height + margin) + startPosition.y;
+        float x = c * (frameSize.width + _margin);
+        float y = r * (frameSize.height + _margin);
         this->framePoints.emplace_back(Point(x, y));
         
         if (++c >= cols) {
@@ -38,14 +52,24 @@ void SpriteSheet::init(string filename, unsigned int frameCount, const Size &fra
             c = 0;
         }
     }
+    if (frameCount == 0) {
+        this->framePoints.emplace_back(Point(0, 0));
+    }
     
-    this->transform->size = frameSize;
     this->frameCount = (unsigned int)framePoints.size();
 }
 
-void SpriteSheet::updateFrame(float delta) {
+void SpriteSheet::setFrameCount(unsigned int frameCount) {
+    this->initFrames(frameCount, this->margin);
+}
+
+void SpriteSheet::setMargin(unsigned int margin) {
+    this->initFrames(this->frameCount, margin);
+}
+
+void SpriteSheet::updateFrame(const shared_ptr<Engine> &engine, float delta) {
     this->updateSpriteFrame(delta);
-    Sprite::updateFrame(delta);
+    Sprite::updateFrame(engine, delta);
 }
 
 void SpriteSheet::updateSpriteFrame(float delta) {
@@ -116,12 +140,17 @@ void SpriteSheet::stopAnimation() {
 }
 
 void SpriteSheet::bindVertexTexCoords(float *vertexTexCoords, int *idx, float x, float y, float w, float h) {
-    auto p = this->framePoints[this->frame];
+    if (!this->visible) return;
+
     Size texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
+    x += this->rect.position.x / texSize.width;
+    y += this->rect.position.y / texSize.height;
+    
+    auto p = this->framePoints[this->frame];
     x += (p.x / texSize.width) * w;
     y += (p.y / texSize.height) * h;
-    w = w * (this->frameSize.width / texSize.width);
-    h = h * (this->frameSize.height / texSize.height);
+    w = (this->frameSize.width / texSize.width) * w;
+    h = (this->frameSize.height / texSize.height) * h;
     
     if (this->texture->isFlip) {
         vertexTexCoords[(*idx)++] = x;      vertexTexCoords[(*idx)++] = y + h;
@@ -145,6 +174,14 @@ unsigned int SpriteSheet::getFrameCount() {
     return this->frameCount;
 }
 
+unsigned int SpriteSheet::getMargin() {
+    return this->margin;
+}
+
+Size SpriteSheet::getFrameSize() {
+    return this->frameSize;
+}
+
 void SpriteSheet::setOnFinishEvent(function<void(const shared_ptr<SpriteSheet> &spriteSheet)> onFinishEvent) {
     this->onFinishEvent = onFinishEvent;
 }
@@ -161,10 +198,17 @@ shared_ptr<Entity> SpriteSheet::cloneEntity() {
 }
 
 void SpriteSheet::copyFrom(const shared_ptr<Entity> &src) {
-    Sprite::copyFrom(src);
     auto srcSprite = static_pointer_cast<SpriteSheet>(src);
-    this->frameCount = srcSprite->frameCount;
-    this->frameSize = srcSprite->frameSize;
-    this->margin = srcSprite->margin;
-    this->startPosition = srcSprite->startPosition;
+    this->texture = srcSprite->getTexture();
+    this->filename = srcSprite->getFilename();
+    this->transform->size = srcSprite->getSize();
+    this->rect = srcSprite->getRect();
+    this->frameSize = srcSprite->getFrameSize();
+    this->frameCount = srcSprite->getFrameCount();
+    this->margin = srcSprite->getMargin();
 }
+
+EntityType SpriteSheet::getEntityType() {
+    return EntityType::SpriteSheet;
+}
+

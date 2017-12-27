@@ -4,26 +4,27 @@
 
 using namespace mog;
 
-shared_ptr<Slice9Sprite> Slice9Sprite::create(string filename, const Point &centerRectPosition, const Size &centerRectSize) {
-    auto sprite = shared_ptr<Slice9Sprite>(new Slice9Sprite());
-    sprite->init(filename, Point::zero, Size::zero, centerRectPosition, centerRectSize);
-    return sprite;
+shared_ptr<Slice9Sprite> Slice9Sprite::create(const shared_ptr<Sprite> sprite, const Rect &centerRect) {
+    auto slice9sprite = shared_ptr<Slice9Sprite>(new Slice9Sprite());
+    slice9sprite->init(sprite, centerRect);
+    return slice9sprite;
 }
 
-shared_ptr<Slice9Sprite> Slice9Sprite::create(string filename, const Point &framePosition, const Size &frameSize, const Point &centerRectPosition, const Size &centerRectSize) {
-    auto sprite = shared_ptr<Slice9Sprite>(new Slice9Sprite());
-    sprite->init(filename, framePosition, frameSize, centerRectPosition, centerRectSize);
-    return sprite;
-}
-
-void Slice9Sprite::init(string filename, const Point &framePosition, const Size &frameSize, const Point &centerRectPosition, const Size &centerRectSize) {
-    Sprite::init(filename, framePosition, frameSize);
-    this->centerRectPosition = centerRectPosition;
-    this->centerRectSize = centerRectSize;
+void Slice9Sprite::init(const shared_ptr<Sprite> sprite, const Rect &centerRect) {
+    this->filename = sprite->getFilename();
+    this->texture = sprite->getTexture();
+    this->transform->size = sprite->getSize();
+    this->size = this->transform->size;
+    this->rect = sprite->getRect();
+    this->centerRect = centerRect;
 }
 
 Slice9Sprite::Slice9Sprite() {
     this->dynamicDraw = true;
+}
+
+Rect Slice9Sprite::getCenterRect() {
+    return this->centerRect;
 }
 
 void Slice9Sprite::getVerticesNum(int *num) {
@@ -44,7 +45,7 @@ void Slice9Sprite::bindVertices(float *vertices, int *idx, bool bakeTransform) {
     float *m;
     if (bakeTransform) {
         this->renderer->pushMatrix();
-        this->renderer->applyTransform(this->transform, false);
+        this->renderer->applyTransform(this->transform, this->screenScale, false);
         m = this->renderer->matrix;
         this->renderer->popMatrix();
     } else {
@@ -55,37 +56,25 @@ void Slice9Sprite::bindVertices(float *vertices, int *idx, bool bakeTransform) {
     auto v2 = Point(m[4], m[5]);
     auto offset = Point(m[12], m[13]);
     
-    Size texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
-    Point baseScale = Point((this->transform->size.width / texSize.width) * this->transform->scale.x,
-                            (this->transform->size.height / texSize.height) * this->transform->scale.y);
-    Size baseSize = texSize * baseScale;
-    
-    float xp[2] = {
-        this->centerRectPosition.x / texSize.width,
-        (texSize.width - (this->centerRectPosition.x + this->centerRectSize.width)) / texSize.width,
-    };
-    
-    float yp[2] = {
-        this->centerRectPosition.y / texSize.height,
-        (texSize.height - (this->centerRectPosition.y + this->centerRectSize.height)) / texSize.height,
-    };
-    
+    float right = this->rect.size.width - (this->centerRect.position.x + this->centerRect.size.width);
+    float bottom = this->rect.size.height - (this->centerRect.position.y + this->centerRect.size.height);
+
     float xx[4];
     xx[0] = 0;
-    xx[1] = xp[0] * texSize.width;
-    xx[2] = (baseSize.width - (xp[1] * texSize.width));
-    xx[3] = baseSize.width;
+    xx[1] = this->centerRect.position.x;
+    xx[2] = this->transform->size.width - right;
+    xx[3] = this->transform->size.width;
     
     float yy[4];
     yy[0] = 0;
-    yy[1] = yp[0] * texSize.height;
-    yy[2] = (baseSize.height - (yp[1] * texSize.height));
-    yy[3] = baseSize.height;
+    yy[1] = this->centerRect.position.y;
+    yy[2] = this->transform->size.height - bottom;
+    yy[3] = this->transform->size.height;
     
     for (int xi = 0; xi < 4; xi++) {
         for (int yi = 0; yi < 4; yi++) {
-            float x = xx[xi] * this->transform->screenScale / this->transform->scale.x;
-            float y = yy[yi] * this->transform->screenScale / this->transform->scale.y;
+            float x = xx[xi] * this->screenScale / this->transform->scale.x;
+            float y = yy[yi] * this->screenScale / this->transform->scale.y;
             
             Point p = v1 * x + v2 * y;
             vertices[(*idx)++] = (p.x + offset.x);
@@ -116,17 +105,22 @@ void Slice9Sprite::bindIndices(short *indices, int *idx, int start) {
 
 void Slice9Sprite::bindVertexTexCoords(float *vertexTexCoords, int *idx, float x, float y, float w, float h) {
     if (!this->visible) return;
+    
+    Size texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
+    x += (this->rect.position.x / texSize.width) * w;
+    y += (this->rect.position.y / texSize.height) * h;
+
     float xx[4] = {
         x,
-        x + w * (this->centerRectPosition.x / (this->texture->width / this->texture->density.value)),
-        x + w * ((this->centerRectPosition.x + this->centerRectSize.width) / (this->texture->width / this->texture->density.value)),
-        x + w
+        x + (this->centerRect.position.x / texSize.width) * w,
+        x + ((this->centerRect.position.x + this->centerRect.size.width) / texSize.width) * w,
+        x + (this->rect.size.width / texSize.width) * w
     };
     float yy[4] = {
         y,
-        y + h * (this->centerRectPosition.y / (this->texture->height / this->texture->density.value)),
-        y + h * ((this->centerRectPosition.y + this->centerRectSize.height) / (this->texture->height / this->texture->density.value)),
-        y + h
+        y + (this->centerRect.position.y / texSize.height) * h,
+        y + ((this->centerRect.position.y + this->centerRect.size.height) / texSize.height) * h,
+        y + (this->rect.size.height / texSize.height) * h
     };
     for (int xi = 0; xi < 4; xi++) {
         for (int _yi = 0; _yi < 4; _yi++) {
@@ -159,8 +153,14 @@ shared_ptr<Entity> Slice9Sprite::cloneEntity() {
 }
 
 void Slice9Sprite::copyFrom(const shared_ptr<Entity> &src) {
-    Sprite::copyFrom(src);
     auto srcSprite = static_pointer_cast<Slice9Sprite>(src);
-    this->centerRectPosition = srcSprite->centerRectPosition;
-    this->centerRectSize = srcSprite->centerRectSize;
+    this->filename = srcSprite->getFilename();
+    this->centerRect = srcSprite->centerRect;
+    this->texture = srcSprite->getTexture();
+    this->transform->size = srcSprite->getSize();
+    this->rect = srcSprite->getRect();
+}
+
+EntityType Slice9Sprite::getEntityType() {
+    return EntityType::Slice9Sprite;
 }

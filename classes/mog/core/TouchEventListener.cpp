@@ -17,7 +17,7 @@ TouchEventListener::~TouchEventListener() {
 void TouchEventListener::touchBegin(const Touch &touch, const shared_ptr<Entity> &entity) {
     if (!this->enabled) return;
     
-    unsigned long long tid = ((unsigned long long)entity->getEntityId() << 32) + touch.touchId;
+    unsigned long long tid = ((uintptr_t)entity.get() << 32) + touch.touchId;
     
     if (this->onTouchEnterEvent) {
         this->onTouchEnterEvent(touch, entity);
@@ -37,7 +37,7 @@ void TouchEventListener::touchBegin(const Touch &touch, const shared_ptr<Entity>
 void TouchEventListener::touchMove(const Touch &touch, const shared_ptr<Entity> &entity) {
     if (!this->enabled) return;
     
-    unsigned long long tid = ((unsigned long long)entity->getEntityId() << 32) + touch.touchId;
+    unsigned long long tid = ((uintptr_t)entity.get() << 32) + touch.touchId;
     
     if (this->isTouchBegan(tid)) {
         if (this->onTouchDragEvent) {
@@ -69,7 +69,7 @@ void TouchEventListener::touchMove(const Touch &touch, const shared_ptr<Entity> 
 void TouchEventListener::touchEnd(const Touch &touch, const shared_ptr<Entity> &entity) {
     if (!this->enabled) return;
     
-    unsigned long long tid = ((unsigned long long)entity->getEntityId() << 32) + touch.touchId;
+    unsigned long long tid = ((uintptr_t)entity.get() << 32) + touch.touchId;
     
     if (this->isTouchBegan(tid)) {
         if (this->onTouchEndEvent) {

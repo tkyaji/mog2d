@@ -3,13 +3,12 @@
 #import "app/App.h"
 #import "mog/Constants.h"
 #import "mog/core/NativeClass.h"
-#import "mog/os/IOSHelper.h"
 
 @implementation MogEngineController {
     MogViewController *_mogViewController;
     MogView *_mogView;
     CADisplayLink *_displayLink;
-    mog::Engine *_engine;
+    shared_ptr<mog::Engine> _engine;
     float _fps;
     map<unsigned int, mog::TouchInput> _touches;
 }
@@ -18,8 +17,8 @@
     self = [super init];
     if (!self) return self;
     
-    _engine = mog::Engine::initInstance();
-    _engine->setDisplaySize(mog::Size(view.glWidth, view.glHeight), view.contentScaleFactor);
+    _engine = mog::Engine::create(make_shared<mog::App>());
+    _engine->setDisplaySize(mog::Size(view.glWidth, view.glHeight));
     _engine->setScreenSizeBasedOnHeight(BASE_SCREEN_HEIGHT);
     _mogViewController = viewController;
     _mogView = view;
@@ -54,10 +53,6 @@
     _displayLink = nil;
 }
 
-- (void)initEngine {
-    _engine->initEngine(make_shared<mog::App>());
-}
-
 - (void)startEngine {
     [self startDraw];
     _engine->startEngine();
@@ -68,12 +63,13 @@
     [self stopDraw];
 }
 
-- (void)didReceiveMemoryWarning {
-    _engine->onLowMemory();
+- (void)terminateEngine {
+    [self stopEngine];
+    _engine = nullptr;
 }
 
-- (void)terminateEngine {
-    _engine->terminateEngine();
+- (void)didReceiveMemoryWarning {
+    _engine->onLowMemory();
 }
 
 - (void)setFps:(float)fps {
@@ -84,9 +80,11 @@
 
 - (void)drawFrame {
     @synchronized (self) {
+        if (!_displayLink) return;
+        
         [EAGLContext setCurrentContext:_mogView.glContext];
         
-        mog::Engine::getInstance()->onDrawFrame(_touches);
+        _engine->onDrawFrame(_touches);
         _touches.clear();
         
         glBindRenderbufferOES(GL_RENDERBUFFER_OES, _mogView.colorBuffer);

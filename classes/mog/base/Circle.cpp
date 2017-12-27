@@ -1,5 +1,6 @@
 #include "mog/base/Circle.h"
 #include "mog/core/Engine.h"
+#include "mog/core/Device.h"
 #include <math.h>
 
 using namespace mog;
@@ -16,8 +17,10 @@ Circle::Circle() {
 void Circle::init(float radius) {
     this->radius = radius;
     this->transform->size = Size(radius * 2, radius * 2);
+    this->size = this->transform->size;
     
-    int radiusi = (int)(radius * this->transform->screenScale * 0.5f);
+    float deviceDensity = Device::getDeviceDensity();
+    int radiusi = (int)(radius * deviceDensity * 0.5f);
     float v = 1.0f;
     float r = radiusi - v;
     int length = (int)(radiusi * radiusi) * 4;
@@ -45,7 +48,7 @@ void Circle::init(float radius) {
     }
     
     this->texture = Texture2D::createWithRGBA(data, radius, radius);
-    this->frameSize = Size(this->texture->width, this->texture->height);
+    this->rect = Rect(0, 0, this->texture->width, this->texture->height);
 }
 
 void Circle::getVerticesNum(int *num) {
@@ -66,7 +69,7 @@ void Circle::bindVertices(float *vertices, int *idx, bool bakeTransform) {
     float *m;
     if (bakeTransform) {
         this->renderer->pushMatrix();
-        this->renderer->applyTransform(this->transform, false);
+        this->renderer->applyTransform(this->transform, this->screenScale, false);
         m = this->renderer->matrix;
         this->renderer->popMatrix();
     } else {
@@ -77,8 +80,8 @@ void Circle::bindVertices(float *vertices, int *idx, bool bakeTransform) {
     auto v2 = Point(m[4], m[5]);
     auto offset = Point(m[12], m[13]);
     
-    Point size = Point(this->transform->size.width * this->transform->screenScale,
-                       this->transform->size.height * this->transform->screenScale);
+    Point size = Point(this->transform->size.width * this->screenScale,
+                       this->transform->size.height * this->screenScale);
     float xx[3] = {
         0,
         size.x * 0.5f,
@@ -150,7 +153,7 @@ shared_ptr<CIRCLE> Circle::getCIRCLE() {
                         this->renderer->matrix[1] * this->renderer->matrix[1]);
     float scaleY = sqrt(this->renderer->matrix[4] * this->renderer->matrix[4] +
                         this->renderer->matrix[5] * this->renderer->matrix[5]);
-    auto position = Point(this->renderer->matrix[12], this->renderer->matrix[13]) / this->transform->screenScale;
+    auto position = Point(this->renderer->matrix[12], this->renderer->matrix[13]) / this->screenScale;
     auto size = this->transform->size * Point(scaleX, scaleY);
     float centerX = position.x + size.width * 0.5f;
     float centerY = position.y + size.height * 0.5f;
@@ -180,4 +183,8 @@ void Circle::copyFrom(const shared_ptr<Entity> &src) {
     this->radius = circleSrc->radius;
     this->texture = circleSrc->texture;
     this->transform->copyFrom(circleSrc->transform);
+}
+
+EntityType Circle::getEntityType() {
+    return EntityType::Circle;
 }

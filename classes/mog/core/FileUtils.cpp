@@ -6,6 +6,10 @@
 
 using namespace mog;
 
+bool FileUtils::existAsset(string filename) {
+    return FileUtilsNative::existAsset(filename);
+}
+
 string FileUtils::readTextAsset(string filename) {
     return FileUtilsNative::readTextAsset(filename);
 }
@@ -23,6 +27,22 @@ bool FileUtils::readFile(string filename, unsigned char **data, int *len, Direct
     }
     
     string filepath = fileDir + "/" + filename;
+    return FileUtils::readDataFromFile(filepath, data, len);
+}
+
+bool FileUtils::writeFile(string filename, unsigned char *data, int len, Directory dir) {
+    string fileDir = "";
+    if (dir == Directory::Documents) {
+        fileDir = getDocumentsDirectory();
+    } else if (dir == Directory::Caches) {
+        fileDir = getCachesDirectory();
+    }
+    
+    string filepath = fileDir + "/" + filename;
+    return FileUtils::writeDataToFile(filepath, data, len);
+}
+
+bool FileUtils::readDataFromFile(string filepath, unsigned char **data, int *len) {
     std::ifstream ifs;
     ifs.open(filepath, std::ios::in | std::ios_base::binary);
     if (ifs.fail()) {
@@ -49,15 +69,7 @@ bool FileUtils::readFile(string filename, unsigned char **data, int *len, Direct
     return ret;
 }
 
-bool FileUtils::writeFile(string filename, unsigned char *data, int len, Directory dir) {
-    string fileDir = "";
-    if (dir == Directory::Documents) {
-        fileDir = getDocumentsDirectory();
-    } else if (dir == Directory::Caches) {
-        fileDir = getCachesDirectory();
-    }
-    
-    string filepath = fileDir + "/" + filename;
+bool FileUtils::writeDataToFile(string filepath, unsigned char *data, int len) {
     std::ofstream ofs;
     ofs.open(filepath, std::ios::out | std::ios_base::binary);
     if (ofs.fail()) {

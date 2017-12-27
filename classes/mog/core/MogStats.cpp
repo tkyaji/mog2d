@@ -12,25 +12,35 @@ using namespace mog;
 #define ALPHA 150
 #define INTERVAL 0.2f
 
+int MogStats::drawCallCount = 0;
+int MogStats::instanceCount = 0;
+
 shared_ptr<MogStats> MogStats::create(bool enable) {
     auto stats = shared_ptr<MogStats>(new MogStats());
-    stats->alignment = Alignment::BottomLeft;
     stats->enable = enable;
+    stats->setAlignment(Alignment::BottomLeft);
     return stats;
 }
 
-void MogStats::drawFrame(float delta) {
+void MogStats::drawFrame(const shared_ptr<Engine> &engine, float delta) {
     if (!this->enable) return;
+    
+    this->screenScale = engine->getScreenScale();
+    this->screenSize = engine->getScreenSize();
     if (!this->initialized) {
         this->init();
     }
+    if (this->dirtyPosition) {
+        this->updatePosition();
+    }
+
     this->tmpDelta += delta;
     if (this->tmpDelta >= INTERVAL) {
         this->updateValues(delta);
         this->texture->bindTexture();
         this->tmpDelta = 0;
     }
-    this->renderer->drawFrame(this->transform);
+    this->renderer->drawFrame(this->transform, this->screenScale);
 }
 
 bool MogStats::isEnabled() {
@@ -43,13 +53,16 @@ void MogStats::setEnable(bool enable) {
 
 void MogStats::setAlignment(Alignment alignment) {
     this->alignment = alignment;
-    if (!this->initialized) return;
-    
-    auto engine = Engine::getInstance();
-    auto width = this->width / this->transform->screenScale;
-    auto height = this->height / this->transform->screenScale;
+    this->dirtyPosition = true;
+}
 
-    switch (alignment) {
+void MogStats::updatePosition() {
+    if (!this->enable) return;
+    
+    auto width = this->width / this->screenScale;
+    auto height = this->height / this->screenScale;
+    
+    switch (this->alignment) {
         case Alignment::TopLeft:
         case Alignment::MiddleLeft:
         case Alignment::BottomLeft:
@@ -58,12 +71,12 @@ void MogStats::setAlignment(Alignment alignment) {
         case Alignment::TopCenter:
         case Alignment::MiddleCenter:
         case Alignment::BottomCenter:
-            this->transform->position.x = engine->getScreenSize().width * 0.5f - width * 0.5f;
+            this->transform->position.x = this->screenSize.width * 0.5f - width * 0.5f;
             break;
         case Alignment::TopRight:
         case Alignment::MiddleRight:
         case Alignment::BottomRight:
-            this->transform->position.x = engine->getScreenSize().width - width;
+            this->transform->position.x = this->screenSize.width - width;
             break;
     }
     switch (alignment) {
@@ -75,16 +88,17 @@ void MogStats::setAlignment(Alignment alignment) {
         case Alignment::MiddleLeft:
         case Alignment::MiddleCenter:
         case Alignment::MiddleRight:
-            this->transform->position.y = engine->getScreenSize().height * 0.5f - height * 0.5f;
+            this->transform->position.y = this->screenSize.height * 0.5f - height * 0.5f;
             break;
         case Alignment::BottomLeft:
         case Alignment::BottomCenter:
         case Alignment::BottomRight:
-            this->transform->position.y = engine->getScreenSize().height - height;
+            this->transform->position.y = this->screenSize.height - height;
             break;
     }
+    
+    this->dirtyPosition = false;
 }
-
 
 void MogStats::bindVertex() {
     auto indices = new short[4];
@@ -98,7 +112,7 @@ void MogStats::bindVertex() {
     vertices[2] = 0;    vertices[3] = this->texture->height;
     vertices[4] = this->texture->width;    vertices[5] = 0;
     vertices[6] = this->texture->width;    vertices[7] = this->texture->height;
-    
+
     auto vertexTexCoords = new float[4 * 2];
     vertexTexCoords[0] = 0;    vertexTexCoords[1] = 0;
     vertexTexCoords[2] = 0;    vertexTexCoords[3] = 1.0;
@@ -113,8 +127,7 @@ void MogStats::bindVertex() {
 void MogStats::init() {
     this->renderer = make_shared<Renderer>();
     this->transform = make_shared<Transform>();
-    this->transform->screenScale = Engine::getInstance()->getScreenScale();
-    
+
     for (int i = 0; i < 10; i++) {
         auto tex = this->createLabelTexture(to_string(i));
         this->numberTexture2ds[i] = tex;
@@ -128,7 +141,7 @@ void MogStats::init() {
     const int startY = padding;
     int x = startX;
     int y = startY;
-    
+
     auto fps = this->createLabelTexture("000.00");
     auto separator = this->createLabelTexture("/");
     auto delta = this->createLabelTexture("00.0000");
@@ -136,7 +149,7 @@ void MogStats::init() {
     auto drawCall = this->createLabelTexture("0");
     auto instantsLabel = this->createLabelTexture("INSTANTS  :");
     auto instants = this->createLabelTexture("0");
-    
+
     this->width = fps->width + separator->width + delta->width + xMargin * 2 + padding * 2;
     this->height = max(fps->height, delta->height) +
         max(drawCallLabel->height, drawCall->height) +
@@ -146,7 +159,7 @@ void MogStats::init() {
         this->data[i * 4 + 3] = ALPHA;
     }
     this->texture = Texture2D::createWithRGBA(this->data, this->width, this->height);
-    
+
     this->setTextToData(fps, x, y);
     this->positions[FPS] = pair<int, int>(x, y);
     x += fps->width + xMargin;
@@ -168,21 +181,24 @@ void MogStats::init() {
     x += instantsLabel->width + xMargin;
     this->setTextToData(instants, x, y);
     this->positions[INSTANTS] = pair<int, int>(x, y);
-    
+
     this->bindVertex();
     this->initialized = true;
     this->setAlignment(this->alignment);
+    
+    this->initialized = true;
 }
 
 void MogStats::setTextToData(shared_ptr<Texture2D> text, int x, int y) {
     for (int yi = 0; yi < text->height; yi++) {
-        memcpy(&data[((yi + y) * this->width + x) * 4],
+        memcpy(&this->data[((yi + y) * this->width + x) * 4],
                &text->data[(yi * text->width) * 4],
                text->width * 4 * sizeof(unsigned char));
     }
 }
 
 void MogStats::setNumberToData(float value, int intLength, int decimalLength, int x, int y) {
+    intLength = max(intLength, (int)log10(value) + 1);
     int intVal = (int)(value * pow(10, decimalLength));
     int length = intLength + decimalLength;
     vector<shared_ptr<Texture2D>> vec;
@@ -202,7 +218,7 @@ void MogStats::setNumberToData(float value, int intLength, int decimalLength, in
         }
         intVal /= 10;
     }
-    
+
     int _x = 0;
     for (int i = (int)vec.size() - 1; i >= 0; i--) {
         auto tex = vec[i];
@@ -211,20 +227,24 @@ void MogStats::setNumberToData(float value, int intLength, int decimalLength, in
     }
 }
 
+#ifdef MOG_QT
+#include <QFontDatabase>
+#endif
+
 shared_ptr<Texture2D> MogStats::createLabelTexture(string text) {
-#if MOG_IOS
+#if defined(MOG_IOS) || defined(MOG_OSX)
     const char *fontFace = "Courier";
-#elif MOG_ANDROID
+#elif defined(MOG_ANDROID)
     const char *fontFace = "monospace";
-#elif MOG_OSX
-    const char *fontFace = "Courier";
+#elif defined(MOG_QT)
+    const char *fontFace = QFontDatabase::systemFont(QFontDatabase::SystemFont::FixedFont).family().toStdString().c_str();
 #else
     const char *fontFace = "";
 #endif
     auto tex2d = Texture2D::createWithText(text, 13.0f, fontFace);
-    unsigned char *tmpData = (unsigned char *)malloc(tex2d->dataLength);
-    memcpy(tmpData, tex2d->data, tex2d->dataLength);
-    
+    unsigned char *tmpData = (unsigned char *)malloc(tex2d->dataLength * sizeof(unsigned char));
+    memcpy(tmpData, tex2d->data, tex2d->dataLength * sizeof(unsigned char));
+
     for (int yi = 0; yi < tex2d->height; yi++) {
         int yr = yi;
         if (tex2d->isFlip) {
@@ -238,7 +258,7 @@ shared_ptr<Texture2D> MogStats::createLabelTexture(string text) {
             memcpy(&tex2d->data[ii * 4], data, 4 * sizeof(unsigned char));
         }
     }
-    
+
     safe_free(tmpData);
     return tex2d;
 }
@@ -251,12 +271,8 @@ void MogStats::updateValues(float delta) {
     if (delta >= 100) {
         delta = 99.9999f;
     }
-    int drawCall = Renderer::drawCallCounter;
-    int instants = Entity::instanceNumCounter;
-    
     this->setNumberToData(fps, 3, 2, this->positions[FPS].first, this->positions[FPS].second);
     this->setNumberToData(delta, 2, 4, this->positions[DELTA].first, this->positions[DELTA].second);
-    this->setNumberToData(drawCall, 0, 0, this->positions[DRAW_CALL].first, this->positions[DRAW_CALL].second);
-    this->setNumberToData(instants, 0, 0, this->positions[INSTANTS].first, this->positions[INSTANTS].second);
+    this->setNumberToData(drawCallCount, 0, 0, this->positions[DRAW_CALL].first, this->positions[DRAW_CALL].second);
+    this->setNumberToData(instanceCount, 0, 0, this->positions[INSTANTS].first, this->positions[INSTANTS].second);
 }
-

@@ -2,7 +2,6 @@
 #include "mog/base/AppBase.h"
 #include "mog/base/Scene.h"
 #include "mog/core/Engine.h"
-#include "mog/base/BatchingGroup.h"
 #include "mog/base/Rectangle.h"
 
 using namespace mog;
@@ -20,21 +19,17 @@ public:
         return g;
     }
     
-    virtual void updateFrame(float delta) override {
-        this->extractEvent(delta);
+    virtual void updateFrame(const shared_ptr<Engine> &engine, float delta) override {
+        this->extractEvent(engine, delta);
     }
 };
 
-
-AppBase *AppBase::app;
-
-AppBase::AppBase() {
-    AppBase::app = this;
-    this->pubsub = make_shared<PubSub>();
+void AppBase::setEngine(const shared_ptr<Engine> &engine) {
+    this->engine = engine;
 }
 
-AppBase *AppBase::getApp() {
-    return AppBase::app;
+AppBase::AppBase() {
+    this->pubsub = make_shared<PubSub>();
 }
 
 void AppBase::loadScene(const shared_ptr<Scene> &scene) {
@@ -149,8 +144,9 @@ void AppBase::loadSceneMain(const shared_ptr<Scene> &scene, Transition transitio
 
 void AppBase::loadSceneWithTransition(const shared_ptr<Scene> &scene, float duration, Easing easing, LoadMode loadMode, float loadSceneValue,
                                       function<void(shared_ptr<Entity> current, shared_ptr<Entity> next, float value)> onModify) {
-    bool touchEnable = Engine::getInstance()->isTouchEnable();
-    Engine::getInstance()->setTouchEnable(false);
+    auto engine = this->engine.lock();
+    bool touchEnable = engine->isTouchEnable();
+    engine->setTouchEnable(false);
     
     auto loadingScene = make_shared<LoadingScene>();
     
@@ -183,7 +179,7 @@ void AppBase::loadSceneWithTransition(const shared_ptr<Scene> &scene, float dura
     tween->setOnFinishEvent([loadingScene, this, scene, touchEnable](const shared_ptr<mog::Entity> &e) {
         loadingScene->removeAll();
         this->currentScene = scene;
-        Engine::getInstance()->setTouchEnable(touchEnable);
+        this->engine.lock()->setTouchEnable(touchEnable);
     });
     loadingScene->runTween(tween);
 }
@@ -291,7 +287,8 @@ void AppBase::loadSceneWithSlideIn(const shared_ptr<Scene> &scene, Transition tr
 
 void AppBase::drawFrame(float delta) {
     if (this->currentScene) {
-        this->currentScene->getRootGroup()->updateFrame(delta);
+        auto engine = this->engine.lock();
+        this->currentScene->getRootGroup()->updateFrame(engine, delta);
         this->currentScene->getRootGroup()->drawFrame(delta);
         
         if (this->doLoadScene()) {
@@ -309,11 +306,11 @@ void AppBase::drawFrame(float delta) {
 }
 
 Color AppBase::getBackgroundColor() {
-    return Engine::getInstance()->getClearColor();
+    return this->engine.lock()->getClearColor();
 }
 
 void AppBase::setBackgroundColor(const Color &color) {
-    Engine::getInstance()->setClearColor(color);
+    this->engine.lock()->setClearColor(color);
 }
 
 shared_ptr<Scene> AppBase::getCurrentScene() {
@@ -321,47 +318,47 @@ shared_ptr<Scene> AppBase::getCurrentScene() {
 }
 
 void AppBase::setScreenSizeBasedOnHeight(float height) {
-    Engine::getInstance()->setScreenSizeBasedOnHeight(height);
+    this->engine.lock()->setScreenSizeBasedOnHeight(height);
 }
 
 void AppBase::setScreenSizeBasedOnWidth(float width) {
-    Engine::getInstance()->setScreenSizeBasedOnWidth(width);
+    this->engine.lock()->setScreenSizeBasedOnWidth(width);
 }
 
 Size AppBase::getDisplaySize() {
-    return Engine::getInstance()->getDisplaySize();
+    return this->engine.lock()->getDisplaySize();
 }
 
 Size AppBase::getScreenSize() {
-    return Engine::getInstance()->getScreenSize();
+    return this->engine.lock()->getScreenSize();
 }
 
 float AppBase::getScreenScale() {
-    return Engine::getInstance()->getScreenScale();
+    return this->engine.lock()->getScreenScale();
 }
 
 void AppBase::setTouchEnable(bool enable) {
-    Engine::getInstance()->setTouchEnable(enable);
+    this->engine.lock()->setTouchEnable(enable);
 }
 
 void AppBase::setMultiTouchEnable(bool enable) {
-    Engine::getInstance()->setMultiTouchEnable(enable);
+    this->engine.lock()->setMultiTouchEnable(enable);
 }
 
 bool AppBase::isTouchEnable() {
-    return Engine::getInstance()->isTouchEnable();
+    return this->engine.lock()->isTouchEnable();
 }
 
 bool AppBase::isMultiTouchEnable() {
-    return Engine::getInstance()->isMultiTouchEnable();
+    return this->engine.lock()->isMultiTouchEnable();
 }
 
 void AppBase::setStatsViewEnable(bool enable) {
-    Engine::getInstance()->setStatsViewEnable(enable);
+    this->engine.lock()->setStatsEnable(enable);
 }
 
 void AppBase::setStatsViewAlignment(Alignment alignment) {
-    Engine::getInstance()->setStatsViewAlignment(alignment);
+    this->engine.lock()->setStatsAlignment(alignment);
 }
 
 shared_ptr<PubSub> AppBase::getPubSub() {

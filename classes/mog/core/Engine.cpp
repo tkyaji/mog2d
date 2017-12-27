@@ -7,56 +7,36 @@
 #include "mog/core/opengl.h"
 #include "mog/base/Scene.h"
 #include "mog/base/AppBase.h"
+#include "mog/core/Device.h"
 #include "mog/core/AudioPlayer.h"
 #include "mog/core/DataStore.h"
 #include "mog/core/NativePlugin.h"
 
 using namespace mog;
 
-#ifdef MOG_OSX
+#if defined(MOG_OSX) || defined(MOG_QT)
 inline void glOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar) {
     glOrtho(left, right, bottom, top, zNear, zFar);
 }
 #endif
 
-Engine *Engine::instance;
-unsigned int Engine::onUpdateFuncIdCounter = 0;
-
-Engine *Engine::getInstance() {
-    return Engine::instance;
-}
-
-Engine *Engine::initInstance() {
-    if (Engine::instance == nullptr) {
-        Engine::instance = new Engine();
-    }
-    return Engine::instance;
+shared_ptr<Engine> Engine::create(const shared_ptr<AppBase> &app) {
+    auto engine = shared_ptr<Engine>(new Engine());
+    engine->app = app;
+    app->setEngine(engine);
+    return engine;
 }
 
 Engine::Engine() {
     AudioPlayer::initialize();
     NativeCallbackManager::initialize();
-    
     this->renderer = make_shared<Renderer>();
-    
-#ifdef MOG_DEBUG
-    bool statsEnable = true;
-#else
-    bool statsEnable = false;
-#endif
-    this->stats = MogStats::create(statsEnable);
 }
 
-void Engine::initEngine(shared_ptr<AppBase> app) {
-    this->initParameters();
-    this->app = app;
-}
-
-void Engine::terminateEngine() {
+Engine::~Engine() {
     if (this->app) {
         this->app->onDispose();
     }
-    this->app = nullptr;
 }
 
 void Engine::startEngine() {
@@ -66,14 +46,22 @@ void Engine::startEngine() {
     this->startTimer();
     this->lastElapsedSec = this->getTimerElapsedSec();
     
-    AudioPlayer::onResume();
-    if (this->app) {
-        if (!this->appLoaded) {
-            this->app->onLoad();
-            this->appLoaded = true;
-        }
-        this->app->onResume();
+    if (!this->stats) {
+#ifdef MOG_DEBUG
+        bool statsEnable = true;
+#else
+        bool statsEnable = false;
+#endif
+        this->stats = MogStats::create(statsEnable);
     }
+    if (!this->initialized) {
+        this->initParameters();
+        this->app->onLoad();
+        this->initialized = true;
+    }
+
+    AudioPlayer::onResume();
+    this->app->onResume();
 }
 
 void Engine::stopEngine() {
@@ -100,15 +88,13 @@ void Engine::onDrawFrame(map<unsigned int, TouchInput> touches) {
     this->initScreen();
     this->clearColor();
 
-#ifdef MOG_DEBUG
-    Renderer::drawCallCounter = 0;
-#endif
-
+    this->stats->drawCallCount = 0;
+    
     if (this->app) {
         this->app->drawFrame(delta);
     }
     
-    this->stats->drawFrame(delta);
+    this->stats->drawFrame(shared_from_this(), delta);
     
     this->frameCount++;
     
@@ -184,27 +170,12 @@ Size Engine::getScreenSize() {
     return this->screenSize;
 }
 
-void Engine::setDisplaySize(const Size &size, float deviceDensity) {
+void Engine::setDisplaySize(const Size &size) {
     if (approximately(this->displaySize.width, size.width) &&
-            approximately(this->displaySize.height, size.height) &&
-            approximately(this->deviceDensity, deviceDensity)) {
+            approximately(this->displaySize.height, size.height)) {
         return;
     }
     this->displaySize = size;
-    this->deviceDensity = deviceDensity;
-    
-    int scale = (int)ceil(deviceDensity * 10.0f);
-    if (scale > 30) {
-        this->density = Density::x4_0;
-    } else if (scale > 20) {
-        this->density = Density::x3_0;
-    } else if (scale > 15) {
-        this->density = Density::x2_0;
-    } else if (scale > 10) {
-        this->density = Density::x1_5;
-    } else {
-        this->density = Density::x1_0;
-    }
     this->displaySizeChanged = true;
 }
 
@@ -226,10 +197,6 @@ float Engine::getScreenScale() {
     return this->displaySize.width / this->screenSize.width;
 }
 
-float Engine::getDeviceDensity() {
-    return this->deviceDensity;
-}
-
 Color Engine::getClearColor() {
     return this->color;
 }
@@ -243,20 +210,20 @@ void Engine::clearColor() {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-Density Engine::getDensity() {
-    return this->density;
-}
-
 void Engine::onKeyEvent(const KeyEvent &keyEvent) {
     
 }
 
-void Engine::setStatsViewEnable(bool enable) {
+void Engine::setStatsEnable(bool enable) {
     this->stats->setEnable(enable);
 }
 
-void Engine::setStatsViewAlignment(Alignment alignment) {
+void Engine::setStatsAlignment(Alignment alignment) {
     this->stats->setAlignment(alignment);
+}
+
+shared_ptr<MogStats> Engine::getStats() {
+    return this->stats;
 }
 
 void Engine::startTimer() {
@@ -279,8 +246,8 @@ float Engine::getTimerElapsedSec() {
 }
 
 void Engine::fireTouchListeners(map<unsigned int, TouchInput> touches) {
-    float scale = this->getApp()->getScreenScale();
-    float density = this->getDeviceDensity();
+    float scale = this->getScreenScale();
+    float density = Device::getDeviceDensity();
     float uptime = this->getTimerElapsedSec();
     
     for (auto pair : touches) {

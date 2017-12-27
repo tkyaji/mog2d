@@ -439,7 +439,8 @@ namespace mog {
     class TweenDelay : public Tween {
     public:
         static shared_ptr<TweenDelay> create(float delayTime);
-        
+        static shared_ptr<TweenDelay> create(float delayTime, function<void(const shared_ptr<Entity> &e)> callback);
+
         virtual void onModify(float currentValue, const shared_ptr<Entity> &entity) {}
         
     protected:

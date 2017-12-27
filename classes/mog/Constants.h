@@ -6,6 +6,7 @@
 #define PLATFORM_ANDROID "android"
 #define PLATFORM_IOS     "ios"
 #define PLATFORM_OSX     "osx"
+#define PLATFORM_QT      "qt"
 
 #ifdef MOG_IOS
 #define PLATFORM PLATFORM_IOS
@@ -15,6 +16,9 @@
 #endif
 #ifdef MOG_ANDROID
 #define PLATFORM PLATFORM_ANDROID
+#endif
+#ifdef MOG_QT
+#define PLATFORM PLATFORM_QT
 #endif
 
 #define DEFAULT_FPS 60
@@ -34,6 +38,9 @@
 #define RERENDER_TEX_COORDS 0b00001000
 #define RERENDER_ALL        (RERENDER_VERTEX | RERENDER_COLOR | RERENDER_TEXTURE)
 
+#define DIRTY_POSITION      0b00000001
+#define DIRTY_SIZE          0b00000010
+
 #ifndef LOG_LEVEL
 #ifdef MOG_DEBUG
 #define LOG_LEVEL LOG_DEBUG
@@ -42,6 +49,7 @@
 #endif
 #endif
 
+#include "mog/ConstantsNative.h"
 #include "mog/core/mog_functions.h"
 
 #endif /* Constants_h */

@@ -1,5 +1,5 @@
-#ifndef Data_hpp
-#define Data_hpp
+#ifndef Data_h
+#define Data_h
 
 #include <memory>
 #include <string>
@@ -7,6 +7,7 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -25,8 +26,8 @@ namespace mog {
         Array,
         Dictionary,
     };
-
-
+    
+    
     class Data {
     public:
         DataType type = DataType::Null;
@@ -34,8 +35,8 @@ namespace mog {
         virtual void write(ostream &out);
         virtual void read(istream &in);
     };
-
-
+    
+    
     class Int : public Data {
     public:
         int value = 0;
@@ -58,20 +59,20 @@ namespace mog {
         virtual void write(ostream &out);
         virtual void read(istream &in);
     };
-
-
+    
+    
     class Float : public Data {
     public:
         float value = 0;
-
+        
         Float();
         Float(float value);
-
+        
         virtual void write(ostream &out);
         virtual void read(istream &in);
     };
-
-
+    
+    
     class Double : public Data {
     public:
         double value = 0;
@@ -82,8 +83,8 @@ namespace mog {
         virtual void write(ostream &out);
         virtual void read(istream &in);
     };
-
-
+    
+    
     class Bool : public Data {
     public:
         bool value = false;
@@ -121,7 +122,7 @@ namespace mog {
         string toString();
         string toString() const;
     };
-
+    
     
     class Array : public Data {
     public:
@@ -134,8 +135,15 @@ namespace mog {
         }
         
         template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
-        void insert(int idx, const T &data) {
+        void set(int idx, const T &data) {
             auto d = shared_ptr<T>(new T(data));
+            if ((int)this->datum.size() - 1 < idx) {
+                int start = (int)this->datum.size();
+                for (int i = start; i <= idx; i++) {
+                    auto d = make_shared<Data>();
+                    this->datum.emplace_back(d);
+                }
+            }
             this->datum[idx] = d;
         }
         
@@ -147,7 +155,6 @@ namespace mog {
                 
             } else {
                 auto d = T();
-                d.type = DataType::Null;
                 return d;
             }
         }
@@ -187,17 +194,39 @@ namespace mog {
             }
         }
         DataType getType(string key) const;
-
+        
         void remove(string key);
         void clear();
         size_t size() const;
         vector<string> getKeys() const;
-
+        
         virtual void write(ostream &out);
         virtual void read(istream &in);
         
     private:
         map<string, shared_ptr<Data>> datum;
+    };
+    
+    
+    class Param {
+    public:
+        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
+        Param(T data) {
+            this->data = shared_ptr<T>(new T(data));
+        }
+        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
+        T get() {
+            return *static_pointer_cast<T>(this->data).get();
+        }
+        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
+        T get() const {
+            return *static_pointer_cast<T>(this->data).get();
+        }
+        DataType getType() {
+            return this->data->type;
+        }
+    private:
+        shared_ptr<Data> data;
     };
     
     
@@ -220,4 +249,6 @@ namespace mog {
 }
 
 
-#endif /* Data_hpp */
+#endif /* Data_h */
+
+

@@ -5,6 +5,16 @@
 
 using namespace mog;
 
+bool FileUtilsNative::existAsset(string filename) {
+    NSString *filenameStr = [NSString stringWithFormat:@"assets_ios/%s", filename.c_str()];
+    NSString *path = [[NSBundle mainBundle] pathForResource:filenameStr ofType:nil];
+    if (path != nil) return true;
+    
+    filenameStr = [NSString stringWithFormat:@"assets/%s", filename.c_str()];
+    path = [[NSBundle mainBundle] pathForResource:filenameStr ofType:nil];
+    return (path != nil);
+}
+
 string FileUtilsNative::readTextAsset(string filename) {
     NSString *filenameStr = [NSString stringWithFormat:@"assets_ios/%s", filename.c_str()];
     NSString *path = [[NSBundle mainBundle] pathForResource:filenameStr ofType:nil];

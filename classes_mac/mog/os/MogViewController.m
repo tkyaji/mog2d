@@ -23,7 +23,6 @@
     
     _engineController = [[MogEngineController alloc] initWithMog:self view:mogView];
     mogView.touchEventDelegate = _engineController;
-    [_engineController initEngine];
     [_engineController startEngine];
     _touchIdDict = [NSMutableDictionary<NSNumber *, NSNumber *> new];
     _nextTouchId = 1;

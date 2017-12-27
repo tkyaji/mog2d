@@ -11,7 +11,6 @@
 		B240257B1F38B827009FF29E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B240257A1F38B827009FF29E /* Assets.xcassets */; };
 		B24025DE1F38C5DE009FF29E /* App.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B24025871F38C5DD009FF29E /* App.cpp */; };
 		B24025DF1F38C5DE009FF29E /* AppBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B240258B1F38C5DD009FF29E /* AppBase.cpp */; };
-		B24025E01F38C5DE009FF29E /* BatchingGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B240258D1F38C5DD009FF29E /* BatchingGroup.cpp */; };
 		B24025E11F38C5DE009FF29E /* Circle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B240258F1F38C5DD009FF29E /* Circle.cpp */; };
 		B24025E21F38C5DE009FF29E /* DrawEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B24025911F38C5DD009FF29E /* DrawEntity.cpp */; };
 		B24025E31F38C5DE009FF29E /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B24025931F38C5DD009FF29E /* Entity.cpp */; };
@@ -56,6 +55,9 @@
 		B240262B1F38CAD0009FF29E /* MogView.m in Sources */ = {isa = PBXBuildFile; fileRef = B240261D1F38CAD0009FF29E /* MogView.m */; };
 		B240262C1F38CAD0009FF29E /* MogViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B240261F1F38CAD0009FF29E /* MogViewController.m */; };
 		B24026781F3ED50D009FF29E /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B24026761F3ED47D009FF29E /* OpenGL.framework */; };
+		B262B9F71FB7350B004BC613 /* MogUILoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B262B9F51FB7350B004BC613 /* MogUILoader.cpp */; };
+		B27388BD1F8E7AA000654BD9 /* Device.mm in Sources */ = {isa = PBXBuildFile; fileRef = B27388BC1F8E7A9F00654BD9 /* Device.mm */; };
+		B27388C11F8E7BF600654BD9 /* Density.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B27388C01F8E7BF600654BD9 /* Density.cpp */; };
 		B29901E81F58580A007E7216 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B29901E71F58580A007E7216 /* OpenAL.framework */; };
 		B29901EA1F58582F007E7216 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B29901E91F58582F007E7216 /* AudioToolbox.framework */; };
 		B2A7E6D31F7F834C001A57BD /* MogStats.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2A7E6D11F7F834B001A57BD /* MogStats.cpp */; };
@@ -74,8 +76,6 @@
 		B24025881F38C5DD009FF29E /* App.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = App.h; sourceTree = "<group>"; };
 		B240258B1F38C5DD009FF29E /* AppBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AppBase.cpp; sourceTree = "<group>"; };
 		B240258C1F38C5DD009FF29E /* AppBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppBase.h; sourceTree = "<group>"; };
-		B240258D1F38C5DD009FF29E /* BatchingGroup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BatchingGroup.cpp; sourceTree = "<group>"; };
-		B240258E1F38C5DD009FF29E /* BatchingGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BatchingGroup.h; sourceTree = "<group>"; };
 		B240258F1F38C5DD009FF29E /* Circle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Circle.cpp; sourceTree = "<group>"; };
 		B24025901F38C5DD009FF29E /* Circle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Circle.h; sourceTree = "<group>"; };
 		B24025911F38C5DD009FF29E /* DrawEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawEntity.cpp; sourceTree = "<group>"; };
@@ -163,7 +163,6 @@
 		B240260F1F38CAD0009FF29E /* stb_vorbis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_vorbis.h; sourceTree = "<group>"; };
 		B24026101F38CAD0009FF29E /* Texture2DNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Texture2DNative.h; sourceTree = "<group>"; };
 		B24026111F38CAD0009FF29E /* Texture2DNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Texture2DNative.mm; sourceTree = "<group>"; };
-		B24026131F38CAD0009FF29E /* MacHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacHelper.h; sourceTree = "<group>"; };
 		B24026141F38CAD0009FF29E /* MogAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogAppDelegate.h; sourceTree = "<group>"; };
 		B24026151F38CAD0009FF29E /* MogAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MogAppDelegate.m; sourceTree = "<group>"; };
 		B24026161F38CAD0009FF29E /* MogEngineController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogEngineController.h; sourceTree = "<group>"; };
@@ -175,6 +174,13 @@
 		B240261E1F38CAD0009FF29E /* MogViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogViewController.h; sourceTree = "<group>"; };
 		B240261F1F38CAD0009FF29E /* MogViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MogViewController.m; sourceTree = "<group>"; };
 		B24026761F3ED47D009FF29E /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		B262B9F51FB7350B004BC613 /* MogUILoader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MogUILoader.cpp; sourceTree = "<group>"; };
+		B262B9F61FB7350B004BC613 /* MogUILoader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MogUILoader.h; sourceTree = "<group>"; };
+		B27388BB1F8E7A9F00654BD9 /* Device.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Device.h; sourceTree = "<group>"; };
+		B27388BC1F8E7A9F00654BD9 /* Device.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Device.mm; sourceTree = "<group>"; };
+		B27388BE1F8E7AA600654BD9 /* ConstantsNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstantsNative.h; sourceTree = "<group>"; };
+		B27388BF1F8E7BF600654BD9 /* Density.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Density.h; sourceTree = "<group>"; };
+		B27388C01F8E7BF600654BD9 /* Density.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Density.cpp; sourceTree = "<group>"; };
 		B29901E71F58580A007E7216 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
 		B29901E91F58582F007E7216 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		B2A7E6D11F7F834B001A57BD /* MogStats.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MogStats.cpp; sourceTree = "<group>"; };
@@ -280,8 +286,6 @@
 			children = (
 				B240258B1F38C5DD009FF29E /* AppBase.cpp */,
 				B240258C1F38C5DD009FF29E /* AppBase.h */,
-				B240258D1F38C5DD009FF29E /* BatchingGroup.cpp */,
-				B240258E1F38C5DD009FF29E /* BatchingGroup.h */,
 				B240258F1F38C5DD009FF29E /* Circle.cpp */,
 				B24025901F38C5DD009FF29E /* Circle.h */,
 				B24025911F38C5DD009FF29E /* DrawEntity.cpp */,
@@ -313,6 +317,8 @@
 		B24025A81F38C5DE009FF29E /* core */ = {
 			isa = PBXGroup;
 			children = (
+				B27388C01F8E7BF600654BD9 /* Density.cpp */,
+				B27388BF1F8E7BF600654BD9 /* Density.h */,
 				B2A7E6D11F7F834B001A57BD /* MogStats.cpp */,
 				B2A7E6D21F7F834C001A57BD /* MogStats.h */,
 				B24025A91F38C5DE009FF29E /* AudioPlayer.cpp */,
@@ -354,6 +360,8 @@
 				B24025CF1F38C5DE009FF29E /* Transform.h */,
 				B24025D01F38C5DE009FF29E /* Tween.cpp */,
 				B24025D11F38C5DE009FF29E /* Tween.h */,
+				B262B9F51FB7350B004BC613 /* MogUILoader.cpp */,
+				B262B9F61FB7350B004BC613 /* MogUILoader.h */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -393,6 +401,7 @@
 		B24026031F38CAD0009FF29E /* mog */ = {
 			isa = PBXGroup;
 			children = (
+				B27388BE1F8E7AA600654BD9 /* ConstantsNative.h */,
 				B24026041F38CAD0009FF29E /* core */,
 				B24026121F38CAD0009FF29E /* os */,
 				B24026201F38CAD0009FF29E /* plugins */,
@@ -403,6 +412,8 @@
 		B24026041F38CAD0009FF29E /* core */ = {
 			isa = PBXGroup;
 			children = (
+				B27388BB1F8E7A9F00654BD9 /* Device.h */,
+				B27388BC1F8E7A9F00654BD9 /* Device.mm */,
 				B24026051F38CAD0009FF29E /* AudioPlayerNative.h */,
 				B24026061F38CAD0009FF29E /* AudioPlayerNative.mm */,
 				B24026071F38CAD0009FF29E /* FileUtilsNative.h */,
@@ -423,7 +434,6 @@
 		B24026121F38CAD0009FF29E /* os */ = {
 			isa = PBXGroup;
 			children = (
-				B24026131F38CAD0009FF29E /* MacHelper.h */,
 				B24026141F38CAD0009FF29E /* MogAppDelegate.h */,
 				B24026151F38CAD0009FF29E /* MogAppDelegate.m */,
 				B24026161F38CAD0009FF29E /* MogEngineController.h */,
@@ -559,6 +569,8 @@
 				B24025761F38B827009FF29E /* main.m in Sources */,
 				B24025DF1F38C5DE009FF29E /* AppBase.cpp in Sources */,
 				B24025E71F38C5DE009FF29E /* Rectangle.cpp in Sources */,
+				B27388BD1F8E7AA000654BD9 /* Device.mm in Sources */,
+				B262B9F71FB7350B004BC613 /* MogUILoader.cpp in Sources */,
 				B24025EE1F38C5DE009FF29E /* Collision.cpp in Sources */,
 				B24026221F38CAD0009FF29E /* FileUtilsNative.mm in Sources */,
 				B24026001F38C5DE009FF29E /* json.c in Sources */,
@@ -571,8 +583,8 @@
 				B24025FF1F38C5DE009FF29E /* aes.c in Sources */,
 				B24026241F38CAD0009FF29E /* NativeClass.mm in Sources */,
 				B24025F01F38C5DE009FF29E /* DataStore.cpp in Sources */,
+				B27388C11F8E7BF600654BD9 /* Density.cpp in Sources */,
 				B24025E31F38C5DE009FF29E /* Entity.cpp in Sources */,
-				B24025E01F38C5DE009FF29E /* BatchingGroup.cpp in Sources */,
 				B24025FE1F38C5DE009FF29E /* Tween.cpp in Sources */,
 				B24025F21F38C5DE009FF29E /* FileUtils.cpp in Sources */,
 				B24026011F38C5DE009FF29E /* sha256.cpp in Sources */,

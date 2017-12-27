@@ -11,10 +11,15 @@ using namespace mog;
 void *enabler;
 
 void Data::write(ostream &out) {
+    out.write((char *)&this->type, sizeof(char));
     out.write((char *)this, sizeof(Data));
 }
 
 void Data::read(istream &in) {
+    in.read((char *)&this->type, sizeof(char));
+    if (this->type != DataType::Null) {
+        throw std::ios_base::failure("data type is not match. type=Null");
+    }
     in.read((char*)this, sizeof(Data));
 }
 
@@ -30,12 +35,16 @@ Int::Int(int value) {
 }
 
 void Int::write(ostream &out) {
-    
+    out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->value, sizeof(int));
 }
 
 void Int::read(istream &in) {
-    in.read((char*)&this->value, sizeof(int));
+    in.read((char *)&this->type, sizeof(char));
+    if (this->type != DataType::Int) {
+        throw std::ios_base::failure("data type is not match. type=Int");
+    }
+    in.read((char *)&this->value, sizeof(int));
 }
 
 
@@ -51,10 +60,15 @@ Long::Long(long long value) {
 }
 
 void Long::write(ostream &out) {
+    out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->value, sizeof(long long));
 }
 
 void Long::read(istream &in) {
+    in.read((char *)&this->type, sizeof(char));
+    if (this->type != DataType::Long) {
+        throw std::ios_base::failure("data type is not match. type=Long");
+    }
     in.read((char*)&this->value, sizeof(long long));
 }
 
@@ -70,10 +84,15 @@ Float::Float(float value) {
 }
 
 void Float::write(ostream &out) {
+    out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->value, sizeof(float));
 }
 
 void Float::read(istream &in) {
+    in.read((char *)&this->type, sizeof(char));
+    if (this->type != DataType::Float) {
+        throw std::ios_base::failure("data type is not match. type=Float");
+    }
     in.read((char*)&this->value, sizeof(float));
 }
 
@@ -89,10 +108,15 @@ Double::Double(double value) {
 }
 
 void Double::write(ostream &out) {
+    out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->value, sizeof(double));
 }
 
 void Double::read(istream &in) {
+    in.read((char *)&this->type, sizeof(char));
+    if (this->type != DataType::Double) {
+        throw std::ios_base::failure("data type is not match. type=Double");
+    }
     in.read((char*)&this->value, sizeof(double));
 }
 
@@ -109,10 +133,15 @@ Bool::Bool(bool value) {
 }
 
 void Bool::write(ostream &out) {
+    out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->value, sizeof(bool));
 }
 
 void Bool::read(istream &in) {
+    in.read((char *)&this->type, sizeof(char));
+    if (this->type != DataType::Bool) {
+        throw std::ios_base::failure("data type is not match. type=Bool");
+    }
     in.read((char*)&this->value, sizeof(bool));
 }
 
@@ -129,12 +158,17 @@ String::String(string value) {
 }
 
 void String::write(ostream &out) {
+    out.write((char *)&this->type, sizeof(char));
     size_t size = this->value.size();
     out.write((char *)&size, sizeof(size_t));
     out.write((char *)this->value.c_str(), size * sizeof(char));
 }
 
 void String::read(istream &in) {
+    in.read((char *)&this->type, sizeof(char));
+    if (this->type != DataType::String) {
+        throw std::ios_base::failure("data type is not match. type=String");
+    }
     size_t size;
     in.read((char *)&size, sizeof(size_t));
     char *str = new char[size];
@@ -164,11 +198,16 @@ Bytes::~Bytes() {
 }
 
 void Bytes::write(ostream &out) {
+    out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->length, sizeof(unsigned int));
     out.write((char *)this->value, this->length * sizeof(char));
 }
 
 void Bytes::read(istream &in) {
+    in.read((char *)&this->type, sizeof(char));
+    if (this->type != DataType::Bytes) {
+        throw std::ios_base::failure("data type is not match. type=Bytes");
+    }
     in.read((char *)&this->length, sizeof(unsigned int));
     in.read((char *)this->value, this->length * sizeof(char));
 }
@@ -205,17 +244,26 @@ DataType Array::atType(int idx) const {
 }
 
 void Array::write(ostream &out) {
+    out.write((char *)&this->type, sizeof(char));
+    size_t size = this->datum.size();
+    out.write((char *)&size, sizeof(size_t));
     for (auto &d : this->datum) {
-        out.write((char *)&d->type, sizeof(char));
         d->write(out);
     }
 }
 
 void Array::read(istream &in) {
-    while (true) {
+    in.read((char *)&this->type, sizeof(char));
+    if (this->type != DataType::Array) {
+        throw std::ios_base::failure("data type is not match. type=Array");
+    }
+    size_t dataSize;
+    in.read((char *)&dataSize, sizeof(size_t));
+    for (int i = 0; i < dataSize; i++) {
+        auto pos = in.tellg();
         DataType type;
         in.read((char *)&type, sizeof(char));
-        if (in.eof()) break;
+        in.seekg(pos);
         
         switch (type) {
             case DataType::Int: {
@@ -311,27 +359,32 @@ DataType Dictionary::getType(string key) const {
 }
 
 void Dictionary::write(ostream &out) {
+    out.write((char *)&this->type, sizeof(char));
+    size_t size = this->datum.size();
+    out.write((char *)&size, sizeof(size_t));
     for (auto &kv : this->datum) {
         String key = String(kv.first);
         key.write(out);
-        out.write((char *)&kv.second->type, sizeof(char));
         kv.second->write(out);
     }
 }
 
 void Dictionary::read(istream &in) {
-    while (true) {
-        size_t size;
-        in.read((char *)&size, sizeof(size_t));
-        if (in.eof()) break;
-
-        char *str = new char[size];
-        in.read((char *)str, size * sizeof(char));
-        string key = string(str, size);
-        safe_delete_arr(str);
-
+    in.read((char *)&this->type, sizeof(char));
+    if (this->type != DataType::Dictionary) {
+        throw std::ios_base::failure("data type is not match. type=Dictionary");
+    }
+    size_t dataSize;
+    in.read((char *)&dataSize, sizeof(size_t));
+    for (int i = 0; i < dataSize; i++) {
+        String keyStr;
+        keyStr.read(in);
+        string key = keyStr.value;
+        
+        auto pos = in.tellg();
         DataType type;
         in.read((char *)&type, sizeof(char));
+        in.seekg(pos);
 
         switch (type) {
             case DataType::Int: {
@@ -494,3 +547,4 @@ JsonData JsonData::parse(string jsonText) {
     jsonData.data = jsonValueToData(root);
     return jsonData;
 }
+

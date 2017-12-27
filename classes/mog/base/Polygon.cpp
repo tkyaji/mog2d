@@ -14,8 +14,7 @@ void Polygon::init(const vector<Point> &vertexPoints) {
     if (!Polygon::sharedTexture) {
         Polygon::sharedTexture = Texture2D::createWithColor(TextureType::RGBA, Color::white, 16, 16);
     }
-    
-    this->texture = Texture2D::createWithColor(TextureType::RGBA, Color::white, 16, 16);
+    this->texture = Polygon::sharedTexture;
     
     this->minPosition = vertexPoints[0];
     this->maxPosition = vertexPoints[0];
@@ -47,7 +46,7 @@ void Polygon::bindVertices(float *vertices, int *idx, bool bakeTransform) {
     float *m;
     if (bakeTransform) {
         this->renderer->pushMatrix();
-        this->renderer->applyTransform(this->transform, false);
+        this->renderer->applyTransform(this->transform, this->screenScale, false);
         m = this->renderer->matrix;
         this->renderer->popMatrix();
     } else {
@@ -61,8 +60,8 @@ void Polygon::bindVertices(float *vertices, int *idx, bool bakeTransform) {
     for (auto &p : this->vertexPoints) {
         float xp = p.x / (this->maxPosition.x - this->minPosition.x);
         float yp = p.y / (this->maxPosition.y - this->minPosition.y);
-        auto pp = ((v1 * xp * this->transform->size.width * this->transform->screenScale) +
-                   (v2 * yp * this->transform->size.height * this->transform->screenScale));
+        auto pp = ((v1 * xp * this->transform->size.width * this->screenScale) +
+                   (v2 * yp * this->transform->size.height * this->screenScale));
         vertices[(*idx)++] = pp.x + offset.x;
         vertices[(*idx)++] = pp.y + offset.y;
     }

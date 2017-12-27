@@ -1,5 +1,6 @@
 #include "mog/base/RoundedRectangle.h"
 #include "mog/core/Engine.h"
+#include "mog/core/Device.h"
 #include <math.h>
 
 #define SCALABLE_RECT_SIZE 3
@@ -10,7 +11,13 @@ unordered_map<float, weak_ptr<Texture2D>> RoundedRectangle::cachedTexture2d;
 
 shared_ptr<RoundedRectangle> RoundedRectangle::create(const Size &size, float cornerRadius) {
     auto rectangle = shared_ptr<RoundedRectangle>(new RoundedRectangle());
-    rectangle->init(size, cornerRadius);
+    rectangle->init(size, false, cornerRadius);
+    return rectangle;
+}
+
+shared_ptr<RoundedRectangle> RoundedRectangle::create(const Size &size, bool isRatio, float cornerRadius) {
+    auto rectangle = shared_ptr<RoundedRectangle>(new RoundedRectangle());
+    rectangle->init(size, isRatio, cornerRadius);
     return rectangle;
 }
 
@@ -23,10 +30,14 @@ RoundedRectangle::~RoundedRectangle() {
     }
 }
 
-void RoundedRectangle::init(const Size &size, float cornerRadius) {
+float RoundedRectangle::getCornerRadius() {
+    return this->cornerRadius;
+}
+
+void RoundedRectangle::init(const Size &size, bool isRatio, float cornerRadius) {
     this->cornerRadius = cornerRadius;
-    this->transform->size = size;
-    
+    this->setSize(size, isRatio);
+
     if (RoundedRectangle::cachedTexture2d.count(cornerRadius) > 0) {
         this->texture = RoundedRectangle::cachedTexture2d[cornerRadius].lock();
     }
@@ -36,13 +47,13 @@ void RoundedRectangle::init(const Size &size, float cornerRadius) {
             RoundedRectangle::cachedTexture2d[cornerRadius] = this->texture;
         }
     }
-    this->frameSize = Size(this->texture->width, this->texture->height);
+    this->rect = Rect(0, 0, this->texture->width, this->texture->height);
 }
 
 shared_ptr<Texture2D> RoundedRectangle::createTexture(float cornerRadius) {
     unsigned char alpha1[4] = {255, 255, 255, 255};
-    Density den = Engine::getInstance()->getDensity();
-    int cr = (int)(cornerRadius * den.value + 0.5f);
+    float den = Device::getDeviceDensity();
+    int cr = (int)(cornerRadius * den + 0.5f);
     int s = SCALABLE_RECT_SIZE;
     int v = 1;
     int wh = cr + s;
@@ -105,7 +116,7 @@ void RoundedRectangle::bindVertices(float *vertices, int *idx, bool bakeTransfor
     float *m;
     if (bakeTransform) {
         this->renderer->pushMatrix();
-        this->renderer->applyTransform(this->transform, false);
+        this->renderer->applyTransform(this->transform, this->screenScale, false);
         m = this->renderer->matrix;
         this->renderer->popMatrix();
     } else {
@@ -118,17 +129,17 @@ void RoundedRectangle::bindVertices(float *vertices, int *idx, bool bakeTransfor
     
     float xx[5] = {
         0,
-        this->cornerRadius * this->transform->screenScale,
-        this->transform->size.width * 0.5f * this->transform->screenScale,
-        (this->transform->size.width - this->cornerRadius) * this->transform->screenScale,
-        this->transform->size.width * this->transform->screenScale,
+        this->cornerRadius * this->screenScale,
+        this->transform->size.width * 0.5f * this->screenScale,
+        (this->transform->size.width - this->cornerRadius) * this->screenScale,
+        this->transform->size.width * this->screenScale,
     };
     float yy[5] = {
         0,
-        this->cornerRadius * this->transform->screenScale,
-        this->transform->size.height * 0.5f * this->transform->screenScale,
-        (this->transform->size.height - this->cornerRadius) * this->transform->screenScale,
-        this->transform->size.height * this->transform->screenScale,
+        this->cornerRadius * this->screenScale,
+        this->transform->size.height * 0.5f * this->screenScale,
+        (this->transform->size.height - this->cornerRadius) * this->screenScale,
+        this->transform->size.height * this->screenScale,
     };
     
     for (int xi = 0; xi < 5; xi++) {
@@ -169,8 +180,8 @@ void RoundedRectangle::bindIndices(short *indices, int *idx, int start) {
 void RoundedRectangle::bindVertexTexCoords(float *vertexTexCoords, int *idx, float x, float y, float w, float h) {
     if (!this->visible) return;
     
-    Density den = Engine::getInstance()->getDensity();
-    int cr = (int)(this->cornerRadius * den.value + 0.5f);
+    float den = Device::getDeviceDensity();
+    int cr = (int)(this->cornerRadius * den + 0.5f);
     float r = (float)(cr + 1) / (float)(cr + SCALABLE_RECT_SIZE);
     float s = 1.0f / (float)(cr + SCALABLE_RECT_SIZE);
     
@@ -215,4 +226,8 @@ void RoundedRectangle::copyFrom(const shared_ptr<Entity> &src) {
     Sprite::copyFrom(src);
     auto srcRectangle = static_pointer_cast<RoundedRectangle>(src);
     this->cornerRadius = srcRectangle->cornerRadius;
+}
+
+EntityType RoundedRectangle::getEntityType() {
+    return EntityType::RoundedRectangle;
 }

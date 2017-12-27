@@ -14,7 +14,6 @@ LocalizedText::LocalizedText(string textKey, ...) {
 }
 
 
-
 #pragma - Label
 
 shared_ptr<Label> Label::create(string textKey, float fontSize, string fontFilename, float height) {
@@ -39,8 +38,9 @@ void Label::init(string text, float fontSize, string fontFilename, float height)
     this->fontSize = fontSize;
     this->fontFilename = fontFilename;
     this->height = height;
-    this->transform->size.width = this->texture->width / this->texture->density.value;
-    this->transform->size.height = this->texture->height / this->texture->density.value;
+    this->size.width = this->texture->width / this->texture->density.value;
+    this->size.height = this->texture->height / this->texture->density.value;
+    this->transform->size = this->size;
 }
 
 void Label::setText(string text, float fontSize, string fontFilename, float height) {
@@ -73,12 +73,20 @@ float Label::getFontSize() {
     return this->fontSize;
 }
 
-void Label::setFontFace(string fontFace) {
-    this->init(this->text, this->fontSize, fontFace, this->height);
+void Label::setFontFilename(string fontFilename) {
+    this->init(this->text, this->fontSize, fontFilename, this->height);
 }
 
-string Label::getFontFace() {
+string Label::getFontFilename() {
     return this->fontFilename;
+}
+
+void Label::setFontHeight(float height) {
+    this->init(this->text, this->fontSize, this->fontFilename, height);
+}
+
+float Label::getFontHeight() {
+    return this->height;
 }
 
 shared_ptr<Label> Label::clone() {
@@ -99,4 +107,8 @@ void Label::copyFrom(const shared_ptr<Entity> &src) {
     this->fontSize = srcLabel->fontSize;
     this->fontFilename = srcLabel->fontFilename;
     this->height = srcLabel->height;
+}
+
+EntityType Label::getEntityType() {
+    return EntityType::Label;
 }

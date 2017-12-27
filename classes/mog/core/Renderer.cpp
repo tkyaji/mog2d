@@ -1,16 +1,18 @@
 #include "mog/Constants.h"
 #include "mog/core/Renderer.h"
+#include "mog/core/Engine.h"
+#include "mog/core/MogStats.h"
 #include <math.h>
 
 using namespace mog;
 
-unsigned int Renderer::drawCallCounter = 0;
-
 void checkGLError(const char *label) {
+#ifndef MOG_QT
     GLenum glError = glGetError();
     if (glError != GL_NO_ERROR) {
         LOGE("glError=%d : %s", glError, label);
     }
+#endif
 }
 
 float Renderer::identityMatrix[16] = {
@@ -100,11 +102,11 @@ void Renderer::bindColorsVertexSub(float *vertexColors, int size, int offset) {
     checkGLError("bindColorsVertexSub");
 }
 
-void Renderer::drawFrame(const shared_ptr<Transform> &transform) {
+void Renderer::drawFrame(const shared_ptr<Transform> &transform, float screenScale) {
     this->pushMatrix();
     this->pushColor();
     
-    this->applyTransform(transform);
+    this->applyTransform(transform, screenScale);
     this->drawFrame();
     
     this->popColor();
@@ -142,9 +144,7 @@ void Renderer::drawFrame() {
     // draw
     glDrawElements(GL_TRIANGLE_STRIP, this->indicesNum, GL_UNSIGNED_SHORT, 0);
     
-#ifdef MOG_DEBUG
-    Renderer::drawCallCounter++;
-#endif
+    MogStats::drawCallCount++;
     
     // reset
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -157,17 +157,17 @@ void Renderer::drawFrame() {
     checkGLError("drawFrame_main");
 }
 
-void Renderer::applyTransform(const shared_ptr<Transform> &transform, bool enableColor) {
+void Renderer::applyTransform(const shared_ptr<Transform> &transform, float screenScale, bool enableColor) {
     // translate
     if (transform->position.x != 0 || transform->anchor.x != 0 || transform->position.y != 0 || transform->anchor.y != 0) {
-        glTranslatef((transform->position.x - (transform->size.width * transform->anchor.x)) * transform->screenScale,
-                     (transform->position.y - (transform->size.height * transform->anchor.y)) * transform->screenScale, 0);
+        glTranslatef((transform->position.x - (transform->size.width * transform->anchor.x)) * screenScale,
+                     (transform->position.y - (transform->size.height * transform->anchor.y)) * screenScale, 0);
     }
     
     // move from origin point
     if (transform->rotation != 0 || transform->scale.x != 1.0f || transform->scale.y != 1.0f) {
-        glTranslatef(transform->size.width * transform->anchor.x * transform->screenScale,
-                     transform->size.height * transform->anchor.y * transform->screenScale, 0);
+        glTranslatef(transform->size.width * transform->anchor.x * screenScale,
+                     transform->size.height * transform->anchor.y * screenScale, 0);
     }
     
     // rotate
@@ -182,8 +182,8 @@ void Renderer::applyTransform(const shared_ptr<Transform> &transform, bool enabl
     
     // move to origin point
     if (transform->rotation != 0 || transform->scale.x != 1.0f || transform->scale.y != 1.0f) {
-        glTranslatef(transform->size.width * -transform->anchor.x * transform->screenScale,
-                     transform->size.height * -transform->anchor.y * transform->screenScale, 0);
+        glTranslatef(transform->size.width * -transform->anchor.x * screenScale,
+                     transform->size.height * -transform->anchor.y * screenScale, 0);
     }
     
     // color
