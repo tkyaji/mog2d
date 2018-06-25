@@ -4,7 +4,7 @@
 #include <math.h>
 #include "mog/core/opengl.h"
 #include "mog/core/Engine.h"
-#include "mog/core/opengl.h"
+#include "mog/base/Entity.h"
 #include "mog/base/Scene.h"
 #include "mog/base/AppBase.h"
 #include "mog/core/Device.h"
@@ -20,11 +20,18 @@ inline void glOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, G
 }
 #endif
 
-shared_ptr<Engine> Engine::create(const shared_ptr<AppBase> &app) {
+std::weak_ptr<Engine> Engine::instance;
+
+std::shared_ptr<Engine> Engine::create(const shared_ptr<AppBase> &app) {
     auto engine = shared_ptr<Engine>(new Engine());
+    Engine::instance = engine;
     engine->app = app;
     app->setEngine(engine);
     return engine;
+}
+
+std::shared_ptr<Engine> Engine::getInstance() {
+    return Engine::instance.lock();
 }
 
 Engine::Engine() {
@@ -114,27 +121,14 @@ void Engine::onLowMemory() {
 }
 
 void Engine::initParameters() {
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_DITHER);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_CULL_FACE);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
 }
 
 void Engine::initScreen() {
     if (!this->displaySizeChanged) return;
-    
     glViewport(0, 0, this->displaySize.width, this->displaySize.height);
-    glMatrixMode(GL_PROJECTION);
-    glOrthof(0, this->displaySize.width, this->displaySize.height, 0, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
     this->displaySizeChanged = false;
 }
 
@@ -170,12 +164,13 @@ Size Engine::getScreenSize() {
     return this->screenSize;
 }
 
-void Engine::setDisplaySize(const Size &size) {
-    if (approximately(this->displaySize.width, size.width) &&
-            approximately(this->displaySize.height, size.height)) {
+void Engine::setDisplaySize(const Size &displaySize, const Size &viewSize) {
+    if (approximately(this->displaySize.width, displaySize.width) &&
+        approximately(this->displaySize.height, displaySize.height)) {
         return;
     }
-    this->displaySize = size;
+    this->displaySize = displaySize;
+    this->viewSize = viewSize;
     this->displaySizeChanged = true;
 }
 
@@ -246,21 +241,24 @@ float Engine::getTimerElapsedSec() {
 }
 
 void Engine::fireTouchListeners(map<unsigned int, TouchInput> touches) {
-    float scale = this->getScreenScale();
-    float density = Device::getDeviceDensity();
+    float scale = this->screenSize.width / this->viewSize.width;
     float uptime = this->getTimerElapsedSec();
     
     for (auto pair : touches) {
         unsigned int touchId = pair.first;
         auto touchInput = pair.second;
         auto vp = Point(touchInput.x, touchInput.y);
-        auto p = vp * density / scale;
+        auto p = vp * scale;
         auto touch = Touch(touchId, p, vp, uptime);
         
         if (this->prevTouches.count(touchId) == 0) {
             touch.startTime = uptime;
             touch.startPosition = p;
             touch.startViewPosition = vp;
+            
+            if (!this->multiTouchEnable && this->prevTouches.size() > 0) {
+                continue;
+            }
         } else {
             auto prevTouch = this->prevTouches[touchId];
             touch.startTime = prevTouch.startTime;
@@ -272,17 +270,17 @@ void Engine::fireTouchListeners(map<unsigned int, TouchInput> touches) {
         }
         
         if (this->touchEnable) {
-            bool isSwallowTouches = true;
+            bool isSwallowTouches = false;
             
             for (int i = (int)this->touchableEntities.size() - 1; i >= 0; i--) {
                 auto entity = this->touchableEntities[i];
                 
                 if (touchInput.action == TouchAction::TouchDown || touchInput.action == TouchAction::TouchDownUp) {
-                    if (isSwallowTouches && entity->contains(p)) {
+                    if (!isSwallowTouches && entity->contains(p)) {
                         entity->fireTouchBeginEvent(touch);
                         
-                        if (!entity->isSwallowTouches()) {
-                            isSwallowTouches = false;
+                        if (entity->isSwallowTouches()) {
+                            isSwallowTouches = true;
                         }
                     }
                 }

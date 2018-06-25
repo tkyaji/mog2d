@@ -46,7 +46,7 @@ const std::string MogUILoader::PropertyNames::Margin = "margin";
 const std::string MogUILoader::PropertyNames::EnableBatching = "enableBatching";
 const std::string MogUILoader::PropertyNames::ChildEntities = "childEntities";
 
-
+/*
 std::shared_ptr<mog::Entity> MogUILoader::load(std::string filename) {
     unsigned char *data = nullptr;
     int len = 0;
@@ -248,3 +248,5 @@ std::shared_ptr<Entity> MogUILoader::deserialize(const Dictionary &uiDict) {
     
     return entity;
 }
+*/
+

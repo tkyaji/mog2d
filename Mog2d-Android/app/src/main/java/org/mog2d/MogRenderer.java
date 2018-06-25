@@ -1,7 +1,6 @@
 package org.mog2d;
 
 import android.opengl.GLSurfaceView;
-import android.os.Build;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;

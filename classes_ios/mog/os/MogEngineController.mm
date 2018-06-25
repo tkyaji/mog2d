@@ -3,10 +3,14 @@
 #import "app/App.h"
 #import "mog/Constants.h"
 #import "mog/core/NativeClass.h"
+#ifdef SCRIPT_BINDNG_ENGINE_HEADER
+#import SCRIPT_BINDNG_ENGINE_HEADER
+#endif
 
 @implementation MogEngineController {
     MogViewController *_mogViewController;
     MogView *_mogView;
+    UIView *_launchScreenView;
     CADisplayLink *_displayLink;
     shared_ptr<mog::Engine> _engine;
     float _fps;
@@ -17,8 +21,12 @@
     self = [super init];
     if (!self) return self;
     
+#ifdef ENABLE_SCRIPT_BINDNG
+    _engine = SCRIPT_BINDNG_ENGINE_CLASS::create();
+#else
     _engine = mog::Engine::create(make_shared<mog::App>());
-    _engine->setDisplaySize(mog::Size(view.glWidth, view.glHeight));
+#endif
+    _engine->setDisplaySize(mog::Size(view.glWidth, view.glHeight), mog::Size(view.frame.size.width, view.frame.size.height));
     _engine->setScreenSizeBasedOnHeight(BASE_SCREEN_HEIGHT);
     _mogViewController = viewController;
     _mogView = view;
@@ -29,6 +37,14 @@
     
     _fps = DEFAULT_FPS;
     
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"LaunchScreen" bundle:nil];
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        UIStoryboard *ipadStoryboard = [UIStoryboard storyboardWithName:@"LaunchScreen-iPad" bundle:nil];
+        if (ipadStoryboard) storyboard = ipadStoryboard;
+    }
+    _launchScreenView = storyboard.instantiateInitialViewController.view;
+    [view addSubview:_launchScreenView];
+    
     return self;
 }
 
@@ -38,11 +54,7 @@
     if ([CADisplayLink instancesRespondToSelector:@selector(setPreferredFramesPerSecond:)]) {
         [_displayLink setPreferredFramesPerSecond:(_fps)];
     } else {
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_10_0
-        _displayLink.preferredFramesPerSecond = _fps;
-#else
         _displayLink.frameInterval = 60 / _fps;
-#endif
     }
     [_displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 }
@@ -87,8 +99,12 @@
         _engine->onDrawFrame(_touches);
         _touches.clear();
         
-        glBindRenderbufferOES(GL_RENDERBUFFER_OES, _mogView.colorBuffer);
-        [_mogView.glContext presentRenderbuffer:GL_RENDERBUFFER_OES];
+        [_mogView.glContext presentRenderbuffer:GL_RENDERBUFFER];
+        
+        if (_launchScreenView) {
+            [_launchScreenView removeFromSuperview];
+            _launchScreenView = nil;
+        }
     }
 }
 

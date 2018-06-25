@@ -41,8 +41,7 @@ bool AudioData::loadAssetFile(string filename, AudioAsset *audioAsset) {
         return true;
     }
 
-    auto engine = Engine::getInstance();
-    AAssetManager *aAssetManager = (AAssetManager *)AndroidHelper::getAssetManager();
+    AAssetManager *aAssetManager = AndroidHelper::getAssetManager();
 
     AAsset* asset = AAssetManager_open(aAssetManager, filename.c_str(), AASSET_MODE_UNKNOWN);
     if (asset == NULL) {

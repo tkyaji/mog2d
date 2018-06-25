@@ -1,28 +1,11 @@
 #include <math.h>
 #include "mog/base/AppBase.h"
-#include "mog/base/Scene.h"
 #include "mog/core/Engine.h"
+#include "mog/base/Scene.h"
+#include "mog/base/Entity.h"
 #include "mog/base/Rectangle.h"
 
 using namespace mog;
-
-class LoadingScene : public Scene {
-public:
-};
-
-
-class NoUpdateGroup : public Group {
-public:
-    static shared_ptr<NoUpdateGroup> create() {
-        auto g = shared_ptr<NoUpdateGroup>(new NoUpdateGroup());
-        g->setTouchEnable(false);
-        return g;
-    }
-    
-    virtual void updateFrame(const shared_ptr<Engine> &engine, float delta) override {
-        this->extractEvent(engine, delta);
-    }
-};
 
 void AppBase::setEngine(const shared_ptr<Engine> &engine) {
     this->engine = engine;
@@ -72,9 +55,12 @@ void AppBase::popScene(Transition transition, float duration, Easing easing) {
 
 void AppBase::reserveLoadScene(const shared_ptr<Scene> &scene, Transition transition, float duration,
                                Easing easing, LoadMode loadMode) {
-    scene->getRootGroup()->setReRenderFlagToChild(RERENDER_ALL);
-    this->loadSceneParams.setParams(scene, transition, duration, easing, loadMode);
-    this->isReservedLoadScene = true;
+    if (this->currentScene) {
+        this->loadSceneParams.setParams(scene, transition, duration, easing, loadMode);
+        this->isReservedLoadScene = true;
+    } else {
+        this->loadSceneMain(scene, loadMode);
+    }
 }
 
 bool AppBase::doLoadScene() {
@@ -99,8 +85,7 @@ void AppBase::loadSceneMain(const shared_ptr<Scene> &scene, LoadMode loadMode) {
         }
     }
     this->currentScene = scene;
-    auto self = static_pointer_cast<AppBase>(shared_from_this());
-    this->currentScene->setApp(self);
+    this->currentScene->setApp(shared_from_this());
     
     if (loadMode != LoadMode::Pop) {
         this->currentScene->onLoad();
@@ -142,60 +127,24 @@ void AppBase::loadSceneMain(const shared_ptr<Scene> &scene, Transition transitio
     }
 }
 
-void AppBase::loadSceneWithTransition(const shared_ptr<Scene> &scene, float duration, Easing easing, LoadMode loadMode, float loadSceneValue,
-                                      function<void(shared_ptr<Entity> current, shared_ptr<Entity> next, float value)> onModify) {
-    auto engine = this->engine.lock();
-    bool touchEnable = engine->isTouchEnable();
-    engine->setTouchEnable(false);
-    
-    auto loadingScene = make_shared<LoadingScene>();
-    
-    auto current = NoUpdateGroup::create();
-    current->add(this->currentScene->getRootGroup());
-    loadingScene->getRootGroup()->add(current);
-    
-    auto next = NoUpdateGroup::create();
-    next->add(scene->getRootGroup());
-    loadingScene->getRootGroup()->add(next);
-
-    this->currentScene = loadingScene;
-    
-    auto tween = TweenValue::create(0, 1.0f, duration, easing);
-    tween->setOnModifyEvent([this, scene, loadSceneValue, current, loadMode, next, onModify](float v, const shared_ptr<mog::Entity> &e) {
-        if (e->getTag() != "loaded" && v >= loadSceneValue) {
-            this->currentScene->onDisable();
-            if (this->currentScene && loadMode != LoadMode::Push) {
-                this->currentScene->onDispose();
-            }
-            scene->setApp(static_pointer_cast<AppBase>(shared_from_this()));
-            if (loadMode != LoadMode::Pop) {
-                scene->onLoad();
-            }
-            scene->onEnable();
-            e->setTag("loaded");
-        }
-        onModify(current, next, v);
-    });
-    tween->setOnFinishEvent([loadingScene, this, scene, touchEnable](const shared_ptr<mog::Entity> &e) {
-        loadingScene->removeAll();
-        this->currentScene = scene;
-        this->engine.lock()->setTouchEnable(touchEnable);
-    });
-    loadingScene->runTween(tween);
-}
-
 void AppBase::loadSceneWithFade(const shared_ptr<Scene> &scene, float duration, Easing easing, LoadMode loadMode) {
-    auto f = [](shared_ptr<mog::Entity> current, shared_ptr<mog::Entity> next, float value) {
+    auto f = [](shared_ptr<mog::Scene> current, shared_ptr<mog::Scene> next, float value) {
         if (value < 0.5f) {
             float v = 1.0 - value / 0.5f;
-            current->setColorA(v);
+            current->matrix[16] = v;
+            current->matrix[17] = v;
+            current->matrix[18] = v;
+            current->reRenderFlag |= RERENDER_COLOR;
         } else {
-            current->hide();
             float v = (value - 0.5f) / 0.5f;
-            next->setColorA(v);
+            next->matrix[16] = v;
+            next->matrix[17] = v;
+            next->matrix[18] = v;
+            next->reRenderFlag |= RERENDER_COLOR;
         }
     };
-    this->loadSceneWithTransition(scene, duration, easing, loadMode, 0.5f, f);
+    this->sceneTransition = SceneTransition::create(this->engine.lock(), shared_from_this(), this->currentScene, scene,
+                                                    duration, easing, loadMode, 0.5f, SceneTransition::SceneOrder::CurrentNext, f);
 }
 
 /*
@@ -221,12 +170,14 @@ void AppBase::loadSceneWithMoveIn(const shared_ptr<Scene> &scene, Transition tra
             break;
     }
     
-    auto f = [start](shared_ptr<mog::Entity> current, shared_ptr<mog::Entity> next, float value) {
-        next->setZIndex(1);
+    auto f = [start](shared_ptr<mog::Scene> current, shared_ptr<mog::Scene> next, float value) {
         float v = 1.0f - value;
-        next->setPosition(Point(start.x * v, start.y * v));
+        next->matrix[12] = start.x * v;
+        next->matrix[13] = start.y * v;
+        next->reRenderFlag |= RERENDER_VERTEX;
     };
-    this->loadSceneWithTransition(scene, duration, easing, loadMode, 0, f);
+    this->sceneTransition = SceneTransition::create(this->engine.lock(), shared_from_this(), this->currentScene, scene,
+                                                    duration, easing, loadMode, 0, SceneTransition::SceneOrder::CurrentNext, f);
 }
 
 void AppBase::loadSceneWithMoveOut(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode) {
@@ -247,11 +198,13 @@ void AppBase::loadSceneWithMoveOut(const shared_ptr<Scene> &scene, Transition tr
             break;
     }
     
-    auto f = [end](shared_ptr<mog::Entity> current, shared_ptr<mog::Entity> next, float value) {
-        next->setZIndex(1);
-        next->setPosition(Point(end.x * value, end.y * value));
+    auto f = [end](shared_ptr<mog::Scene> current, shared_ptr<mog::Scene> next, float value) {
+        current->matrix[12] = end.x * value;
+        current->matrix[13] = end.y * value;
+        current->reRenderFlag |= RERENDER_VERTEX;
     };
-    this->loadSceneWithTransition(scene, duration, easing, loadMode, 0, f);
+    this->sceneTransition = SceneTransition::create(this->engine.lock(), shared_from_this(), this->currentScene, scene,
+                                                    duration, easing, loadMode, 0, SceneTransition::SceneOrder::NextCurrent, f);
 }
 
 void AppBase::loadSceneWithSlideIn(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode) {
@@ -277,25 +230,36 @@ void AppBase::loadSceneWithSlideIn(const shared_ptr<Scene> &scene, Transition tr
             break;
     }
     
-    auto f = [currentEnd, nextStart](shared_ptr<mog::Entity> current, shared_ptr<mog::Entity> next, float value) {
+    auto f = [currentEnd, nextStart](shared_ptr<mog::Scene> current, shared_ptr<mog::Scene> next, float value) {
         float v = 1.0f - value;
-        current->setPosition(Point(currentEnd.x * v, currentEnd.y * v));
-        next->setPosition(Point(nextStart.x * value, nextStart.y * value));
+        current->matrix[12] = currentEnd.x * value;
+        current->matrix[13] = currentEnd.y * value;
+        next->matrix[12] = nextStart.x * v;
+        next->matrix[13] = nextStart.y * v;
+        current->reRenderFlag |= RERENDER_VERTEX;
+        next->reRenderFlag |= RERENDER_VERTEX;
     };
-    this->loadSceneWithTransition(scene, duration, easing, loadMode, 0, f);
+    this->sceneTransition = SceneTransition::create(this->engine.lock(), shared_from_this(), this->currentScene, scene,
+                                                    duration, easing, loadMode, 0, SceneTransition::SceneOrder::CurrentNext, f);
 }
 
 void AppBase::drawFrame(float delta) {
     if (this->currentScene) {
         auto engine = this->engine.lock();
-        this->currentScene->getRootGroup()->updateFrame(engine, delta);
-        this->currentScene->getRootGroup()->drawFrame(delta);
         
+        if (this->sceneTransition) {
+            if (this->sceneTransition->update(delta)) {
+                return;
+            } else {
+                this->sceneTransition = nullptr;
+            }
+        } else {
+            this->currentScene->updateFrame(engine, delta);
+            this->currentScene->drawFrame(delta);
+        }
         if (this->doLoadScene()) {
             return;
         }
-        
-        this->currentScene->onUpdate(delta);
         
     } else {
         if (this->doLoadScene()) {
@@ -367,4 +331,77 @@ shared_ptr<PubSub> AppBase::getPubSub() {
 
 unsigned int AppBase::getSceneStackSize() {
     return (unsigned int)this->sceneStack.size();
+}
+
+
+std::unique_ptr<AppBase::SceneTransition> AppBase::SceneTransition::create(const std::shared_ptr<Engine> &engine, const std::shared_ptr<AppBase> &app,
+                                                                           const shared_ptr<Scene> &currentScene, const shared_ptr<Scene> &nextScene,
+                                                                           float duration, Easing easing, AppBase::LoadMode loadMode, float loadSceneValue,
+                                                                           AppBase::SceneTransition::SceneOrder sceneOrder,
+                                                                           function<void(shared_ptr<Scene> current, shared_ptr<Scene> next, float value)> onModify) {
+    auto sceneTransition = std::unique_ptr<AppBase::SceneTransition>(new SceneTransition());
+    sceneTransition->engine = engine;
+    sceneTransition->app = app;
+    sceneTransition->currentScene = currentScene;
+    sceneTransition->nextScene = nextScene;
+    sceneTransition->duration = duration;
+    sceneTransition->easingFunc = EasingFunc::getEasingFunc(easing);
+    sceneTransition->loadMode = loadMode;
+    sceneTransition->loadSceneValue = loadSceneValue;
+    sceneTransition->sceneOrder = sceneOrder;
+    sceneTransition->onModify = onModify;
+    sceneTransition->elapsedTime = 0;
+    sceneTransition->loaded = false;
+    sceneTransition->touchEnable = engine->isTouchEnable();
+    sceneTransition->init();
+    return sceneTransition;
+}
+
+void AppBase::SceneTransition::init() {
+    this->engine.lock()->setTouchEnable(false);
+    this->currentScene->onDisable();
+    this->update(0);
+}
+
+bool AppBase::SceneTransition::update(float delta) {
+    auto engine = this->engine.lock();
+    auto app = this->app.lock();
+    this->elapsedTime += delta;
+    float value = this->easingFunc->process(this->elapsedTime / this->duration);
+    if (value > 1.0f) value = 1.0f;
+    if (!this->loaded && value >= this->loadSceneValue) {
+        this->nextScene->setApp(app);
+        if (this->loadMode == LoadMode::Load) {
+            this->nextScene->onLoad();
+        }
+        this->loaded = true;
+    }
+    this->onModify(this->currentScene, this->nextScene, value);
+    
+    if (this->loaded) {
+        if (this->sceneOrder == SceneOrder::CurrentNext) {
+            this->currentScene->updateFrame(engine, 0);
+            this->currentScene->drawFrame(0);
+            this->nextScene->updateFrame(engine, 0);
+            this->nextScene->drawFrame(0);
+        } else {
+            this->nextScene->updateFrame(engine, 0);
+            this->nextScene->drawFrame(0);
+            this->currentScene->updateFrame(engine, 0);
+            this->currentScene->drawFrame(0);
+        }
+    } else {
+        this->currentScene->updateFrame(engine, 0);
+        this->currentScene->drawFrame(0);
+    }
+    if (this->elapsedTime >= this->duration) {
+        this->nextScene->onEnable();
+        if (this->loadMode == LoadMode::Load) {
+            this->currentScene->onDispose();
+        }
+        app->currentScene = this->nextScene;
+        engine->setTouchEnable(this->touchEnable);
+        return false;
+    }
+    return true;
 }

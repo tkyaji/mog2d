@@ -3,7 +3,7 @@
 #include "mog/Constants.h"
 #include "mog/core/Tween.h"
 #include "mog/core/Engine.h"
-#include "mog/base/Entity.h"
+#include "mog/base/Drawable.h"
 
 using namespace mog;
 
@@ -40,6 +40,78 @@ inline float bounceIn(float t) {
     return 1 - bounceOut(1 - t);
 }
 
+
+shared_ptr<EasingFunc> EasingFunc::getEasingFunc(Easing easing) {
+    switch (easing) {
+            // Quad
+        case Easing::QuadIn:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingQuadIn>());
+        case Easing::QuadOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingQuadOut>());
+        case Easing::QuadInOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingQuadInOut>());
+            // Cubic
+        case Easing::CubicIn:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingCubicIn>());
+        case Easing::CubicOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingCubicOut>());
+        case Easing::CubicInOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingCubicInOut>());
+            // Quart
+        case Easing::QuartIn:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingQuartIn>());
+        case Easing::QuartOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingQuartOut>());
+        case Easing::QuartInOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingQuartInOut>());
+            // Quint
+        case Easing::QuintIn:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingQuintIn>());
+        case Easing::QuintOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingQuintOut>());
+        case Easing::QuintInOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingQuintInOut>());
+            // Sine
+        case Easing::SineIn:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingSineIn>());
+        case Easing::SineOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingSineOut>());
+        case Easing::SineInOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingSineInOut>());
+            // Back
+        case Easing::BackIn:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingBackIn>());
+        case Easing::BackOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingBackOut>());
+        case Easing::BackInOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingBackInOut>());
+            // Circ
+        case Easing::CircIn:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingCircIn>());
+        case Easing::CircOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingCircOut>());
+        case Easing::CircInOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingCircInOut>());
+            // Bounce
+        case Easing::BounceIn:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingBounceIn>());
+        case Easing::BounceOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingBounceOut>());
+        case Easing::BounceInOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingBounceInOut>());
+            // Elastic
+        case Easing::ElasticIn:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingElasticIn>());
+        case Easing::ElasticOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingElasticOut>());
+        case Easing::ElasticInOut:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingElasticInOut>());
+            // Linear
+        case Easing::Linear:
+        default:
+            return static_pointer_cast<EasingFunc>(make_shared<EasingLinear>());
+    }
+}
 
 // Linear
 float EasingLinear::process(float t) {
@@ -189,80 +261,6 @@ float EasingElasticInOut::process(float t) {
 }
 
 
-
-
-shared_ptr<EasingFunc> getEasingFunc(Easing easing) {
-    switch (easing) {
-        // Quad
-        case Easing::QuadIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuadIn>());
-        case Easing::QuadOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuadOut>());
-        case Easing::QuadInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuadInOut>());
-        // Cubic
-        case Easing::CubicIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingCubicIn>());
-        case Easing::CubicOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingCubicOut>());
-        case Easing::CubicInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingCubicInOut>());
-        // Quart
-        case Easing::QuartIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuartIn>());
-        case Easing::QuartOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuartOut>());
-        case Easing::QuartInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuartInOut>());
-        // Quint
-        case Easing::QuintIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuintIn>());
-        case Easing::QuintOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuintOut>());
-        case Easing::QuintInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuintInOut>());
-        // Sine
-        case Easing::SineIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingSineIn>());
-        case Easing::SineOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingSineOut>());
-        case Easing::SineInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingSineInOut>());
-        // Back
-        case Easing::BackIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingBackIn>());
-        case Easing::BackOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingBackOut>());
-        case Easing::BackInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingBackInOut>());
-        // Circ
-        case Easing::CircIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingCircIn>());
-        case Easing::CircOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingCircOut>());
-        case Easing::CircInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingCircInOut>());
-        // Bounce
-        case Easing::BounceIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingBounceIn>());
-        case Easing::BounceOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingBounceOut>());
-        case Easing::BounceInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingBounceInOut>());
-        // Elastic
-        case Easing::ElasticIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingElasticIn>());
-        case Easing::ElasticOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingElasticOut>());
-        case Easing::ElasticInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingElasticInOut>());
-        // Linear
-        case Easing::Linear:
-        default:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingLinear>());
-    }
-}
-
 unsigned int Tween::tweenIdCounter = 0;
 
 Tween::Tween() {
@@ -277,7 +275,7 @@ Tween::Tween(float start, float end, float duration, Easing easing,
     this->endValue = end;
     this->duration = duration;
     this->easing = easing;
-    this->easingFunc = getEasingFunc(this->easing);
+    this->easingFunc = EasingFunc::getEasingFunc(this->easing);
     this->loopType = loopType;
     this->loopCount = loopCount;
     this->tweenId = ++Tween::tweenIdCounter;
@@ -299,7 +297,7 @@ float Tween::currentValue(float start, float end, float percent) {
     return start + (percent * (end - start));
 }
 
-void Tween::update(float delta, const shared_ptr<Entity> &entity) {
+void Tween::update(float delta, const shared_ptr<Drawable> &drawable) {
     if (this->pausing) return;
     
     if (!this->started) {
@@ -310,20 +308,20 @@ void Tween::update(float delta, const shared_ptr<Entity> &entity) {
             }
         }
         this->started = true;
-        this->onStart(entity);
+        this->onStart(drawable);
         delta = 0;
     }
     
     this->elapsedTime += delta;
     if (this->elapsedTime >= this->duration) {
         if (this->loopType == LoopType::PingPong && this->currentCount % 2 == 1) {
-            this->onModify(this->startValue, entity);
+            this->onModify(this->startValue, drawable);
         } else {
-            this->onModify(this->endValue, entity);
+            this->onModify(this->endValue, drawable);
         }
-
+        
         if (this->loopType == LoopType::None || (this->loopCount > 0 && this->currentCount + 1 >= this->loopCount)) {
-            this->onFinish(entity);
+            this->onFinish(drawable);
             if (this->onFinishEventsForParent.size() > 0) {
                 for (auto ev : this->onFinishEventsForParent) {
                     ev(shared_from_this());
@@ -333,7 +331,7 @@ void Tween::update(float delta, const shared_ptr<Entity> &entity) {
         } else {
             this->elapsedTime = 0;
             this->currentCount++;
-            this->onRestart(entity);
+            this->onRestart(drawable);
         }
         return;
     }
@@ -344,7 +342,7 @@ void Tween::update(float delta, const shared_ptr<Entity> &entity) {
     }
     float current = this->currentValue(this->startValue, this->endValue, percent);
     
-    this->onModify(current, entity);
+    this->onModify(current, drawable);
 }
 
 void Tween::pause() {
@@ -360,33 +358,33 @@ void Tween::addOnFinishEventForParent(function<void(const shared_ptr<Tween> &m)>
 }
 
 
-void Tween::setOnStartEvent(function<void(const shared_ptr<Entity> &e)> callback) {
+void Tween::setOnStartEvent(function<void(const shared_ptr<Drawable> &d)> callback) {
     this->onStartEvent = callback;
 }
 
-void Tween::setOnRestartEvent(function<void(const shared_ptr<Entity> &e)> callback) {
+void Tween::setOnRestartEvent(function<void(const shared_ptr<Drawable> &d)> callback) {
     this->onRestartEvent = callback;
 }
 
-void Tween::setOnFinishEvent(function<void(const shared_ptr<Entity> &e)> callback) {
+void Tween::setOnFinishEvent(function<void(const shared_ptr<Drawable> &d)> callback) {
     this->onFinishEvent = callback;
 }
 
-void Tween::onStart(const shared_ptr<Entity> &entity) {
+void Tween::onStart(const shared_ptr<Drawable> &drawable) {
     if (this->onStartEvent) {
-        this->onStartEvent(entity);
+        this->onStartEvent(drawable);
     }
 }
 
-void Tween::onRestart(const shared_ptr<Entity> &entity) {
+void Tween::onRestart(const shared_ptr<Drawable> &drawable) {
     if (this->onRestartEvent) {
-        this->onRestartEvent(entity);
+        this->onRestartEvent(drawable);
     }
 }
 
-void Tween::onFinish(const shared_ptr<Entity> &entity) {
+void Tween::onFinish(const shared_ptr<Drawable> &drawable) {
     if (this->onFinishEvent) {
-        this->onFinishEvent(entity);
+        this->onFinishEvent(drawable);
     }
 }
 
@@ -401,9 +399,9 @@ TweenMove::TweenMove(const Point &start, const Point &end, float duration, Easin
 : Tween(0, 1.0, duration, easing, loopType, loopCount, delayTime), startPoint(start), endPoint(end) {
 }
 
-void TweenMove::onModify(float currentValue, const shared_ptr<Entity> &entity) {
+void TweenMove::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
     auto p = this->startPoint + (this->endPoint - this->startPoint) * currentValue;
-    entity->setPosition(p);
+    drawable->setPosition(p);
 }
 
 
@@ -417,8 +415,8 @@ TweenAlpha::TweenAlpha(float start, float end, float duration, Easing easing,
 : Tween(start, end, duration, easing, loopType, loopCount, delayTime) {
 }
 
-void TweenAlpha::onModify(float currentValue, const shared_ptr<Entity> &entity) {
-    auto e = static_pointer_cast<Entity>(entity);
+void TweenAlpha::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
+    auto e = static_pointer_cast<Drawable>(drawable);
     Color color = e->getColor();
     color.a = currentValue;
     e->setColor(color);
@@ -435,9 +433,9 @@ TweenColor::TweenColor(const Color &start, const Color &end, float duration, Eas
 : Tween(0, 1.0, duration, easing, loopType, loopCount, delayTime), startColor(start), endColor(end) {
 }
 
-void TweenColor::onModify(float currentValue, const shared_ptr<Entity> &entity) {
-    auto e = static_pointer_cast<Entity>(entity);
-
+void TweenColor::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
+    auto e = static_pointer_cast<Drawable>(drawable);
+    
     float r = this->startColor.r + (this->endColor.r - this->startColor.r) * currentValue;
     float g = this->startColor.g + (this->endColor.g - this->startColor.g) * currentValue;
     float b = this->startColor.b + (this->endColor.b - this->startColor.b) * currentValue;
@@ -471,11 +469,10 @@ TweenScale::TweenScale(const Point &start, const Point &end, float duration, Eas
     this->endScale = end;
 }
 
-void TweenScale::onModify(float currentValue, const shared_ptr<Entity> &entity) {
+void TweenScale::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
     auto s = this->startScale + (this->endScale - this->startScale) * currentValue;
-    entity->setScale(s);
+    drawable->setScale(s);
 }
-
 
 shared_ptr<TweenRotate> TweenRotate::create(float start, float end, float duration, Easing easing,
                                             LoopType loopType, int loopCount, float delayTime) {
@@ -487,8 +484,8 @@ TweenRotate::TweenRotate(float start, float end, float duration, Easing easing,
 : Tween(start, end, duration, easing, loopType, loopCount, delayTime) {
 }
 
-void TweenRotate::onModify(float currentValue, const shared_ptr<Entity> &entity) {
-    entity->setRotation(currentValue);
+void TweenRotate::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
+    drawable->setRotation(currentValue);
 }
 
 
@@ -503,13 +500,13 @@ TweenValue::TweenValue(float start, float end, float duration, Easing easing,
 : Tween(start, end, duration, easing, loopType, loopCount, delayTime) {
 }
 
-void TweenValue::onModify(float currentValue, const shared_ptr<Entity> &entity) {
+void TweenValue::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
     if (this->onModifyEvent) {
-        this->onModifyEvent(currentValue, entity);
+        this->onModifyEvent(currentValue, drawable);
     }
 }
 
-void TweenValue::setOnModifyEvent(function<void(float value, const shared_ptr<Entity> &e)> callback) {
+void TweenValue::setOnModifyEvent(function<void(float value, const shared_ptr<Drawable> &d)> callback) {
     this->onModifyEvent = callback;
 }
 
@@ -522,13 +519,13 @@ shared_ptr<TweenUpdate> TweenUpdate::create() {
 TweenUpdate::TweenUpdate() {
 }
 
-void TweenUpdate::setOnModifyEvent(function<void(float delta, const shared_ptr<Entity> &e)> callback) {
+void TweenUpdate::setOnModifyEvent(function<void(float delta, const shared_ptr<Drawable> &d)> callback) {
     this->onModifyEvent = callback;
 }
 
-void TweenUpdate::update(float delta, const shared_ptr<Entity> &entity) {
+void TweenUpdate::update(float delta, const shared_ptr<Drawable> &drawable) {
     if (this->onModifyEvent) {
-        this->onModifyEvent(delta, entity);
+        this->onModifyEvent(delta, drawable);
     }
 }
 
@@ -550,10 +547,10 @@ void TweenGroup::addTweenOne(const shared_ptr<Tween> &tween) {
     this->tweens.emplace_back(tween);
 }
 
-void TweenGroup::update(float delta, const shared_ptr<Entity> &entity) {
+void TweenGroup::update(float delta, const shared_ptr<Drawable> &drawable) {
 }
 
-void TweenGroup::onModify(float currentValue, const shared_ptr<Entity> &entity) {
+void TweenGroup::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
 }
 
 
@@ -567,9 +564,9 @@ void TweenConcurrentGroup::addTweenOne(const shared_ptr<Tween> &tween) {
     });
 }
 
-void TweenConcurrentGroup::update(float delta, const shared_ptr<Entity> &entity) {
+void TweenConcurrentGroup::update(float delta, const shared_ptr<Drawable> &drawable) {
     for (const auto &tween : this->tweens) {
-        tween->update(delta, entity);
+        tween->update(delta, drawable);
     }
     
     if (this->tweensToRemove.size() > 0) {
@@ -577,7 +574,7 @@ void TweenConcurrentGroup::update(float delta, const shared_ptr<Entity> &entity)
             this->tweens.erase(remove(this->tweens.begin(), this->tweens.end(), tween), this->tweens.end());
             if (this->tweens.size() == 0) {
                 if (this->onFinishEvent) {
-                    this->onFinishEvent(entity);
+                    this->onFinishEvent(drawable);
                 }
                 if (this->onFinishEventsForParent.size() > 0) {
                     for (auto ev : this->onFinishEventsForParent) {
@@ -618,15 +615,15 @@ void TweenSequenceGroup::addTweenOne(const shared_ptr<Tween> &tween) {
     });
 }
 
-void TweenSequenceGroup::update(float delta, const shared_ptr<Entity> &entity) {
-    this->tweens[this->currentIndex]->update(delta, entity);
+void TweenSequenceGroup::update(float delta, const shared_ptr<Drawable> &drawable) {
+    this->tweens[this->currentIndex]->update(delta, drawable);
     
     if (this->next) {
         this->currentIndex++;
         
         if (this->currentIndex >= this->tweens.size()) {
             if (this->onFinishEvent) {
-                this->onFinishEvent(entity);
+                this->onFinishEvent(drawable);
             }
             if (this->onFinishEventsForParent.size() > 0) {
                 for (auto ev : this->onFinishEventsForParent) {
@@ -663,13 +660,13 @@ void TweenJoinGroup::addTweenOne(const shared_ptr<Tween> &tween) {
     });
 }
 
-void TweenJoinGroup::update(float delta, const shared_ptr<Entity> &entity) {
+void TweenJoinGroup::update(float delta, const shared_ptr<Drawable> &drawable) {
     if (this->tweensToRemove.size() > 0) {
         for (const auto &tween : this->tweensToRemove) {
             this->tweens.erase(remove(this->tweens.begin(), this->tweens.end(), tween), this->tweens.end());
             if (this->tweens.size() == 0) {
                 if (this->onFinishEvent) {
-                    this->onFinishEvent(entity);
+                    this->onFinishEvent(drawable);
                 }
                 if (this->onFinishEventsForParent.size() > 0) {
                     for (auto ev : this->onFinishEventsForParent) {
@@ -687,7 +684,7 @@ shared_ptr<TweenDelay> TweenDelay::create(float delayTime) {
     return shared_ptr<TweenDelay>(new TweenDelay(delayTime));
 }
 
-shared_ptr<TweenDelay> TweenDelay::create(float delayTime, function<void(const shared_ptr<Entity> &e)> callback) {
+shared_ptr<TweenDelay> TweenDelay::create(float delayTime, function<void(const shared_ptr<Drawable> &d)> callback) {
     auto delay = shared_ptr<TweenDelay>(new TweenDelay(delayTime));
     delay->setOnFinishEvent(callback);
     return delay;
@@ -695,4 +692,3 @@ shared_ptr<TweenDelay> TweenDelay::create(float delayTime, function<void(const s
 
 TweenDelay::TweenDelay(float delayTime) : Tween(0, 0, 0, Easing::Linear, LoopType::None, 0, delayTime) {
 }
-

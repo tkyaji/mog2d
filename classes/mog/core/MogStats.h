@@ -42,7 +42,7 @@ namespace mog {
         unordered_map<char, shared_ptr<Texture2D>> numberTexture2ds;
 
         void bindVertex();
-        void init();
+        void init(const shared_ptr<Engine> &engine);
         void updatePosition();
         void setTextToData(shared_ptr<Texture2D> text, int x, int y);
         void setNumberToData(float value, int intLength, int decimalLength, int x, int y);

@@ -5,6 +5,12 @@
 using namespace std;
 using namespace mog;
 
+const Density Density::x1_0 = Density(0);
+const Density Density::x1_5 = Density(1);
+const Density Density::x2_0 = Density(2);
+const Density Density::x3_0 = Density(3);
+const Density Density::x4_0 = Density(4);
+
 #ifdef MOG_IOS
 vector<Density> Density::allDensities = {Density::x1_0, Density::x2_0, Density::x3_0};
 #else

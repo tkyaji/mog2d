@@ -10,8 +10,8 @@ namespace mog {
         static shared_ptr<SpriteSheet> create(const shared_ptr<Sprite> sprite, const Size &frameSize, unsigned int frameCount = 0, unsigned int margin = 0);
         void selectFrame(unsigned int frame);
         
-        virtual void updateFrame(const shared_ptr<Engine> &engine, float delta) override;
-        virtual void bindVertexTexCoords(float *vertexTexCoords, int *idx, float x, float y, float w, float h) override;
+        virtual void updateFrame(const shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag = 0) override;
+        virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) override;
         
         unsigned int getCurrentFrame();
         unsigned int getFrameCount();
@@ -25,10 +25,6 @@ namespace mog {
         void stopAnimation();
         void setOnFinishEvent(function<void(const shared_ptr<SpriteSheet> &spriteSheet)> onFinishEvent);
         
-        shared_ptr<SpriteSheet> clone();
-        virtual shared_ptr<Entity> cloneEntity() override;
-        virtual EntityType getEntityType() override;
-
     protected:
         unsigned int frame = 0;
         unsigned int frameCount = 0;
@@ -52,7 +48,6 @@ namespace mog {
         void updateSpriteFrame(float delta);
         void init(const shared_ptr<Sprite> sprite, const Size &frameSize, unsigned int frameCount, unsigned int margin);
         void initFrames(unsigned int frameCount, unsigned int margin);
-        virtual void copyFrom(const shared_ptr<Entity> &src) override;
     };
 }
 

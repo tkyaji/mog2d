@@ -64,8 +64,7 @@ namespace mog {
         AudioPlayerNative();
         ~AudioPlayerNative();
         
-        void preload(const char *filename1, const char *filename2 = nullptr, const char *filename3 = nullptr,
-                     const char *filename4 = nullptr, const char *filename5 = nullptr, const char *filename6 = nullptr);
+        void preload(const char *filename);
         
     private:
         ALCdevice*  device;

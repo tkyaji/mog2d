@@ -4,11 +4,13 @@
 #include "app/App.h"
 #include "mog/Constants.h"
 #include "mog/core/NativeClass.h"
+#include "mog/core/Device.h"
 #include "mog/os/AndroidHelper.h"
 
 using namespace mog;
 
 JavaVM *AndroidHelper::vm = nullptr;
+weak_ptr<Engine> AndroidHelper::engine;
 
 class MogRenderer {
 public:
@@ -21,25 +23,26 @@ public:
     }
 
     void onCreate(JNIEnv* env, jobject obj, jobject jActivity, jobject jAssetManager, float scaleFactor) {
-        this->engine = Engine::initInstance();
+        this->engine = Engine::create(make_shared<mog::App>());
 
         JavaVM *vm;
         env->GetJavaVM(&vm);
         AndroidHelper::vm = vm;
+        AndroidHelper::engine = this->engine;
         this->engine->setNativeObject(MOG_ACTIVITY, NativeObject::create(jActivity));
         this->engine->setNativeObject(MOG_AASET_MANAGER, NativeObject::create(jAssetManager));
-        this->scaleFactor = scaleFactor;
+        Device::density = scaleFactor;
     }
 
     void onDestroy(JNIEnv* env, jobject obj) {
     }
 
     void onPause(JNIEnv* env, jobject obj) {
-        Engine::getInstance()->stopEngine();
+        this->engine->stopEngine();
     }
 
     void onResume(JNIEnv* env, jobject obj) {
-        Engine::getInstance()->startEngine();
+        this->engine->startEngine();
     }
 
     void onStart(JNIEnv* env, jobject obj) {
@@ -55,11 +58,10 @@ public:
     }
 
     void onSurfaceCreated(JNIEnv* env, jobject obj) {
-        this->engine->initEngine(make_shared<App>());
     }
 
-    void onSurfaceChanged(JNIEnv* env, jobject obj, jint w, jint h) {
-        this->engine->setDisplaySize(Size(w, h), this->scaleFactor);
+    void onSurfaceChanged(JNIEnv* env, jobject obj, jint w, jint h, int vw, int vh) {
+        this->engine->setDisplaySize(Size(w, h), Size(vw, vh));
         this->engine->setScreenSizeBasedOnHeight(BASE_SCREEN_HEIGHT);
         this->engine->startEngine();
     }
@@ -98,8 +100,7 @@ private:
     };
 
     static MogRenderer *instance;
-    Engine *engine;
-    float scaleFactor;
+    shared_ptr<mog::Engine> engine;
     map<unsigned int, TouchInput> touches;
     std::mutex mtx;
 };
@@ -111,8 +112,8 @@ JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_onSurfaceCreated(JNIEnv* env,
     MogRenderer::getInstance()->onSurfaceCreated(env, obj);
 }
 
-JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_onSurfaceChanged(JNIEnv* env, jobject obj, jint w, jint h) {
-    MogRenderer::getInstance()->onSurfaceChanged(env, obj, w, h);
+JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_onSurfaceChanged(JNIEnv* env, jobject obj, jint w, jint h, jint vw, jint vh) {
+    MogRenderer::getInstance()->onSurfaceChanged(env, obj, w, h, vw, vh);
 }
 
 JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_onDrawFrame(JNIEnv* env, jobject obj) {

@@ -3,8 +3,10 @@
 #include "mog/core/mog_functions.h"
 #include <vector>
 #include <stdlib.h>
+#include <string.h>
 
 using namespace mog;
+using namespace std;
 
 #pragma - Data
 
@@ -159,8 +161,8 @@ String::String(string value) {
 
 void String::write(ostream &out) {
     out.write((char *)&this->type, sizeof(char));
-    size_t size = this->value.size();
-    out.write((char *)&size, sizeof(size_t));
+    unsigned int size = (unsigned int)this->value.size();
+    out.write((char *)&size, sizeof(unsigned int));
     out.write((char *)this->value.c_str(), size * sizeof(char));
 }
 
@@ -169,8 +171,8 @@ void String::read(istream &in) {
     if (this->type != DataType::String) {
         throw std::ios_base::failure("data type is not match. type=String");
     }
-    size_t size;
-    in.read((char *)&size, sizeof(size_t));
+    unsigned int size;
+    in.read((char *)&size, sizeof(unsigned int));
     char *str = new char[size];
     in.read((char *)str, size * sizeof(char));
     this->value = string(str, size);
@@ -235,8 +237,8 @@ void Array::clear() {
     this->datum.clear();
 }
 
-size_t Array::size() const {
-    return this->datum.size();
+unsigned int Array::size() const {
+    return (unsigned int)this->datum.size();
 }
 
 DataType Array::atType(int idx) const {
@@ -245,8 +247,8 @@ DataType Array::atType(int idx) const {
 
 void Array::write(ostream &out) {
     out.write((char *)&this->type, sizeof(char));
-    size_t size = this->datum.size();
-    out.write((char *)&size, sizeof(size_t));
+    unsigned int size = (unsigned int)this->datum.size();
+    out.write((char *)&size, sizeof(unsigned int));
     for (auto &d : this->datum) {
         d->write(out);
     }
@@ -257,8 +259,8 @@ void Array::read(istream &in) {
     if (this->type != DataType::Array) {
         throw std::ios_base::failure("data type is not match. type=Array");
     }
-    size_t dataSize;
-    in.read((char *)&dataSize, sizeof(size_t));
+    unsigned int dataSize;
+    in.read((char *)&dataSize, sizeof(unsigned int));
     for (int i = 0; i < dataSize; i++) {
         auto pos = in.tellg();
         DataType type;
@@ -341,8 +343,8 @@ void Dictionary::clear() {
     this->datum.clear();
 }
 
-size_t Dictionary::size() const {
-    return this->datum.size();
+unsigned int Dictionary::size() const {
+    return (unsigned int)this->datum.size();
 }
 
 vector<string> Dictionary::getKeys() const {
@@ -360,8 +362,8 @@ DataType Dictionary::getType(string key) const {
 
 void Dictionary::write(ostream &out) {
     out.write((char *)&this->type, sizeof(char));
-    size_t size = this->datum.size();
-    out.write((char *)&size, sizeof(size_t));
+    unsigned int size = this->datum.size();
+    out.write((char *)&size, sizeof(unsigned int));
     for (auto &kv : this->datum) {
         String key = String(kv.first);
         key.write(out);
@@ -374,8 +376,8 @@ void Dictionary::read(istream &in) {
     if (this->type != DataType::Dictionary) {
         throw std::ios_base::failure("data type is not match. type=Dictionary");
     }
-    size_t dataSize;
-    in.read((char *)&dataSize, sizeof(size_t));
+    unsigned int dataSize;
+    in.read((char *)&dataSize, sizeof(unsigned int));
     for (int i = 0; i < dataSize; i++) {
         String keyStr;
         keyStr.read(in);

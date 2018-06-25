@@ -4,43 +4,52 @@
 using namespace mog;
 
 Scene::Scene() {
-    this->rootGroup = Group::create();
     this->pubsub = make_shared<PubSub>();
+    this->drawableGroup = make_shared<DrawableGroup>();
 }
 
-void Scene::add(const shared_ptr<Entity> &entity) {
-    this->rootGroup->add(entity);
+void Scene::add(const std::shared_ptr<Drawable> &drawable) {
+    this->drawableGroup->addChild(drawable);
 }
 
-void Scene::remove(const shared_ptr<Entity> &entity) {
-    this->rootGroup->remove(entity);
+void Scene::remove(const std::shared_ptr<Drawable> &drawable) {
+    this->drawableGroup->removeChild(drawable);
 }
 
 void Scene::removeAll() {
-    this->rootGroup->removeAll();
+    this->drawableGroup->removeAllChildren();
 }
 
-shared_ptr<AppBase> Scene::getApp() {
+void Scene::updateFrame(const shared_ptr<Engine> &engine, float delta) {
+    this->drawableGroup->sortChildDrawablesToDraw();
+    for (auto drawable : this->drawableGroup->sortedChildDrawables) {
+        drawable->reRenderFlag |= this->reRenderFlag;
+        drawable->updateFrame(engine, delta, this->matrix, this->reRenderFlag);
+    }
+    this->onUpdate(delta);
+}
+
+void Scene::drawFrame(float delta) {
+    for (auto drawable : this->drawableGroup->sortedChildDrawables) {
+        if (((this->reRenderFlag | drawable->reRenderFlag) & RERENDER_VERTEX) == RERENDER_VERTEX) {
+            Transform::multiplyMatrix(drawable->transform->matrix, this->matrix, drawable->renderer->matrix);
+        }
+        if (((this->reRenderFlag | drawable->reRenderFlag) & RERENDER_COLOR) == RERENDER_COLOR) {
+            Transform::multiplyColor(drawable->transform->matrix, this->matrix, drawable->renderer->matrix);
+        }
+        drawable->drawFrame(delta);
+    }
+    this->reRenderFlag = 0;
+}
+
+std::shared_ptr<AppBase> Scene::getApp() {
     return this->app.lock();
 }
 
-void Scene::setApp(const shared_ptr<AppBase> &app) {
+void Scene::setApp(const std::shared_ptr<AppBase> &app) {
     this->app = app;
-    this->rootGroup->setSize(app->getScreenSize());
 }
 
-shared_ptr<Group> Scene::getRootGroup() {
-    return this->rootGroup;
-}
-
-void Scene::setRootGroup(const shared_ptr<Group> &rootGroup) {
-    this->rootGroup = rootGroup;
-}
-
-shared_ptr<PubSub> Scene::getPubSub() {
+std::shared_ptr<PubSub> Scene::getPubSub() {
     return this->pubsub;
-}
-
-void Scene::runTween(const shared_ptr<Tween> &tween) {
-    this->rootGroup->runTween(tween);
 }

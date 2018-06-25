@@ -15,6 +15,8 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import org.mog2d.plugin.JavascriptBinding;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -127,6 +129,8 @@ public class MogActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
+
+        new JavascriptBinding(this);
 
         int resId = getResources().getIdentifier("plugin_classes", "array", getPackageName());
         String[] pluginClasses = this.getResources().getStringArray(resId);

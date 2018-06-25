@@ -14,6 +14,7 @@ int nextPowerOfTwo(int minimum);
 
 void printMatrix(float *matrix, const char *label = nullptr);
 long long getTimestamp();
+double getTimestampSec();
 float smoothstep(float edge0, float edge1, float x);
 bool approximately(float a, float b);
 

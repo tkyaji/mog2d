@@ -5,15 +5,14 @@
 #include <string>
 #include <unordered_map>
 #include "mog/base/Scene.h"
-#include "mog/base/Group.h"
-#include "mog/base/DrawEntity.h"
+#include "mog/base/Entity.h"
 #include "mog/core/plain_objects.h"
 #include "mog/core/Density.h"
 
 using namespace std;
 
 namespace mog {
-    class Sprite : public DrawEntity {
+    class Sprite : public Entity {
     public:
         static shared_ptr<Sprite> create(string filename);
         static shared_ptr<Sprite> create(string filename, const Rect &rect);
@@ -31,8 +30,6 @@ namespace mog {
         string getFilename();
         Rect getRect();
         shared_ptr<Sprite> clone();
-        virtual shared_ptr<Entity> cloneEntity() override;
-        virtual EntityType getEntityType() override;
 
         ~Sprite();
         
@@ -50,8 +47,7 @@ namespace mog {
         void initWithRGBA(unsigned char *data, int width, int height);
         void initWithTexture(const shared_ptr<Texture2D> &texture);
 
-        virtual void bindVertexTexCoords(float *vertexTexCoords, int *idx, float x, float y, float w, float h) override;
-        virtual void copyFrom(const shared_ptr<Entity> &src) override;
+        virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) override;
     };
 }
 

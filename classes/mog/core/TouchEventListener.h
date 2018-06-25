@@ -15,10 +15,8 @@ namespace mog {
     public:
         ~TouchEventListener();
         
-        unsigned long eventId;
         static shared_ptr<TouchEventListener> create();
         
-        void tap(const Touch &touch, const shared_ptr<Entity> &entity);
         void touchBegin(const Touch &touch, const shared_ptr<Entity> &entity);
         void touchMove(const Touch &touch, const shared_ptr<Entity> &entity);
         void touchEnd(const Touch &touch, const shared_ptr<Entity> &entity);

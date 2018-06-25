@@ -1,7 +1,7 @@
 #include "mog/core/mog_functions.h"
 #include <math.h>
 #include <stdio.h>
-#include <time.h>
+#include <sys/time.h>
 
 void LOGD(const char *format, ...) {
 #if LOG_LEVEL <= LOG_DEBUG
@@ -65,10 +65,15 @@ void printMatrix(float *matrix, const char *label) {
 }
 
 long long getTimestamp() {
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    // micro sec
-    return (long)ts.tv_sec * 1000000 + (long)ts.tv_nsec * 0.001;
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (long long)tv.tv_sec * 1000000L + (long long)tv.tv_usec;
+}
+
+double getTimestampSec() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec + tv.tv_usec * 0.000001;
 }
 
 float smoothstep(float edge0, float edge1, float x) {

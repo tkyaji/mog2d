@@ -12,15 +12,18 @@ AudioChannel::AudioChannel(AudioPlayer *audioPlayer) {
 }
 
 void AudioChannel::play(string filename, bool cache) {
+    if (this->mute) return;
     this->audioChannelNative->load(filename.c_str(), cache);
     this->audioChannelNative->play();
 }
 
 void AudioChannel::pause() {
+    if (this->mute) return;
     this->audioChannelNative->pause();
 }
 
 void AudioChannel::resume() {
+    if (this->mute) return;
     this->audioChannelNative->resume();
 }
 
@@ -50,6 +53,17 @@ void AudioChannel::setVolume(float volume) {
 
 float AudioChannel::getVolume() {
     return this->audioChannelNative->getVolume();
+}
+
+void AudioChannel::setMute(bool mute) {
+    this->mute = mute;
+    if (mute) {
+        this->stop();
+    }
+}
+
+bool AudioChannel::isMute() {
+    return this->mute;
 }
 
 bool AudioChannel::isLoaded() {
@@ -98,11 +112,8 @@ void AudioPlayer::removeChannel(string key) {
     }
 }
 
-void AudioPlayer::preload(string filename1, string filename2, string filename3,
-                           string filename4, string filename5, string filename6) {
-
-    AudioPlayer::instance->audioPlayerNative->preload(filename1.c_str(), filename2.c_str(), filename3.c_str(),
-                                                      filename4.c_str(), filename5.c_str(), filename6.c_str());
+void AudioPlayer::preloadOne(string filename) {
+    AudioPlayer::instance->audioPlayerNative->preload(filename.c_str());
 }
 
 void AudioPlayer::playOneShot(string filename) {

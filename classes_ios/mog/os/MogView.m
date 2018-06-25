@@ -11,11 +11,16 @@
 
 - (void)dealloc {
     if (self.frameBuffer > 0) {
-        glDeleteFramebuffersOES(1, &_frameBuffer);
+        glDeleteFramebuffers(1, &_frameBuffer);
     }
     if (self.colorBuffer > 0) {
-        glDeleteFramebuffersOES(1, &_colorBuffer);
+        glDeleteFramebuffers(1, &_colorBuffer);
     }
+    /*
+    if (self.depthBuffer > 0) {
+        glDeleteFramebuffers(1, &_depthBuffer);
+    }
+     */
 }
 
 - (instancetype)initWithFrame:(CGRect)frame {
@@ -45,22 +50,31 @@
     glLayer.drawableProperties = @{kEAGLDrawablePropertyRetainedBacking:[NSNumber numberWithBool:FALSE],
                                    kEAGLDrawablePropertyColorFormat:kEAGLColorFormatRGBA8};
     
-    self.glContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES1];
+    self.glContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     [EAGLContext setCurrentContext:self.glContext];
     
-    glGenFramebuffersOES(1, &_frameBuffer);
-    glBindFramebufferOES(GL_FRAMEBUFFER_OES, self.frameBuffer);
+    glGenFramebuffers(1, &_frameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, self.frameBuffer);
     
-    glGenRenderbuffersOES(1, &_colorBuffer);
-    glBindRenderbufferOES(GL_RENDERBUFFER_OES, self.colorBuffer);
+    glGenRenderbuffers(1, &_colorBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, self.colorBuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8_OES, _glWidth, _glHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, self.colorBuffer);
+
+    /*
+    glGenRenderbuffers(1, &_depthBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, self.depthBuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, _glWidth, _glHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, self.depthBuffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, self.depthBuffer);
+     */
+
+    [self.glContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
+
+    glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &_glWidth);
+    glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &_glHeight);
     
-    [self.glContext renderbufferStorage:GL_RENDERBUFFER_OES fromDrawable:(CAEAGLLayer*)self.layer];
-    glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES, GL_RENDERBUFFER_OES, self.colorBuffer);
-    
-    glGetRenderbufferParameterivOES(GL_RENDERBUFFER_OES, GL_RENDERBUFFER_WIDTH_OES, &_glWidth);
-    glGetRenderbufferParameterivOES(GL_RENDERBUFFER_OES, GL_RENDERBUFFER_HEIGHT_OES, &_glHeight);
-    
-    if (glCheckFramebufferStatusOES(GL_FRAMEBUFFER_OES) != GL_FRAMEBUFFER_COMPLETE_OES) {
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         NSLog(@"framebuffer is invalid.");
     }
 }

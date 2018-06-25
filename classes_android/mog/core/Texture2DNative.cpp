@@ -1,4 +1,5 @@
 #include <jni.h>
+#include <string.h>
 #include "mog/core/Texture2DNative.h"
 #include "mog/core/Texture2D.h"
 #include "mog/core/Engine.h"
@@ -9,7 +10,6 @@ using namespace mog;
 void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFace, float height) {
     if (strlen(text) == 0) return;
 
-    auto engine = Engine::getInstance();
     JNIEnv* env = AndroidHelper::getEnv();
     jobject activity = (jobject)AndroidHelper::getActivity()->getObject();
 //    vm->AttachCurrentThread(&env, NULL);
@@ -58,9 +58,8 @@ void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float 
 }
 
 string Texture2DNative::getLocalizedTextNative(const char *textKey, va_list args) {
-    auto engine = Engine::getInstance();
     JNIEnv* env = AndroidHelper::getEnv();
-    jobject activityObj = (jobject)engine->getNativeObject(MOG_ACTIVITY)->getObject();
+    jobject activityObj = (jobject)AndroidHelper::getActivity()->getObject();
 //    vm->AttachCurrentThread(&env, NULL);
 
     env->PushLocalFrame(16);

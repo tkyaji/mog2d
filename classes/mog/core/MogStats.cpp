@@ -2,6 +2,7 @@
 #include "mog/core/Engine.h"
 #include "mog/base/AppBase.h"
 #include <math.h>
+#include <string.h>
 
 using namespace mog;
 
@@ -28,7 +29,7 @@ void MogStats::drawFrame(const shared_ptr<Engine> &engine, float delta) {
     this->screenScale = engine->getScreenScale();
     this->screenSize = engine->getScreenSize();
     if (!this->initialized) {
-        this->init();
+        this->init(engine);
     }
     if (this->dirtyPosition) {
         this->updatePosition();
@@ -40,7 +41,8 @@ void MogStats::drawFrame(const shared_ptr<Engine> &engine, float delta) {
         this->texture->bindTexture();
         this->tmpDelta = 0;
     }
-    this->renderer->drawFrame(this->transform, this->screenScale);
+    
+    this->renderer->drawFrame();
 }
 
 bool MogStats::isEnabled() {
@@ -96,37 +98,44 @@ void MogStats::updatePosition() {
             this->transform->position.y = this->screenSize.height - height;
             break;
     }
-    
+    this->transform->updateMatrix();
+    this->renderer->setUniformMatrix(this->transform->matrix);
+
     this->dirtyPosition = false;
 }
 
 void MogStats::bindVertex() {
-    auto indices = new short[4];
-    indices[0] = 0;
-    indices[1] = 1;
-    indices[2] = 2;
-    indices[3] = 3;
+    this->renderer->setVerticesNum(4);
+    this->renderer->setIndicesNum(4);
+    this->renderer->newVerticesArr();
+    this->renderer->newIndicesArr();
+    this->renderer->newVertexTexCoordsArr();
+    
+    this->renderer->indices[0] = 0;
+    this->renderer->indices[1] = 1;
+    this->renderer->indices[2] = 2;
+    this->renderer->indices[3] = 3;
+    Size size = Size(this->texture->width, this->texture->height) / this->screenScale;
 
-    auto vertices = new float[4 * 2];
-    vertices[0] = 0;    vertices[1] = 0;
-    vertices[2] = 0;    vertices[3] = this->texture->height;
-    vertices[4] = this->texture->width;    vertices[5] = 0;
-    vertices[6] = this->texture->width;    vertices[7] = this->texture->height;
+    this->renderer->vertices[0] = 0;            this->renderer->vertices[1] = 0;
+    this->renderer->vertices[2] = 0;            this->renderer->vertices[3] = size.height;
+    this->renderer->vertices[4] = size.width;   this->renderer->vertices[5] = 0;
+    this->renderer->vertices[6] = size.width;   this->renderer->vertices[7] = size.height;
 
-    auto vertexTexCoords = new float[4 * 2];
-    vertexTexCoords[0] = 0;    vertexTexCoords[1] = 0;
-    vertexTexCoords[2] = 0;    vertexTexCoords[3] = 1.0;
-    vertexTexCoords[4] = 1.0f;    vertexTexCoords[5] = 0;
-    vertexTexCoords[6] = 1.0f;    vertexTexCoords[7] = 1.0f;
+    this->renderer->vertexTexCoords[0] = 0;     this->renderer->vertexTexCoords[1] = 0;
+    this->renderer->vertexTexCoords[2] = 0;     this->renderer->vertexTexCoords[3] = 1.0;
+    this->renderer->vertexTexCoords[4] = 1.0f;  this->renderer->vertexTexCoords[5] = 0;
+    this->renderer->vertexTexCoords[6] = 1.0f;  this->renderer->vertexTexCoords[7] = 1.0f;
 
-    this->renderer->bindVertex(vertices, 4 * 2, indices, 4, true);
+    this->renderer->bindVertex(true);
     this->texture->bindTexture();
-    this->renderer->bindTextureVertex(this->texture->textureId, vertexTexCoords, 4 * 2, true);
+    this->renderer->bindVertexTexCoords(this->texture->textureId, true);
 }
 
-void MogStats::init() {
+void MogStats::init(const shared_ptr<Engine> &engine) {
     this->renderer = make_shared<Renderer>();
     this->transform = make_shared<Transform>();
+    this->renderer->initScreenParameters(engine);
 
     for (int i = 0; i < 10; i++) {
         auto tex = this->createLabelTexture(to_string(i));
@@ -273,6 +282,6 @@ void MogStats::updateValues(float delta) {
     }
     this->setNumberToData(fps, 3, 2, this->positions[FPS].first, this->positions[FPS].second);
     this->setNumberToData(delta, 2, 4, this->positions[DELTA].first, this->positions[DELTA].second);
-    this->setNumberToData(drawCallCount, 0, 0, this->positions[DRAW_CALL].first, this->positions[DRAW_CALL].second);
-    this->setNumberToData(instanceCount, 0, 0, this->positions[INSTANTS].first, this->positions[INSTANTS].second);
+    this->setNumberToData(drawCallCount, 3, 0, this->positions[DRAW_CALL].first, this->positions[DRAW_CALL].second);
+    this->setNumberToData((instanceCount), 3, 0, this->positions[INSTANTS].first, this->positions[INSTANTS].second);
 }

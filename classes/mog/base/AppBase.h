@@ -6,12 +6,11 @@
 #include "mog/core/PubSub.h"
 #include "mog/core/Tween.h"
 #include "mog/core/KeyEvent.h"
-#include "mog/base/Scene.h"
-
-using namespace std;
 
 namespace mog {
     class Engine;
+    class Scene;
+    class Entity;
     
     enum class Transition {
         None,
@@ -48,18 +47,18 @@ namespace mog {
     public:
         AppBase();
         
-        void setEngine(const shared_ptr<Engine> &engine);
+        void setEngine(const std::shared_ptr<Engine> &engine);
         
-        void loadScene(const shared_ptr<Scene> &scene);
-        void loadScene(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing = Easing::Linear);
-        void pushScene(const shared_ptr<Scene> &scene);
-        void pushScene(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing = Easing::Linear);
+        void loadScene(const std::shared_ptr<Scene> &scene);
+        void loadScene(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing = Easing::Linear);
+        void pushScene(const std::shared_ptr<Scene> &scene);
+        void pushScene(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing = Easing::Linear);
         void popScene();
         void popScene(Transition transition, float duration, Easing easing = Easing::Linear);
         
         Color getBackgroundColor();
         void setBackgroundColor(const Color &color);
-        shared_ptr<Scene> getCurrentScene();
+        std::shared_ptr<Scene> getCurrentScene();
         
         void setScreenSizeBasedOnHeight(float height);
         void setScreenSizeBasedOnWidth(float width);
@@ -95,20 +94,20 @@ namespace mog {
             Pop,
         };
 
-        shared_ptr<Scene> currentScene;
+        weak_ptr<Engine> engine;
+        std::shared_ptr<PubSub> pubsub;
+        std::vector<std::shared_ptr<Scene>> sceneStack;
+        std::shared_ptr<Scene> currentScene;
 
-        void loadSceneWithTransition(const shared_ptr<Scene> &scene, float duration, Easing easing, LoadMode loadMode, float loadSceneValue,
-                                     function<void(shared_ptr<Entity> current, shared_ptr<Entity> next, float value)> onModify);
-        
     private:
         struct LoadSceneParams {
-            shared_ptr<Scene> scene = nullptr;
+            std::shared_ptr<Scene> scene = nullptr;
             Transition transition = Transition::None;
             float duration = 0;
             Easing easing = Easing::Linear;
             LoadMode loadMode = LoadMode::Load;
             
-            void setParams(const shared_ptr<Scene> &scene, Transition transition,
+            void setParams(const std::shared_ptr<Scene> &scene, Transition transition,
                            float duration, Easing easing, LoadMode loadMode) {
                 this->scene = scene;
                 this->transition = transition;
@@ -126,24 +125,50 @@ namespace mog {
             }
         };
         
-        weak_ptr<Engine> engine;
-        shared_ptr<PubSub> pubsub;
-        vector<shared_ptr<Scene>> sceneStack;
+        
+        class SceneTransition {
+        public:
+            enum class SceneOrder {
+                CurrentNext,
+                NextCurrent,
+            };
+            static std::unique_ptr<SceneTransition> create(const std::shared_ptr<Engine> &engine, const std::shared_ptr<AppBase> &app,
+                                                           const std::shared_ptr<Scene> &currentScene, const std::shared_ptr<Scene> &nextScene,
+                                                           float duration, Easing easing, LoadMode loadMode, float loadSceneValue, SceneOrder sceneOrder,
+                                                           std::function<void(std::shared_ptr<Scene> current, std::shared_ptr<Scene> next, float value)> onModify);
+            void init();
+            bool update(float delta);
+            
+            std::weak_ptr<Engine> engine;
+            std::weak_ptr<AppBase> app;
+            std::shared_ptr<Scene> currentScene;
+            std::shared_ptr<Scene> nextScene;
+            float duration;
+            std::shared_ptr<EasingFunc> easingFunc;
+            LoadMode loadMode;
+            SceneOrder sceneOrder;
+            float loadSceneValue;
+            float elapsedTime;
+            bool loaded;
+            bool touchEnable;
+            std::function<void(std::shared_ptr<Scene> current, std::shared_ptr<Scene> next, float value)> onModify;
+        };
+
         
         bool isReservedLoadScene = false;
         LoadSceneParams loadSceneParams;
+        std::shared_ptr<SceneTransition> sceneTransition = nullptr;
         
-        void reserveLoadScene(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode);
+        void reserveLoadScene(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode);
         bool doLoadScene();
         
         void loadSceneMain(const LoadSceneParams &params);
-        void loadSceneMain(const shared_ptr<Scene> &scene, LoadMode loadMode = LoadMode::Load);
-        void loadSceneMain(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing = Easing::Linear, LoadMode loadMode = LoadMode::Load);
-        void loadSceneWithFade(const shared_ptr<Scene> &scene, float duration, Easing easing, LoadMode loadMode);
-//        void loadSceneWithCrossFade(const shared_ptr<Scene> &scene, float duration, Easing easing, LoadMode loadMode);
-        void loadSceneWithMoveIn(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode);
-        void loadSceneWithMoveOut(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode);
-        void loadSceneWithSlideIn(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode);
+        void loadSceneMain(const std::shared_ptr<Scene> &scene, LoadMode loadMode = LoadMode::Load);
+        void loadSceneMain(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing = Easing::Linear, LoadMode loadMode = LoadMode::Load);
+        void loadSceneWithFade(const std::shared_ptr<Scene> &scene, float duration, Easing easing, LoadMode loadMode);
+        void loadSceneWithMoveIn(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode);
+        void loadSceneWithMoveOut(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode);
+        void loadSceneWithSlideIn(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode);
     };
 }
 

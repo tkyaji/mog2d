@@ -6,6 +6,14 @@
 
 using namespace mog;
 
+bool FileUtilsNative::existAsset(string filename) {
+    AAssetManager *aAssetManager = AndroidHelper::getAssetManager();
+    AAsset *aAsset = AAssetManager_open(aAssetManager, filename.c_str(), AASSET_MODE_BUFFER);
+    bool isExist = (aAsset != nullptr);
+    AAsset_close(aAsset);
+    return isExist;
+}
+
 string FileUtilsNative::readTextAsset(string filename) {
     unsigned char *bytes = nullptr;
     int len = 0;
@@ -16,8 +24,7 @@ string FileUtilsNative::readTextAsset(string filename) {
 }
 
 bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, int *len) {
-    auto engine = Engine::getInstance();
-    AAssetManager *aAssetManager = (AAssetManager *)AndroidHelper::getAssetManager();
+    AAssetManager *aAssetManager = AndroidHelper::getAssetManager();
     AAsset *aAsset = AAssetManager_open(aAssetManager, filename.c_str(), AASSET_MODE_BUFFER);
     if (aAsset == nullptr) {
         *data = nullptr;

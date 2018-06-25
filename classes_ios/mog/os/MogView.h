@@ -8,6 +8,7 @@
 @property (nonatomic) EAGLContext* glContext;
 @property (nonatomic) GLuint frameBuffer;
 @property (nonatomic) GLuint colorBuffer;
+//@property (nonatomic) GLuint depthBuffer;
 @property (nonatomic) GLint glWidth;
 @property (nonatomic) GLint glHeight;
 @property (nonatomic) NSObject<MogTouchEventDelegate> *touchEventDelegate;

@@ -292,13 +292,7 @@ AudioPlayerNative::~AudioPlayerNative() {
     alcCloseDevice(this->device);
 }
 
-void AudioPlayerNative::preload(const char *filename1, const char *filename2, const char *filename3,
-                                const char *filename4, const char *filename5, const char *filename6) {
-    if (filename1 != nullptr) AudioData::loadAudioData(filename1);
-    if (filename2 != nullptr) AudioData::loadAudioData(filename2);
-    if (filename3 != nullptr) AudioData::loadAudioData(filename3);
-    if (filename4 != nullptr) AudioData::loadAudioData(filename4);
-    if (filename5 != nullptr) AudioData::loadAudioData(filename5);
-    if (filename6 != nullptr) AudioData::loadAudioData(filename6);
+void AudioPlayerNative::preload(const char *filename) {
+    AudioData::loadAudioData(filename);
 }
 

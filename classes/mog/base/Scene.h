@@ -3,41 +3,49 @@
 
 #include <memory>
 #include <vector>
-#include "mog/base/Entity.h"
-#include "mog/base/Group.h"
+#include "mog/base/Drawable.h"
+#include "mog/base/DrawableGroup.h"
 #include "mog/core/PubSub.h"
 
 namespace mog {
-    
     class AppBase;
+    class Engine;
     
-    class Scene : public enable_shared_from_this<Scene> {
+    class Scene : public std::enable_shared_from_this<Scene> {
+        friend class AppBase;
+        friend class Drawable;
     public:
-        void add(const shared_ptr<Entity> &entity);
-        void remove(const shared_ptr<Entity> &entity);
-        void removeAll();
-
         virtual void onLoad() {};
         virtual void onDispose() {};
         virtual void onEnable() {};
         virtual void onDisable() {};
         virtual void onUpdate(float delta) {};
         
-        shared_ptr<AppBase> getApp();
-        void setApp(const shared_ptr<AppBase> &app);
-        shared_ptr<Group> getRootGroup();
-        void setRootGroup(const shared_ptr<Group> &rootGroup);
-        shared_ptr<PubSub> getPubSub();
-        void runTween(const shared_ptr<Tween> &tween);
-        
+        void updateFrame(const shared_ptr<Engine> &engine, float delta);
+        void drawFrame(float delta);
+        void setApp(const std::shared_ptr<AppBase> &app);
+        void add(const std::shared_ptr<Drawable> &drawable);
+        void remove(const std::shared_ptr<Drawable> &drawable);
+        void removeAll();
+        std::shared_ptr<AppBase> getApp();
+        std::shared_ptr<PubSub> getPubSub();
+
     protected:
         Scene();
         
-        shared_ptr<PubSub> pubsub;
-        weak_ptr<AppBase> app;
-        shared_ptr<Group> rootGroup;
+        std::shared_ptr<DrawableGroup> drawableGroup;
+        std::shared_ptr<PubSub> pubsub;
+        std::weak_ptr<AppBase> app;
+        float matrix[20] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1,
+            1, 1, 1, 1,
+        };
+        unsigned char reRenderFlag = 0;
+        bool sortOrderDirty = false;
     };
 }
-
 
 #endif /* Scene_h */

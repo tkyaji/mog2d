@@ -15,7 +15,7 @@ string Texture2DNative::registerCustomFont(const char *fontFilename) {
         return registeredFontNames[fontFilenameStr];
     }
     
-    NSString *filenameStr = [NSString stringWithFormat:@"assets_mac/%s", fontFilename];
+    NSString *filenameStr = [NSString stringWithFormat:@"assets_ios/%s", fontFilename];
     NSString *path = [[NSBundle mainBundle] pathForResource:filenameStr ofType:nil];
     if (path == nil) {
         filenameStr = [NSString stringWithFormat:@"assets/%s", fontFilename];
@@ -29,7 +29,7 @@ string Texture2DNative::registerCustomFont(const char *fontFilename) {
     CFErrorRef error;
     CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)nsData);
     CGFontRef font = CGFontCreateWithDataProvider(provider);
-    NSString *fontName = (__bridge NSString *)CGFontCopyFullName(font);
+    NSString *fontName = (__bridge NSString *)CGFontCopyPostScriptName(font);
     if (!CTFontManagerRegisterGraphicsFont(font, &error)) {
         CFStringRef errorDescription = CFErrorCopyDescription(error);
         NSLog(@"Failed to load font: %@", errorDescription);

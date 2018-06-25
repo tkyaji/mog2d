@@ -5,11 +5,10 @@
 #include <vector>
 #include <functional>
 #include "mog/core/plain_objects.h"
-#include "mog/base/Entity.h"
 
 namespace mog {
     
-    class Entity;
+    class Drawable;
     
     enum class Easing {
         // Linear
@@ -61,6 +60,7 @@ namespace mog {
     
     class EasingFunc {
     public:
+        static std::shared_ptr<EasingFunc> getEasingFunc(Easing easing);
         virtual float process(float t) = 0;
     };
     // Linear
@@ -187,17 +187,17 @@ namespace mog {
     };
     
     
-    class Tween : public enable_shared_from_this<Tween> {
+    class Tween : public std::enable_shared_from_this<Tween> {
     public:
-        virtual void setOnStartEvent(function<void(const shared_ptr<Entity> &e)> callback);
-        virtual void setOnRestartEvent(function<void(const shared_ptr<Entity> &e)> callback);
-        virtual void setOnFinishEvent(function<void(const shared_ptr<Entity> &e)> callback);
-
+        virtual void setOnStartEvent(std::function<void(const std::shared_ptr<Drawable> &d)> callback);
+        virtual void setOnRestartEvent(std::function<void(const std::shared_ptr<Drawable> &d)> callback);
+        virtual void setOnFinishEvent(std::function<void(const std::shared_ptr<Drawable> &d)> callback);
+        
         virtual void init();
-        virtual void update(float delta, const shared_ptr<Entity> &entity);
+        virtual void update(float delta, const std::shared_ptr<Drawable> &drawable);
         virtual void pause();
         virtual void resume();
-        void addOnFinishEventForParent(function<void(const shared_ptr<Tween> &m)> callback);
+        void addOnFinishEventForParent(std::function<void(const std::shared_ptr<Tween> &m)> callback);
         
         unsigned int getTweenId();
         
@@ -207,31 +207,31 @@ namespace mog {
         Tween();
         Tween(float start, float end, float duration, Easing easing = Easing::Linear,
               LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
-        shared_ptr<Entity> entity = nullptr;
+        std::shared_ptr<Drawable> drawable = nullptr;
         float delayTime = 0;
         float startValue = 0;
         float endValue = 0;
         float duration = 0;
         Easing easing = Easing::Linear;
         LoopType loopType = LoopType::None;
-        shared_ptr<EasingFunc> easingFunc = nullptr;
+        std::shared_ptr<EasingFunc> easingFunc = nullptr;
         bool started = false;
         bool pausing = false;
         int loopCount = 0;
         int currentCount = 0;
-
-        function<void(const shared_ptr<Entity> &e)> onStartEvent;
-        function<void(const shared_ptr<Entity> &e)> onRestartEvent;
-        function<void(const shared_ptr<Entity> &e)> onFinishEvent;
         
-        vector<function<void(const shared_ptr<Tween> &m)>> onFinishEventsForParent;
-
+        std::function<void(const std::shared_ptr<Drawable> &d)> onStartEvent;
+        std::function<void(const std::shared_ptr<Drawable> &d)> onRestartEvent;
+        std::function<void(const std::shared_ptr<Drawable> &d)> onFinishEvent;
+        
+        std::vector<std::function<void(const std::shared_ptr<Tween> &m)>> onFinishEventsForParent;
+        
         float currentValue(float start, float end, float percent);
         
-        virtual void onStart(const shared_ptr<Entity> &entity);
-        virtual void onRestart(const shared_ptr<Entity> &entity);
-        virtual void onFinish(const shared_ptr<Entity> &entity);
-        virtual void onModify(float currentValue, const shared_ptr<Entity> &entity) = 0;
+        virtual void onStart(const std::shared_ptr<Drawable> &drawable);
+        virtual void onRestart(const std::shared_ptr<Drawable> &drawable);
+        virtual void onFinish(const std::shared_ptr<Drawable> &drawable);
+        virtual void onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) = 0;
         
     private:
         unsigned int tweenId = 0;
@@ -242,25 +242,25 @@ namespace mog {
     
     class TweenMove : public Tween {
     public:
-        static shared_ptr<TweenMove> create(const Point &start, const Point &end, float duration, Easing easing = Easing::Linear,
-                                            LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
+        static std::shared_ptr<TweenMove> create(const Point &start, const Point &end, float duration, Easing easing = Easing::Linear,
+                                                 LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
         
     protected:
         TweenMove(const Point &start, const Point &end, float duration, Easing easing = Easing::Linear,
                   LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
         Point startPoint = Point::zero;
         Point endPoint = Point::zero;
-
-        virtual void onModify(float currentValue, const shared_ptr<Entity> &entity);
+        
+        virtual void onModify(float currentValue, const std::shared_ptr<Drawable> &drawable);
     };
     
     
     class TweenScale : public Tween {
     public:
-        static shared_ptr<TweenScale> create(float start, float end, float duration, Easing easing = Easing::Linear,
-                                             LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
-        static shared_ptr<TweenScale> create(const Point &start, const Point &end, float duration, Easing easing = Easing::Linear,
-                                             LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
+        static std::shared_ptr<TweenScale> create(float start, float end, float duration, Easing easing = Easing::Linear,
+                                                  LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
+        static std::shared_ptr<TweenScale> create(const Point &start, const Point &end, float duration, Easing easing = Easing::Linear,
+                                                  LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
         
     protected:
         TweenScale(float start, float end, float duration, Easing easing = Easing::Linear,
@@ -271,83 +271,83 @@ namespace mog {
         Point startScale = Point::zero;
         Point endScale = Point::zero;
         
-        void onModify(float currentValue, const shared_ptr<Entity> &entity);
+        void onModify(float currentValue, const std::shared_ptr<Drawable> &drawable);
     };
     
     
     class TweenRotate : public Tween {
     public:
-        static shared_ptr<TweenRotate> create(float start, float end, float duration, Easing easing = Easing::Linear,
-                                              LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
+        static std::shared_ptr<TweenRotate> create(float start, float end, float duration, Easing easing = Easing::Linear,
+                                                   LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
         
     protected:
         TweenRotate(float start, float end, float duration, Easing easing = Easing::Linear,
                     LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
         
-        void onModify(float currentValue, const shared_ptr<Entity> &entity);
+        void onModify(float currentValue, const std::shared_ptr<Drawable> &drawable);
     };
-
+    
     
     class TweenAlpha : public Tween {
     public:
-        static shared_ptr<TweenAlpha> create(float start, float end, float duration, Easing easing = Easing::Linear,
-                                             LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
+        static std::shared_ptr<TweenAlpha> create(float start, float end, float duration, Easing easing = Easing::Linear,
+                                                  LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
         
     protected:
         TweenAlpha(float start, float end, float duration, Easing easing = Easing::Linear,
                    LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
-        void onModify(float currentValue, const shared_ptr<Entity> &entity);
+        void onModify(float currentValue, const std::shared_ptr<Drawable> &drawable);
     };
     
     
     class TweenColor : public Tween {
     public:
-        static shared_ptr<TweenColor> create(const Color &start, const Color &end, float duration, Easing easing = Easing::Linear,
-                                             LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
+        static std::shared_ptr<TweenColor> create(const Color &start, const Color &end, float duration, Easing easing = Easing::Linear,
+                                                  LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
         
     protected:
         TweenColor(const Color &start, const Color &end, float duration, Easing easing = Easing::Linear,
                    LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
         
-        void onModify(float currentValue, const shared_ptr<Entity> &entity);
+        void onModify(float currentValue, const std::shared_ptr<Drawable> &drawable);
         
         Color startColor;
         Color endColor;
     };
-
+    
     
     class TweenValue : public Tween {
     public:
-        static shared_ptr<TweenValue> create(float start, float end, float duration, Easing easing = Easing::Linear,
-                                             LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
+        static std::shared_ptr<TweenValue> create(float start, float end, float duration, Easing easing = Easing::Linear,
+                                                  LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
         
-        virtual void setOnModifyEvent(function<void(float value, const shared_ptr<Entity> &e)> callback);
-
+        virtual void setOnModifyEvent(std::function<void(float value, const std::shared_ptr<Drawable> &d)> callback);
+        
     protected:
         TweenValue(float start, float end, float duration, Easing easing = Easing::Linear,
                    LoopType loopType = LoopType::None, int loopCount = 0, float delayTime = 0);
-
-        virtual void onModify(float currentValue, const shared_ptr<Entity> &entity);
-
-        function<void(float value, const shared_ptr<Entity> &e)> onModifyEvent;
+        
+        virtual void onModify(float currentValue, const std::shared_ptr<Drawable> &drawable);
+        
+        std::function<void(float value, const std::shared_ptr<Drawable> &d)> onModifyEvent;
     };
-
+    
     
     class TweenUpdate : public Tween {
     public:
-        static shared_ptr<TweenUpdate> create();
+        static std::shared_ptr<TweenUpdate> create();
         
-        virtual void setOnModifyEvent(function<void(float delta, const shared_ptr<Entity> &e)> callback);
-        virtual void update(float delta, const shared_ptr<Entity> &entity);
+        virtual void setOnModifyEvent(std::function<void(float delta, const std::shared_ptr<Drawable> &d)> callback);
+        virtual void update(float delta, const std::shared_ptr<Drawable> &drawable);
         
         void finish();
-
+        
     protected:
         TweenUpdate();
-
-        virtual void onModify(float currentValue, const shared_ptr<Entity> &entity) {}
-
-        function<void(float delta, const shared_ptr<Entity> &e)> onModifyEvent;
+        
+        virtual void onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) {}
+        
+        std::function<void(float delta, const std::shared_ptr<Drawable> &d)> onModifyEvent;
     };
     
     
@@ -359,52 +359,52 @@ namespace mog {
             this->addTween(rest...);
         }
         void addTween() {}
-
+        
         virtual void init() override;
-
+        
     protected:
         TweenGroup() {}
-
-        virtual void update(float delta, const shared_ptr<Entity> &entity) override;
-        virtual void onModify(float currentValue, const shared_ptr<Entity> &entity) override;
-        virtual void addTweenOne(const shared_ptr<Tween> &tween);
-
-        std::vector<shared_ptr<Tween>> tweens;
+        
+        virtual void update(float delta, const std::shared_ptr<Drawable> &drawable) override;
+        virtual void onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) override;
+        virtual void addTweenOne(const std::shared_ptr<Tween> &tween);
+        
+        std::vector<std::shared_ptr<Tween>> tweens;
     };
     
     
     class TweenConcurrentGroup : public TweenGroup {
     public:
         template<class First, class... Rest>
-        static shared_ptr<TweenConcurrentGroup> create(const First& first, const Rest&... rest) {
-            auto m = shared_ptr<TweenConcurrentGroup>(new TweenConcurrentGroup());
+        static std::shared_ptr<TweenConcurrentGroup> create(const First& first, const Rest&... rest) {
+            auto m = std::shared_ptr<TweenConcurrentGroup>(new TweenConcurrentGroup());
             m->addTween(first, rest...);
             return m;
         }
-
-        virtual void addTweenOne(const shared_ptr<Tween> &tween) override;
-        virtual void update(float delta, const shared_ptr<Entity> &entity) override;
+        
+        virtual void addTweenOne(const std::shared_ptr<Tween> &tween) override;
+        virtual void update(float delta, const std::shared_ptr<Drawable> &drawable) override;
         virtual void pause() override;
         virtual void resume() override;
         
     protected:
         TweenConcurrentGroup();
         
-        std::vector<shared_ptr<Tween>> tweensToRemove;
+        std::vector<std::shared_ptr<Tween>> tweensToRemove;
     };
     
     
     class TweenSequenceGroup : public TweenGroup {
     public:
         template<class First, class... Rest>
-        static shared_ptr<TweenSequenceGroup> create(const First& first, const Rest&... rest) {
-            auto m = shared_ptr<TweenSequenceGroup>(new TweenSequenceGroup());
+        static std::shared_ptr<TweenSequenceGroup> create(const First& first, const Rest&... rest) {
+            auto m = std::shared_ptr<TweenSequenceGroup>(new TweenSequenceGroup());
             m->addTween(first, rest...);
             return m;
         }
         
-        virtual void addTweenOne(const shared_ptr<Tween> &tween) override;
-        virtual void update(float delta, const shared_ptr<Entity> &entity) override;
+        virtual void addTweenOne(const std::shared_ptr<Tween> &tween) override;
+        virtual void update(float delta, const std::shared_ptr<Drawable> &drawable) override;
         virtual void pause() override;
         virtual void resume() override;
         
@@ -419,29 +419,29 @@ namespace mog {
     class TweenJoinGroup : public TweenGroup {
     public:
         template<class First, class... Rest>
-        static shared_ptr<TweenJoinGroup> create(const First& first, const Rest&... rest) {
-            auto m = shared_ptr<TweenJoinGroup>(new TweenJoinGroup());
+        static std::shared_ptr<TweenJoinGroup> create(const First& first, const Rest&... rest) {
+            auto m = std::shared_ptr<TweenJoinGroup>(new TweenJoinGroup());
             m->addTween(first, rest...);
             return m;
         }
-
-        virtual void addTweenOne(const shared_ptr<Tween> &tween) override;
-        virtual void update(float delta, const shared_ptr<Entity> &entity) override;
-        virtual void onModify(float currentValue, const shared_ptr<Entity> &entity) override {}
+        
+        virtual void addTweenOne(const std::shared_ptr<Tween> &tween) override;
+        virtual void update(float delta, const std::shared_ptr<Drawable> &drawable) override;
+        virtual void onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) override {}
         
     protected:
         TweenJoinGroup();
         
-        std::vector<shared_ptr<Tween>> tweensToRemove;
+        std::vector<std::shared_ptr<Tween>> tweensToRemove;
     };
     
     
     class TweenDelay : public Tween {
     public:
-        static shared_ptr<TweenDelay> create(float delayTime);
-        static shared_ptr<TweenDelay> create(float delayTime, function<void(const shared_ptr<Entity> &e)> callback);
-
-        virtual void onModify(float currentValue, const shared_ptr<Entity> &entity) {}
+        static std::shared_ptr<TweenDelay> create(float delayTime);
+        static std::shared_ptr<TweenDelay> create(float delayTime, std::function<void(const std::shared_ptr<Drawable> &d)> callback);
+        
+        virtual void onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) {}
         
     protected:
         TweenDelay(float delayTime);
@@ -450,3 +450,4 @@ namespace mog {
 }
 
 #endif /* Tween_h */
+

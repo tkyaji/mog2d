@@ -1,6 +1,7 @@
 #include "mog/Constants.h"
 #include "mog/core/TextureAtlas.h"
 #include <stdlib.h>
+#include <string.h>
 #include <algorithm>
 
 using namespace mog;
@@ -17,10 +18,11 @@ TextureAtlasCell::TextureAtlasCell(const shared_ptr<Texture2D> &texture) {
 #pragma - TextureAtlas
 
 void TextureAtlas::addTexture(const shared_ptr<Texture2D> &tex2d) {
+    if (!tex2d) return;
     if (this->cellMap.count(tex2d) > 0) return;
-    auto cell = make_shared<TextureAtlasCell>(tex2d);
-    this->cells.emplace_back(cell);
-    this->cellMap[tex2d] = cell;
+    auto texCell = make_shared<TextureAtlasCell>(tex2d);
+    this->cells.emplace_back(texCell);
+    this->cellMap[tex2d] = texCell;
 }
 
 void TextureAtlas::mapTextureCells() {

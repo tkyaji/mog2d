@@ -9,17 +9,16 @@ shared_ptr<SpriteSheet> SpriteSheet::create(const shared_ptr<Sprite> sprite, con
 }
 
 SpriteSheet::SpriteSheet() {
-    this->dynamicDraw = true;
 }
 
 void SpriteSheet::init(const shared_ptr<Sprite> sprite, const Size &frameSize, unsigned int frameCount, unsigned int margin) {
     this->texture = sprite->getTexture();
     this->filename = sprite->getFilename();
     this->transform->size = frameSize;
-    this->size = frameSize;
     this->rect = sprite->getRect();
     this->frameSize = frameSize;
     
+    this->initRendererVertices(4, 4);
     this->initFrames(frameCount, margin);
 }
 
@@ -29,7 +28,7 @@ void SpriteSheet::initFrames(unsigned int frameCount, unsigned int margin) {
     int rows = (this->rect.size.height + _margin) / (frameSize.height + _margin);
     
     if (frameCount == 0) {
-        frameCount = (unsigned int)(cols, rows);
+        frameCount = (unsigned int)(cols * rows);
     }
 
     this->frameCount = frameCount;
@@ -67,9 +66,9 @@ void SpriteSheet::setMargin(unsigned int margin) {
     this->initFrames(this->frameCount, margin);
 }
 
-void SpriteSheet::updateFrame(const shared_ptr<Engine> &engine, float delta) {
+void SpriteSheet::updateFrame(const shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
     this->updateSpriteFrame(delta);
-    Sprite::updateFrame(engine, delta);
+    Sprite::updateFrame(engine, delta, parentMatrix, parentReRenderFlag);
 }
 
 void SpriteSheet::updateSpriteFrame(float delta) {
@@ -102,7 +101,7 @@ void SpriteSheet::updateSpriteFrame(float delta) {
 
 void SpriteSheet::selectFrame(unsigned int frame) {
     this->frame = frame % this->frameCount;
-    this->setReRenderFlag(RERENDER_TEX_COORDS);
+    this->reRenderFlag |= RERENDER_TEX_COORDS;
 }
 
 void SpriteSheet::startAnimation(float timePerFrame, LoopType loopType, int loopCount, int startFrame, int endFrame) {
@@ -139,7 +138,7 @@ void SpriteSheet::stopAnimation() {
     }
 }
 
-void SpriteSheet::bindVertexTexCoords(float *vertexTexCoords, int *idx, float x, float y, float w, float h) {
+void SpriteSheet::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
     if (!this->visible) return;
 
     Size texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
@@ -153,16 +152,16 @@ void SpriteSheet::bindVertexTexCoords(float *vertexTexCoords, int *idx, float x,
     h = (this->frameSize.height / texSize.height) * h;
     
     if (this->texture->isFlip) {
-        vertexTexCoords[(*idx)++] = x;      vertexTexCoords[(*idx)++] = y + h;
-        vertexTexCoords[(*idx)++] = x;      vertexTexCoords[(*idx)++] = y;
-        vertexTexCoords[(*idx)++] = x + w;  vertexTexCoords[(*idx)++] = y + h;
-        vertexTexCoords[(*idx)++] = x + w;  vertexTexCoords[(*idx)++] = y;
+        renderer->vertexTexCoords[(*idx)++] = x;      renderer->vertexTexCoords[(*idx)++] = y + h;
+        renderer->vertexTexCoords[(*idx)++] = x;      renderer->vertexTexCoords[(*idx)++] = y;
+        renderer->vertexTexCoords[(*idx)++] = x + w;  renderer->vertexTexCoords[(*idx)++] = y + h;
+        renderer->vertexTexCoords[(*idx)++] = x + w;  renderer->vertexTexCoords[(*idx)++] = y;
         
     } else {
-        vertexTexCoords[(*idx)++] = x;      vertexTexCoords[(*idx)++] = y;
-        vertexTexCoords[(*idx)++] = x;      vertexTexCoords[(*idx)++] = y + h;
-        vertexTexCoords[(*idx)++] = x + w;  vertexTexCoords[(*idx)++] = y;
-        vertexTexCoords[(*idx)++] = x + w;  vertexTexCoords[(*idx)++] = y + h;
+        renderer->vertexTexCoords[(*idx)++] = x;      renderer->vertexTexCoords[(*idx)++] = y;
+        renderer->vertexTexCoords[(*idx)++] = x;      renderer->vertexTexCoords[(*idx)++] = y + h;
+        renderer->vertexTexCoords[(*idx)++] = x + w;  renderer->vertexTexCoords[(*idx)++] = y;
+        renderer->vertexTexCoords[(*idx)++] = x + w;  renderer->vertexTexCoords[(*idx)++] = y + h;
     }
 }
 
@@ -185,30 +184,3 @@ Size SpriteSheet::getFrameSize() {
 void SpriteSheet::setOnFinishEvent(function<void(const shared_ptr<SpriteSheet> &spriteSheet)> onFinishEvent) {
     this->onFinishEvent = onFinishEvent;
 }
-
-shared_ptr<SpriteSheet> SpriteSheet::clone() {
-    auto entity = this->cloneEntity();
-    return static_pointer_cast<SpriteSheet>(entity);
-}
-
-shared_ptr<Entity> SpriteSheet::cloneEntity() {
-    auto spriteSheet =  shared_ptr<SpriteSheet>(new SpriteSheet());
-    spriteSheet->copyFrom(shared_from_this());
-    return spriteSheet;
-}
-
-void SpriteSheet::copyFrom(const shared_ptr<Entity> &src) {
-    auto srcSprite = static_pointer_cast<SpriteSheet>(src);
-    this->texture = srcSprite->getTexture();
-    this->filename = srcSprite->getFilename();
-    this->transform->size = srcSprite->getSize();
-    this->rect = srcSprite->getRect();
-    this->frameSize = srcSprite->getFrameSize();
-    this->frameCount = srcSprite->getFrameCount();
-    this->margin = srcSprite->getMargin();
-}
-
-EntityType SpriteSheet::getEntityType() {
-    return EntityType::SpriteSheet;
-}
-

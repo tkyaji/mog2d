@@ -13,6 +13,7 @@ namespace mog {
     class AndroidHelper {
     public:
         static JavaVM *vm;
+        static weak_ptr<Engine> engine;
 
         static JNIEnv *getEnv() {
             JNIEnv *env;
@@ -21,22 +22,23 @@ namespace mog {
         }
 
         static shared_ptr<NativeObject> getActivity() {
-            return Engine::getInstance()->getNativeObject(MOG_ACTIVITY);
+            return engine.lock()->getNativeObject(MOG_ACTIVITY);
         }
 
         static AAssetManager *getAssetManager() {
-            jobject jAssetManager = (jobject)Engine::getInstance()->getNativeObject(MOG_AASET_MANAGER)->getObject();
-            return AAssetManager_fromJava(getEnv(), jAssetManager);
+            auto assetManager = engine.lock()->getNativeObject(MOG_AASET_MANAGER);
+            return AAssetManager_fromJava(getEnv(), (jobject)assetManager->getObject());
         }
 
         static shared_ptr<NativeObject> getPluginObject(string className) {
             JNIEnv *env = getEnv();
             env->PushLocalFrame(16);
-            jobject activity = (jobject)getActivity()->getObject();
-            jclass jcls = env->GetObjectClass(activity);
+            auto activity = engine.lock()->getNativeObject(MOG_ACTIVITY);
+            jobject jActivity = (jobject)activity->getObject();
+            jclass jcls = env->GetObjectClass(jActivity);
             jmethodID getPluginObjectId = env->GetMethodID(jcls, "getPluginObject", "(Ljava/lang/String;)Ljava/lang/Object;");
             jstring jclassName = env->NewStringUTF(className.c_str());
-            jobject pluginObj = env->CallObjectMethod(activity, getPluginObjectId, jclassName);
+            jobject pluginObj = env->CallObjectMethod(jActivity, getPluginObjectId, jclassName);
             auto no = NativeObject::create(pluginObj);
             env->PopLocalFrame(NULL);
             return no;

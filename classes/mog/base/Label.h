@@ -2,8 +2,7 @@
 #define Label_h
 
 #include "mog/base/Scene.h"
-#include "mog/base/DrawEntity.h"
-#include "mog/base/Group.h"
+#include "mog/base/Entity.h"
 
 namespace mog {
     
@@ -21,7 +20,7 @@ namespace mog {
     
 #pragma - Label
     
-    class Label : public DrawEntity {
+    class Label : public Entity {
     public:
         static shared_ptr<Label> create(string text, float fontSize, string fontFilename = "", float height = 0);
         static shared_ptr<Label> create(const LocalizedText &localizedText, float fontSize, string fontFilename = "", float height = 0);
@@ -39,10 +38,6 @@ namespace mog {
         void setFontHeight(float height);
         float getFontHeight();
 
-        shared_ptr<Label> clone();
-        virtual shared_ptr<Entity> cloneEntity() override;
-        virtual EntityType getEntityType() override;
-
     protected:
         Label();
         void init(string text, float fontSize, string fontFilename = "", float height = 0);
@@ -51,8 +46,6 @@ namespace mog {
         float fontSize;
         string fontFilename;
         float height;
-        
-        virtual void copyFrom(const shared_ptr<Entity> &src) override;
     };
 }
 

@@ -9,6 +9,8 @@
 #include <fstream>
 #include <mutex>
 #include <assert.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include "mog/core/FileUtils.h"
 #include "mog/core/Data.h"

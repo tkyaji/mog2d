@@ -105,8 +105,9 @@ void Sprite::init(string filename, const Rect &rect) {
                          this->texture->height / this->texture->density.value);
     }
     this->rect = _rect;
-    this->size = _rect.size;
     this->transform->size = this->rect.size;
+    
+    this->initRendererVertices(4, 4);
 }
 
 void Sprite::initWithFilePath(string filepath, const Rect &rect, Density density) {
@@ -119,8 +120,9 @@ void Sprite::initWithFilePath(string filepath, const Rect &rect, Density density
                           this->texture->height / this->texture->density.value);
     }
     this->rect = _rect;
-    this->size = _rect.size;
     this->transform->size = this->rect.size;
+    
+    this->initRendererVertices(4, 4);
 }
 
 void Sprite::initWithImage(unsigned char *image, int length) {
@@ -128,8 +130,9 @@ void Sprite::initWithImage(unsigned char *image, int length) {
     
     this->transform->size.width = this->texture->width / this->texture->density.value;
     this->transform->size.height = this->texture->height / this->texture->density.value;
-    this->size = this->transform->size;
-    this->rect = Rect(Point::zero, this->size);
+    this->rect = Rect(Point::zero, this->transform->size);
+    
+    this->initRendererVertices(4, 4);
 }
 
 void Sprite::initWithRGBA(unsigned char *data, int width, int height) {
@@ -137,8 +140,9 @@ void Sprite::initWithRGBA(unsigned char *data, int width, int height) {
     
     this->transform->size.width = this->texture->width / this->texture->density.value;
     this->transform->size.height = this->texture->height / this->texture->density.value;
-    this->size = this->transform->size;
-    this->rect = Rect(Point::zero, this->size);
+    this->rect = Rect(Point::zero, this->transform->size);
+    
+    this->initRendererVertices(4, 4);
 }
 
 void Sprite::initWithTexture(const shared_ptr<Texture2D> &texture) {
@@ -146,37 +150,16 @@ void Sprite::initWithTexture(const shared_ptr<Texture2D> &texture) {
     
     this->transform->size.width = this->texture->width / this->texture->density.value;
     this->transform->size.height = this->texture->height / this->texture->density.value;
-    this->size = this->transform->size;
-    this->rect = Rect(Point::zero, this->size);
+    this->rect = Rect(Point::zero, this->transform->size);
+    
+    this->initRendererVertices(4, 4);
 }
 
-shared_ptr<Sprite> Sprite::clone() {
-    auto entity = this->cloneEntity();
-    return static_pointer_cast<Sprite>(entity);
-}
-
-shared_ptr<Entity> Sprite::cloneEntity() {
-    auto sprite = shared_ptr<Sprite>(new Sprite());
-    sprite->copyFrom(shared_from_this());
-    return sprite;
-}
-
-void Sprite::bindVertexTexCoords(float *vertexTexCoords, int *idx, float x, float y, float w, float h) {
+void Sprite::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
     Size texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
     x += this->rect.position.x / texSize.width;
     y += this->rect.position.y / texSize.height;
     w *= this->rect.size.width / texSize.width;
     h *= this->rect.size.height / texSize.height;
-    DrawEntity::bindVertexTexCoords(vertexTexCoords, idx, x, y, w, h);
-}
-
-void Sprite::copyFrom(const shared_ptr<Entity> &src) {
-    DrawEntity::copyFrom(src);
-    auto srcSprite = static_pointer_cast<Sprite>(src);
-    this->filename = srcSprite->filename;
-    this->rect = srcSprite->rect;
-}
-
-EntityType Sprite::getEntityType() {
-    return EntityType::Sprite;
+    Entity::bindVertexTexCoords(renderer, idx, x, y, w, h);
 }

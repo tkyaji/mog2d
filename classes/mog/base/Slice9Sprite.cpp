@@ -14,83 +14,71 @@ void Slice9Sprite::init(const shared_ptr<Sprite> sprite, const Rect &centerRect)
     this->filename = sprite->getFilename();
     this->texture = sprite->getTexture();
     this->transform->size = sprite->getSize();
-    this->size = this->transform->size;
     this->rect = sprite->getRect();
     this->centerRect = centerRect;
 }
 
 Slice9Sprite::Slice9Sprite() {
-    this->dynamicDraw = true;
 }
 
 Rect Slice9Sprite::getCenterRect() {
     return this->centerRect;
 }
 
-void Slice9Sprite::getVerticesNum(int *num) {
+/*
+void Slice9Sprite::getVerticesNum(int *verticesNum, int *indiciesNum) {
     if (!this->visible) return;
-    (*num) += 16;
-}
-
-void Slice9Sprite::getIndiciesNum(int *num) {
-    if (!this->visible) return;
-    if (*num > 0) {
-        (*num) += 2;
+    if (verticesNum != nullptr) {
+        (*verticesNum) += 16;
     }
-    (*num) += 28;
+    if (indiciesNum != nullptr) {
+        if (*indiciesNum > 0) {
+            (*indiciesNum) += 2;
+        }
+        (*indiciesNum) += 28;
+    }
 }
+*/
 
-void Slice9Sprite::bindVertices(float *vertices, int *idx, bool bakeTransform) {
+void Slice9Sprite::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) {
     if (!this->visible) return;
-    float *m;
+    
+    Point offset, v1, v2;
     if (bakeTransform) {
-        this->renderer->pushMatrix();
-        this->renderer->applyTransform(this->transform, this->screenScale, false);
-        m = this->renderer->matrix;
-        this->renderer->popMatrix();
-    } else {
-        m = Renderer::identityMatrix;
+        offset = Point(this->transform->matrix[12], this->transform->matrix[13]);
+        v1 = Point(this->transform->matrix[0], this->transform->matrix[1]);
+        v2 = Point(this->transform->matrix[4], this->transform->matrix[5]);
     }
-    
-    auto v1 = Point(m[0], m[1]);
-    auto v2 = Point(m[4], m[5]);
-    auto offset = Point(m[12], m[13]);
-    
-    float right = this->rect.size.width - (this->centerRect.position.x + this->centerRect.size.width);
-    float bottom = this->rect.size.height - (this->centerRect.position.y + this->centerRect.size.height);
 
     float xx[4];
     xx[0] = 0;
-    xx[1] = this->centerRect.position.x;
-    xx[2] = this->transform->size.width - right;
+    xx[1] = this->centerRect.position.x / this->transform->scale.x;
+    xx[2] = this->transform->size.width - ((this->transform->size.width - (this->centerRect.position.x + this->centerRect.size.width)) / this->transform->scale.x);
     xx[3] = this->transform->size.width;
-    
+
     float yy[4];
     yy[0] = 0;
-    yy[1] = this->centerRect.position.y;
-    yy[2] = this->transform->size.height - bottom;
+    yy[1] = this->centerRect.position.y / this->transform->scale.y;
+    yy[2] = this->transform->size.height - ((this->transform->size.height - (this->centerRect.position.y + this->centerRect.size.height)) / this->transform->scale.y);
     yy[3] = this->transform->size.height;
     
+    int start = *indicesIdx;
     for (int xi = 0; xi < 4; xi++) {
         for (int yi = 0; yi < 4; yi++) {
-            float x = xx[xi] * this->screenScale / this->transform->scale.x;
-            float y = yy[yi] * this->screenScale / this->transform->scale.y;
-            
-            Point p = v1 * x + v2 * y;
-            vertices[(*idx)++] = (p.x + offset.x);
-            vertices[(*idx)++] = (p.y + offset.y);
+            Point p = Point(xx[xi], yy[yi]);
+            if (bakeTransform) {
+                p = v1 * p.x + v2 * p.y + offset;
+            }
+            renderer->vertices[(*verticesIdx)++] = p.x;
+            renderer->vertices[(*verticesIdx)++] = p.y;
         }
     }
-}
-
-void Slice9Sprite::bindIndices(short *indices, int *idx, int start) {
-    if (!this->visible) return;
-    if (start > 0) {
-        indices[*idx] = indices[(*idx) - 1];
-        (*idx)++;
-        indices[(*idx)++] = 0 + start;
-    }
     
+    if (start > 0) {
+        renderer->indices[*indicesIdx] = renderer->indices[(*indicesIdx) - 1];
+        (*indicesIdx)++;
+        renderer->indices[(*indicesIdx)++] = 0 + start;
+    }
     short sliceIndices[28] = {
         0, 4, 1, 5, 2, 6, 3, 7,
         7, 4,
@@ -99,11 +87,11 @@ void Slice9Sprite::bindIndices(short *indices, int *idx, int start) {
         8, 12, 9, 13, 10, 14, 11, 15,
     };
     for (int i = 0; i < 28; i++) {
-        indices[(*idx)++] = sliceIndices[i] + start;
+        renderer->indices[(*indicesIdx)++] = sliceIndices[i] + start;
     }
 }
 
-void Slice9Sprite::bindVertexTexCoords(float *vertexTexCoords, int *idx, float x, float y, float w, float h) {
+void Slice9Sprite::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
     if (!this->visible) return;
     
     Size texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
@@ -128,39 +116,17 @@ void Slice9Sprite::bindVertexTexCoords(float *vertexTexCoords, int *idx, float x
             if (this->texture->isFlip) {
                 yi = 3 - yi;
             }
-            vertexTexCoords[(*idx)++] = xx[xi];
-            vertexTexCoords[(*idx)++] = yy[yi];
+            renderer->vertexTexCoords[(*idx)++] = xx[xi];
+            renderer->vertexTexCoords[(*idx)++] = yy[yi];
         }
     }
 }
 
+/*
 void Slice9Sprite::setReRenderFlag(unsigned char flag) {
     Sprite::setReRenderFlag(flag);
     if ((flag & RERENDER_VERTEX) == RERENDER_VERTEX) {
         this->reRenderFlag |= RERENDER_VERTEX;
     }
 }
-
-shared_ptr<Slice9Sprite> Slice9Sprite::clone() {
-    auto entity = this->cloneEntity();
-    return static_pointer_cast<Slice9Sprite>(entity);
-}
-
-shared_ptr<Entity> Slice9Sprite::cloneEntity() {
-    auto sprite = shared_ptr<Slice9Sprite>(new Slice9Sprite());
-    sprite->copyFrom(shared_from_this());
-    return sprite;
-}
-
-void Slice9Sprite::copyFrom(const shared_ptr<Entity> &src) {
-    auto srcSprite = static_pointer_cast<Slice9Sprite>(src);
-    this->filename = srcSprite->getFilename();
-    this->centerRect = srcSprite->centerRect;
-    this->texture = srcSprite->getTexture();
-    this->transform->size = srcSprite->getSize();
-    this->rect = srcSprite->getRect();
-}
-
-EntityType Slice9Sprite::getEntityType() {
-    return EntityType::Slice9Sprite;
-}
+ */

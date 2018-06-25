@@ -95,3 +95,4 @@ string FileUtils::getDocumentsDirectory() {
 string FileUtils::getCachesDirectory() {
     return FileUtilsNative::getCachesDirectory();
 }
+

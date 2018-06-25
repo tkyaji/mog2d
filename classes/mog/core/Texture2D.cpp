@@ -9,12 +9,6 @@
 
 using namespace mog;
 
-const Density Density::x1_0 = Density(0);
-const Density Density::x1_5 = Density(1);
-const Density Density::x2_0 = Density(2);
-const Density Density::x3_0 = Density(3);
-const Density Density::x4_0 = Density(4);
-
 shared_ptr<Texture2D> Texture2D::createWithAsset(string filename) {
     auto tex2d = make_shared<Texture2D>();
     tex2d->loadTextureAsset(filename);
@@ -92,20 +86,23 @@ void Texture2D::loadTextureFile(string filepath, Density density) {
 }
 
 bool Texture2D::readBytesAsset(string filename, unsigned char **data, int *len, Density *density) {
-    Density den = Density::getCurrent();
+    Density current = Density::getCurrent();
+    Density den = current;
     if (FileUtils::readBytesAsset(den.directory + "/" + filename, data, len)) {
         *density = den;
         return true;
     }
-    for (int i = den.idx + 1; i < Density::allDensities.size(); i++) {
+    for (int i = 0; i < Density::allDensities.size(); i++) {
         den = Density::allDensities[i];
+        if (den.idx <= current.idx) continue;
         if (FileUtils::readBytesAsset(den.directory + "/" + filename, data, len)) {
             *density = den;
             return true;
         }
     }
-    for (int i = den.idx - 1; i >= 0; i--) {
+    for (int i = Density::allDensities.size() - 1; i >= 0; i--) {
         den = Density::allDensities[i];
+        if (den.idx >= current.idx) continue;
         if (FileUtils::readBytesAsset(den.directory + "/" + filename, data, len)) {
             *density = den;
             return true;

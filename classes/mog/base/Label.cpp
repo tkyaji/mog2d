@@ -38,9 +38,11 @@ void Label::init(string text, float fontSize, string fontFilename, float height)
     this->fontSize = fontSize;
     this->fontFilename = fontFilename;
     this->height = height;
-    this->size.width = this->texture->width / this->texture->density.value;
-    this->size.height = this->texture->height / this->texture->density.value;
-    this->transform->size = this->size;
+    this->transform->size.width = this->texture->width / this->texture->density.value;
+    this->transform->size.height = this->texture->height / this->texture->density.value;
+    this->initRendererVertices(4, 4);
+    
+    this->reRenderFlag |= RERENDER_ALL;
 }
 
 void Label::setText(string text, float fontSize, string fontFilename, float height) {
@@ -52,9 +54,6 @@ void Label::setText(string text, float fontSize, string fontFilename, float heig
     }
     
     this->init(text, fontSize, fontFilename, height);
-    
-    this->reRenderFlag |= RERENDER_ALL;
-    this->setReRenderFlag(RERENDER_ALL);
 }
 
 void Label::setText(const LocalizedText &localizedText, float fontSize, string fontFilename, float height) {
@@ -87,28 +86,4 @@ void Label::setFontHeight(float height) {
 
 float Label::getFontHeight() {
     return this->height;
-}
-
-shared_ptr<Label> Label::clone() {
-    auto entity = this->cloneEntity();
-    return static_pointer_cast<Label>(entity);
-}
-
-shared_ptr<Entity> Label::cloneEntity() {
-    auto label = shared_ptr<Label>(new Label());
-    label->copyFrom(shared_from_this());
-    return label;
-}
-
-void Label::copyFrom(const shared_ptr<Entity> &src) {
-    DrawEntity::copyFrom(src);
-    auto srcLabel = static_pointer_cast<Label>(src);
-    this->text = srcLabel->text;
-    this->fontSize = srcLabel->fontSize;
-    this->fontFilename = srcLabel->fontFilename;
-    this->height = srcLabel->height;
-}
-
-EntityType Label::getEntityType() {
-    return EntityType::Label;
 }

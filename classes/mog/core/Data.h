@@ -9,8 +9,6 @@
 #include <fstream>
 #include <sstream>
 
-using namespace std;
-
 extern void *enabler;
 
 namespace mog {
@@ -32,8 +30,9 @@ namespace mog {
     public:
         DataType type = DataType::Null;
         
-        virtual void write(ostream &out);
-        virtual void read(istream &in);
+        
+        virtual void write(std::ostream &out);
+        virtual void read(std::istream &in);
     };
     
     
@@ -44,8 +43,8 @@ namespace mog {
         Int();
         Int(int value);
         
-        virtual void write(ostream &out);
-        virtual void read(istream &in);
+        virtual void write(std::ostream &out);
+        virtual void read(std::istream &in);
     };
     
     
@@ -56,8 +55,8 @@ namespace mog {
         Long();
         Long(long long value);
         
-        virtual void write(ostream &out);
-        virtual void read(istream &in);
+        virtual void write(std::ostream &out);
+        virtual void read(std::istream &in);
     };
     
     
@@ -68,8 +67,8 @@ namespace mog {
         Float();
         Float(float value);
         
-        virtual void write(ostream &out);
-        virtual void read(istream &in);
+        virtual void write(std::ostream &out);
+        virtual void read(std::istream &in);
     };
     
     
@@ -80,8 +79,8 @@ namespace mog {
         Double();
         Double(double value);
         
-        virtual void write(ostream &out);
-        virtual void read(istream &in);
+        virtual void write(std::ostream &out);
+        virtual void read(std::istream &in);
     };
     
     
@@ -92,19 +91,19 @@ namespace mog {
         Bool();
         Bool(bool value);
         
-        virtual void write(ostream &out);
-        virtual void read(istream &in);
+        virtual void write(std::ostream &out);
+        virtual void read(std::istream &in);
     };
     
     class String : public Data {
     public:
-        string value = "";
+        std::string value = "";
         
         String();
-        String(string value);
+        String(std::string value);
         
-        virtual void write(ostream &out);
-        virtual void read(istream &in);
+        virtual void write(std::ostream &out);
+        virtual void read(std::istream &in);
     };
     
     
@@ -117,10 +116,10 @@ namespace mog {
         Bytes(unsigned char *value, unsigned int length);
         ~Bytes();
         
-        virtual void write(ostream &out);
-        virtual void read(istream &in);
-        string toString();
-        string toString() const;
+        virtual void write(std::ostream &out);
+        virtual void read(std::istream &in);
+        std::string toString();
+        std::string toString() const;
     };
     
     
@@ -128,29 +127,29 @@ namespace mog {
     public:
         Array();
         
-        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         void append(const T &data) {
-            auto d = shared_ptr<T>(new T(data));
+            auto d = std::shared_ptr<T>(new T(data));
             this->datum.emplace_back(d);
         }
         
-        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         void set(int idx, const T &data) {
-            auto d = shared_ptr<T>(new T(data));
+            auto d = std::shared_ptr<T>(new T(data));
             if ((int)this->datum.size() - 1 < idx) {
                 int start = (int)this->datum.size();
                 for (int i = start; i <= idx; i++) {
-                    auto d = make_shared<Data>();
+                    auto d = std::make_shared<Data>();
                     this->datum.emplace_back(d);
                 }
             }
             this->datum[idx] = d;
         }
         
-        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         T at(int idx) const {
             if (idx < this->datum.size()) {
-                auto d = static_pointer_cast<T>(this->datum[idx]);
+                auto d = std::static_pointer_cast<T>(this->datum[idx]);
                 return *d.get();
                 
             } else {
@@ -161,14 +160,14 @@ namespace mog {
         
         void remove(int idx);
         void clear();
-        size_t size() const;
+        unsigned int size() const;
         DataType atType(int idx) const;
         
-        virtual void write(ostream &out);
-        virtual void read(istream &in);
+        virtual void write(std::ostream &out);
+        virtual void read(std::istream &in);
         
     private:
-        vector<shared_ptr<Data>> datum;
+        std::vector<std::shared_ptr<Data>> datum;
     };
     
     
@@ -176,16 +175,16 @@ namespace mog {
     public:
         Dictionary();
         
-        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
-        void put(string key, const T& data) {
-            auto d = shared_ptr<T>(new T(data));
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        void put(std::string key, const T& data) {
+            auto d = std::shared_ptr<T>(new T(data));
             this->datum[key] = d;
         }
         
-        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
-        T get(string key) const {
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        T get(std::string key) const {
             if (this->datum.count(key) > 0) {
-                return *static_pointer_cast<T>(this->datum.at(key)).get();
+                return *std::static_pointer_cast<T>(this->datum.at(key)).get();
                 
             } else {
                 auto d = T();
@@ -193,48 +192,48 @@ namespace mog {
                 return d;
             }
         }
-        DataType getType(string key) const;
+        DataType getType(std::string key) const;
         
-        void remove(string key);
+        void remove(std::string key);
         void clear();
-        size_t size() const;
-        vector<string> getKeys() const;
+        unsigned int size() const;
+        std::vector<std::string> getKeys() const;
         
-        virtual void write(ostream &out);
-        virtual void read(istream &in);
+        virtual void write(std::ostream &out);
+        virtual void read(std::istream &in);
         
     private:
-        map<string, shared_ptr<Data>> datum;
+        std::map<std::string, std::shared_ptr<Data>> datum;
     };
     
     
-    class Param {
+    class DataValue {
     public:
-        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
-        Param(T data) {
-            this->data = shared_ptr<T>(new T(data));
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        DataValue(T data) {
+            this->data = std::unique_ptr<T>(new T(data));
         }
-        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         T get() {
-            return *static_pointer_cast<T>(this->data).get();
+            return *std::static_pointer_cast<T>(this->data).get();
         }
-        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         T get() const {
-            return *static_pointer_cast<T>(this->data).get();
+            return *std::static_pointer_cast<T>(this->data).get();
         }
         DataType getType() {
             return this->data->type;
         }
     private:
-        shared_ptr<Data> data;
+        std::unique_ptr<Data> data;
     };
     
     
     class JsonData {
     public:
-        static JsonData parse(string jsonText);
+        static JsonData parse(std::string jsonText);
         
-        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         T toData() {
             return *(T *)this->data.get();
         }
@@ -244,7 +243,7 @@ namespace mog {
         }
         
     private:
-        shared_ptr<Data> data;
+        std::shared_ptr<Data> data;
     };
 }
 

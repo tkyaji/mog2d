@@ -3,24 +3,28 @@
 #include "mog/core/Engine.h"
 #include "mog/core/MogStats.h"
 #include <math.h>
+#include <string.h>
 
 using namespace mog;
 
+#if defined(MOG_DEBUG) && !defined(MOG_QT)
 void checkGLError(const char *label) {
-#ifndef MOG_QT
     GLenum glError = glGetError();
     if (glError != GL_NO_ERROR) {
-        LOGE("glError=%d : %s", glError, label);
+        LOGD("glError=%d : %s", glError, label);
     }
-#endif
 }
+#else
+#define checkGLError(label)
+#endif
 
-float Renderer::identityMatrix[16] = {
+float Renderer::identityMatrix[20] = {
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
-    0, 0, 0, 1
-};;
+    0, 0, 0, 1,
+    1, 1, 1, 1,
+};
 
 Renderer::Renderer() {
 }
@@ -29,196 +33,521 @@ Renderer::~Renderer() {
     if (this->vertexBuffer[0] > 0) {
         glDeleteBuffers(2, this->vertexBuffer);
     }
-    if (this->vertexTexCoordsBuffer > 0) {
-        glDeleteBuffers(1, &this->vertexTexCoordsBuffer);
+    for (auto pair : this->bufferIndexMap) {
+        glDeleteBuffers(1, &pair.second);
     }
-    if (this->vertexColorsBuffer > 0) {
-        glDeleteBuffers(1, &this->vertexColorsBuffer);
+    if (this->glShaderProgram > 0) {
+        glDeleteProgram(this->glShaderProgram);
     }
+    
+    safe_delete_arr(this->vertices);
+    safe_delete_arr(this->indices);
+    safe_delete_arr(this->vertexColors);
+    safe_delete_arr(this->vertexTexCoords);
 }
 
-void Renderer::bindVertex(float *vertices, int verticesSize, short *indices, int indicesSize, bool dynamicDraw) {
+void Renderer::setDrawType(DrawType drawType) {
+    this->drawType = drawType;
+}
+
+void Renderer::setLineWidth(float width) {
+    glLineWidth(width);
+}
+
+void Renderer::setUniformPointSize(float size) {
+    this->setUniformParameter("u_pointSize", size);
+}
+
+void Renderer::initScreenParameters(const shared_ptr<Engine> &engine) {
+    if (this->screenParameterInitialized) return;
+    this->setUniformParameter("u_screenSize", engine->getScreenSize().width, engine->getScreenSize().height);
+    this->setUniformParameter("u_displaySize", engine->getDisplaySize().width, engine->getDisplaySize().height);
+    this->setUniformParameter("u_screenScale", engine->getScreenScale());
+    this->screenParameterInitialized = true;
+}
+
+void Renderer::setUniformMatrix(const float *matrix) {
+    this->setUniformParameter("u_matrix", matrix, 4);
+}
+
+void Renderer::setUniformColor(float r, float g, float b, float a) {
+    this->setUniformParameter("u_color", r, g, b, a);
+}
+
+void Renderer::setUniformParameter(std::string name, const UniformParameter &param) {
+    this->uniformParamsMap[name] = param;
+    this->dirtyUniformParamsMap[name] = true;
+}
+
+void Renderer::setUniformParameter(std::string name, float f1) {
+    this->setUniformParameter(name, UniformParameter(f1));
+}
+
+void Renderer::setUniformParameter(std::string name, float f1, float f2) {
+    this->setUniformParameter(name, UniformParameter(f1, f2));
+}
+
+void Renderer::setUniformParameter(std::string name, float f1, float f2, float f3) {
+    this->setUniformParameter(name, UniformParameter(f1, f2, f3));
+}
+
+void Renderer::setUniformParameter(std::string name, float f1, float f2, float f3, float f4) {
+    this->setUniformParameter(name, UniformParameter(f1, f2, f3, f4));
+}
+
+void Renderer::setUniformParameter(std::string name, int i1) {
+    this->setUniformParameter(name, UniformParameter(i1));
+}
+
+void Renderer::setUniformParameter(std::string name, int i1, int i2) {
+    this->setUniformParameter(name, UniformParameter(i1, i2));
+}
+
+void Renderer::setUniformParameter(std::string name, int i1, int i2, int i3) {
+    this->setUniformParameter(name, UniformParameter(i1, i2, i3));
+}
+
+void Renderer::setUniformParameter(std::string name, int i1, int i2, int i3, int i4) {
+    this->setUniformParameter(name, UniformParameter(i1, i2, i3, i4));
+}
+
+void Renderer::setUniformParameter(std::string name, const float *matrix, int size) {
+    this->setUniformParameter(name, UniformParameter(matrix, size));
+}
+
+unsigned int Renderer::bindAttributeLocation(std::string name) {
+    if (this->attributeLocationMap.count(name) == 0) {
+        this->attributeLocationMap[name] = this->attributeLocationIndexCounter++;
+    }
+    return this->attributeLocationMap[name];
+}
+
+void Renderer::setVertexAttributeParameter(unsigned int location, float f1) {
+    this->setVertexAttributeParameter(location, VertexAttributeParameter(f1));
+}
+
+void Renderer::setVertexAttributeParameter(unsigned int location, float f1, float f2) {
+    this->setVertexAttributeParameter(location, VertexAttributeParameter(f1, f2));
+}
+
+void Renderer::setVertexAttributeParameter(unsigned int location, float f1, float f2, float f3) {
+    this->setVertexAttributeParameter(location, VertexAttributeParameter(f1, f2, f3));
+}
+
+void Renderer::setVertexAttributeParameter(unsigned int location, float f1, float f2, float f3, float f4) {
+    this->setVertexAttributeParameter(location, VertexAttributeParameter(f1, f2, f3, f4));
+}
+
+void Renderer::setVertexAttributeParameter(unsigned int location, float *values, int arrSize, int size, bool dynamicDraw, bool normalized, int stride) {
+    int index = this->getBufferIndex(location);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, index);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * arrSize, values, (dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    
+    this->setVertexAttributeParameter(location, VertexAttributeParameter(index, GL_FLOAT, size, normalized, stride));
+}
+
+void Renderer::setVertexAttributeParameter(unsigned int location, int *values, int arrSize, int size, bool dynamicDraw, bool normalized, int stride) {
+    int index = this->getBufferIndex(location);
+
+    glBindBuffer(GL_ARRAY_BUFFER, index);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(int) * arrSize, values, (dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    this->setVertexAttributeParameter(location, VertexAttributeParameter(index, GL_INT, size, normalized, stride));
+}
+
+void Renderer::setVertexAttributeParameter(unsigned int location, short *values, int arrSize, int size, bool dynamicDraw, bool normalized, int stride) {
+    int index = this->getBufferIndex(location);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, index);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(short) * arrSize, values, (dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    
+    this->setVertexAttributeParameter(location, VertexAttributeParameter(index, GL_SHORT, size, normalized, stride));
+}
+
+void Renderer::bindVertexAttributePointerSub(unsigned int location, float *value, int arrSize, int offset) {
+    int index = this->getBufferIndex(location);
+    glBindBuffer(GL_ARRAY_BUFFER, index);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * offset, sizeof(float) * arrSize, value);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void Renderer::setVertexAttributeParameter(unsigned int location, const VertexAttributeParameter &param) {
+    this->vertexAttributeParamsMap[location] = param;
+}
+
+unsigned int Renderer::getBufferIndex(unsigned int location) {
+    if (this->bufferIndexMap.count(location) == 0) {
+        unsigned int index;
+        glGenBuffers(1, &index);
+        this->bufferIndexMap[location] = index;
+    }
+    return this->bufferIndexMap[location];
+}
+
+
+float Renderer::getMaxLineWidth() {
+    GLfloat p;
+    glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, &p);
+    return p;
+}
+
+float Renderer::getMaxPointSize() {
+    GLfloat p;
+    glGetFloatv(GL_ALIASED_POINT_SIZE_RANGE, &p);
+    return p;
+}
+
+void Renderer::bindVertex(bool dynamicDraw) {
     if (this->vertexBuffer[0] == 0) {
         glGenBuffers(2, this->vertexBuffer);
     }
     glBindBuffer(GL_ARRAY_BUFFER, this->vertexBuffer[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * verticesSize, vertices, (dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * this->verticesNum * 2, this->vertices, (dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vertexBuffer[1]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(short) * indicesSize, indices, (dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(short) * this->indicesNum, this->indices, (dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
     
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     
-    this->indicesNum = indicesSize;
-
     checkGLError("bindVertex");
 }
 
-void Renderer::bindTextureVertex(int textureId, float *vertexTexCoords, int size, bool dynamicDraw) {
-    if (this->vertexTexCoordsBuffer == 0) {
-        glGenBuffers(1, &this->vertexTexCoordsBuffer);
-    }
-    
-    glEnable(GL_TEXTURE_2D);
-    glBindBuffer(GL_ARRAY_BUFFER, this->vertexTexCoordsBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * size, vertexTexCoords, (dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
-    
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    
-    this->textureId = textureId;
-    this->enableTexture = true;
+void Renderer::bindVertexTexCoords(int textureId, bool dynamicDraw) {
+    unsigned int location = this->bindAttributeLocation("a_uv");
+    this->setVertexAttributeParameter(location, this->vertexTexCoords, this->verticesNum * 2, 2, dynamicDraw);
+    this->setUniformParameter("u_texture", 0);
 
+    this->textureId = textureId;
+    
     checkGLError("bindTextureVertex");
 }
 
-void Renderer::bindColorsVertex(float *vertexColors, int size, bool dynamicDraw) {
-    if (this->vertexColorsBuffer == 0) {
-        glGenBuffers(1, &this->vertexColorsBuffer);
-    }
+void Renderer::bindVertexColors(bool dynamicDraw) {
+    unsigned int location = this->bindAttributeLocation("a_color");
+    this->setVertexAttributeParameter(location, this->vertexColors, this->verticesNum * 4, 4, dynamicDraw);
     
-    glBindBuffer(GL_ARRAY_BUFFER, this->vertexColorsBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * size, vertexColors, (dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
+    this->enableVertexColor = true;
     
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    this->enableColor = true;
-
     checkGLError("bindColorsVertex");
 }
 
-void Renderer::bindVertexSub(float *vertices, int size, int offset) {
+void Renderer::bindVertexSub(int index, int size) {
     glBindBuffer(GL_ARRAY_BUFFER, this->vertexBuffer[0]);
-    glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(float) * size, vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * index, sizeof(float) * size * 2, &this->vertices[index]);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     checkGLError("bindVertexSub");
 }
 
-void Renderer::bindColorsVertexSub(float *vertexColors, int size, int offset) {
-    glBindBuffer(GL_ARRAY_BUFFER, this->vertexColorsBuffer);
-    glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(float) * size, vertexColors);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+void Renderer::bindVertexTexCoordsSub(int index, int size) {
+    unsigned int location = this->bindAttributeLocation("a_uv");
+    this->bindVertexAttributePointerSub(location, &this->vertexTexCoords[index], size * 2, index);
+
+    checkGLError("bindTextureVertexSub");
+}
+
+void Renderer::bindVertexColorsSub(int index, int size) {
+    unsigned int location = this->bindAttributeLocation("a_color");
+    this->bindVertexAttributePointerSub(location, &this->vertexColors[index], size * 4, index);
 
     checkGLError("bindColorsVertexSub");
 }
 
-void Renderer::drawFrame(const shared_ptr<Transform> &transform, float screenScale) {
-    this->pushMatrix();
-    this->pushColor();
+bool Renderer::setVerticesNum(int verticesNum) {
+    if (this->verticesNum == verticesNum) return false;
+    this->verticesNum = verticesNum;
+    return true;
+}
+
+bool Renderer::setIndicesNum(int indicesNum) {
+    if (this->indicesNum == indicesNum) return false;
+    this->indicesNum = indicesNum;
+    return true;
+}
+
+void Renderer::newVerticesArr() {
+    safe_delete_arr(this->vertices);
+    this->vertices = new float[this->verticesNum * 2];
+}
+
+void Renderer::newIndicesArr() {
+    safe_delete_arr(this->indices);
+    this->indices = new short[this->indicesNum];
+}
+
+void Renderer::newVertexColorsArr() {
+    safe_delete_arr(this->vertexColors);
+    this->vertexColors = new float[this->verticesNum * 4];
+}
+
+void Renderer::newVertexTexCoordsArr() {
+    safe_delete_arr(this->vertexTexCoords);
+    this->vertexTexCoords = new float[this->verticesNum * 2];
+}
+
+void Renderer::drawFrame() {
+    if (!this->glShaderProgram) {
+        this->initShaderProgram();
+    }
     
-    this->applyTransform(transform, screenScale);
-    this->drawFrame();
+    glUseProgram(this->glShaderProgram);
     
-    this->popColor();
-    this->popMatrix();
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, this->vertexBuffer[0]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vertexBuffer[1]);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glBindTexture(GL_TEXTURE_2D, this->textureId);
+
+    for (auto pair : this->vertexAttributeParamsMap) {
+        pair.second.setVertexAttribute(pair.first);
+    }
+    if (this->dirtyUniformParamsMap.size() > 0) {
+        for (auto pair : this->dirtyUniformParamsMap) {
+            auto uniform = this->uniformParamsMap[pair.first];
+            uniform.setUniform(this->glShaderProgram, pair.first);
+        }
+        this->dirtyUniformParamsMap.clear();
+    }
+
+    // draw
+    glDrawElements((int)this->drawType, this->indicesNum, GL_UNSIGNED_SHORT, 0);
+    
+    MogStats::drawCallCount++;
+
+    glDisableVertexAttribArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUseProgram(0);
 
     checkGLError("drawFrame");
 }
 
-void Renderer::drawFrame() {
-    // bind vertex positions
-    glBindBuffer(GL_ARRAY_BUFFER, this->vertexBuffer[0]);
-    glVertexPointer(2, GL_FLOAT, 0, 0);
-    
-    // bind indices
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vertexBuffer[1]);
+void Renderer::initShaderProgram() {
+    if (!this->vertexShader) this->vertexShader = this->getDefaultShader(ShaderType::VertexShader);
+    if (!this->fragmentShader) this->fragmentShader = this->getDefaultShader(ShaderType::FragmentShader);
 
-    if (this->enableTexture) {
-        glEnable(GL_TEXTURE_2D);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        
-        glBindTexture(GL_TEXTURE_2D, this->textureId);
-        
-        // bind vertex texture coords
-        glBindBuffer(GL_ARRAY_BUFFER, this->vertexTexCoordsBuffer);
-        glTexCoordPointer(2, GL_FLOAT, 0, 0);
+    this->glShaderProgram = glCreateProgram();
+    glAttachShader(this->glShaderProgram, this->vertexShader->glShader);
+    glAttachShader(this->glShaderProgram, this->fragmentShader->glShader);
+    
+    glBindAttribLocation(this->glShaderProgram, 0, "a_position");
+    
+    for (auto pair : this->attributeLocationMap) {
+        glBindAttribLocation(this->glShaderProgram, pair.second, pair.first.c_str());
     }
     
-    if (this->enableColor) {
-        glEnableClientState(GL_COLOR_ARRAY);
-        // bind vertex colors
-        glBindBuffer(GL_ARRAY_BUFFER, this->vertexColorsBuffer);
-        glColorPointer(4, GL_FLOAT, 0, 0);
+    glLinkProgram(this->glShaderProgram);
+    
+    if (this->uniformParamsMap.count("u_matrix") == 0) {
+        this->setUniformMatrix(Renderer::identityMatrix);
+    }
+    if (this->uniformParamsMap.count("u_color") == 0) {
+        this->setUniformColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
     
-    // draw
-    glDrawElements(GL_TRIANGLE_STRIP, this->indicesNum, GL_UNSIGNED_SHORT, 0);
-    
-    MogStats::drawCallCount++;
-    
-    // reset
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
-
-    checkGLError("drawFrame_main");
+#ifdef MOG_DEBUG
+    GLint status = GL_FALSE;
+    glGetProgramiv(this->glShaderProgram, GL_LINK_STATUS, &status);
+    if (status != GL_TRUE) {
+        LOGD("Shader link error.");
+    }
+#endif
 }
 
-void Renderer::applyTransform(const shared_ptr<Transform> &transform, float screenScale, bool enableColor) {
-    // translate
-    if (transform->position.x != 0 || transform->anchor.x != 0 || transform->position.y != 0 || transform->anchor.y != 0) {
-        glTranslatef((transform->position.x - (transform->size.width * transform->anchor.x)) * screenScale,
-                     (transform->position.y - (transform->size.height * transform->anchor.y)) * screenScale, 0);
-    }
-    
-    // move from origin point
-    if (transform->rotation != 0 || transform->scale.x != 1.0f || transform->scale.y != 1.0f) {
-        glTranslatef(transform->size.width * transform->anchor.x * screenScale,
-                     transform->size.height * transform->anchor.y * screenScale, 0);
-    }
-    
-    // rotate
-    if (transform->rotation != 0) {
-        glRotatef(transform->rotation, 0, 0, 1.0f);
-    }
-    
-    // scale
-    if (transform->scale.x != 1.0f || transform->scale.y != 1.0f) {
-        glScalef(transform->scale.x, transform->scale.y, 1.0f);
-    }
-    
-    // move to origin point
-    if (transform->rotation != 0 || transform->scale.x != 1.0f || transform->scale.y != 1.0f) {
-        glTranslatef(transform->size.width * -transform->anchor.x * screenScale,
-                     transform->size.height * -transform->anchor.y * screenScale, 0);
-    }
-    
-    // color
-    if (enableColor) {
-        if (transform->color.r < 1.0f || transform->color.g < 1.0f || transform->color.b < 1.0f || transform->color.a < 1.0f) {
-            glColor4f(transform->color.r * this->_color[0], transform->color.g * this->_color[1],
-                      transform->color.b * this->_color[2], transform->color.a * this->_color[3]);
+std::shared_ptr<Shader> Renderer::getDefaultShader(ShaderType shaderType) {
+    if (this->textureId > 0) {
+        if (this->enableVertexColor) {
+            return BasicShader::getShader(BasicShader::Type::VertexColorWithTexture, shaderType);
+        } else {
+            return BasicShader::getShader(BasicShader::Type::SolidColorWithTexture, shaderType);
+        }
+    } else if (this->drawType == DrawType::Points) {
+        return BasicShader::getShader(BasicShader::Type::PointSprite, shaderType);
+    } else {
+        if (this->enableVertexColor) {
+            return BasicShader::getShader(BasicShader::Type::VertexColor, shaderType);
+        } else {
+            return BasicShader::getShader(BasicShader::Type::SolidColor, shaderType);
         }
     }
-    
-    glGetFloatv(GL_MODELVIEW_MATRIX, this->matrix);
-
-    checkGLError("applyTransform");
 }
 
-void Renderer::getMatrix(float *matrix) {
-    glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+Renderer::UniformParameter::UniformParameter() {
 }
 
-void Renderer::setMatrix(float *matrix) {
-    glLoadMatrixf(matrix);
+Renderer::UniformParameter::UniformParameter(float f1) {
+    this->type = Type::Float1;
+    this->f[0] = f1;
 }
 
-void Renderer::pushMatrix() {
-    glPushMatrix();
+Renderer::UniformParameter::UniformParameter(float f1, float f2) {
+    this->type = Type::Float2;
+    this->f[0] = f1;
+    this->f[1] = f2;
 }
 
-void Renderer::popMatrix() {
-    glPopMatrix();
+Renderer::UniformParameter::UniformParameter(float f1, float f2, float f3) {
+    this->type = Type::Float3;
+    this->f[0] = f1;
+    this->f[1] = f2;
+    this->f[2] = f3;
 }
 
-void Renderer::pushColor() {
-    glGetFloatv(GL_CURRENT_COLOR, this->_color);
+Renderer::UniformParameter::UniformParameter(float f1, float f2, float f3, float f4) {
+    this->type = Type::Float4;
+    this->f[0] = f1;
+    this->f[1] = f2;
+    this->f[2] = f3;
+    this->f[3] = f4;
 }
 
-void Renderer::popColor() {
-    glColor4f(this->_color[0], this->_color[1], this->_color[2], this->_color[3]);
+Renderer::UniformParameter::UniformParameter(int i1) {
+    this->type = Type::Int1;
+    this->i[0] = i1;
 }
+
+Renderer::UniformParameter::UniformParameter(int i1, int i2) {
+    this->type = Type::Int2;
+    this->i[0] = i1;
+    this->i[1] = i2;
+}
+
+Renderer::UniformParameter::UniformParameter(int i1, int i2, int i3) {
+    this->type = Type::Int3;
+    this->i[0] = i1;
+    this->i[1] = i2;
+    this->i[2] = i3;
+}
+
+Renderer::UniformParameter::UniformParameter(int i1, int i2, int i3, int i4) {
+    this->type = Type::Int4;
+    this->i[0] = i1;
+    this->i[1] = i2;
+    this->i[2] = i3;
+    this->i[3] = i4;
+}
+
+Renderer::UniformParameter::UniformParameter(const float *matrix, int size) {
+    switch (size) {
+        case 2:
+            this->type = Type::Matrix2;
+            memcpy(this->matrix, matrix, sizeof(float) * 4);
+            break;
+        case 3:
+            this->type = Type::Matrix3;
+            memcpy(this->matrix, matrix, sizeof(float) * 9);
+            break;
+        case 4:
+            this->type = Type::Matrix4;
+            memcpy(this->matrix, matrix, sizeof(float) * 16);
+            break;
+        default:
+            throw invalid_argument("size must be between 2 and 4.");
+    }
+}
+
+void Renderer::UniformParameter::setUniform(GLuint program, std::string name) {
+    GLint location = glGetUniformLocation(program, name.c_str());
+    switch (this->type) {
+        case Type::Float1:
+            glUniform1f(location, this->f[0]);
+            break;
+        case Type::Float2:
+            glUniform2f(location, this->f[0], this->f[1]);
+            break;
+        case Type::Float3:
+            glUniform3f(location, this->f[0], this->f[1], this->f[2]);
+            break;
+        case Type::Float4:
+            glUniform4f(location, this->f[0], this->f[1], this->f[2], this->f[3]);
+            break;
+        case Type::Int1:
+            glUniform1i(location, this->i[0]);
+            break;
+        case Type::Int2:
+            glUniform2i(location, this->i[0], this->i[1]);
+            break;
+        case Type::Int3:
+            glUniform3i(location, this->i[0], this->i[1], this->i[2]);
+            break;
+        case Type::Int4:
+            glUniform4i(location, this->i[0], this->i[1], this->i[2], this->i[3]);
+            break;
+        case Type::Matrix2:
+            glUniformMatrix2fv(location, 1, GL_FALSE, this->matrix);
+            break;
+        case Type::Matrix3:
+            glUniformMatrix3fv(location, 1, GL_FALSE, this->matrix);
+            break;
+        case Type::Matrix4:
+            glUniformMatrix4fv(location, 1, GL_FALSE, this->matrix);
+            break;
+    }
+}
+
+Renderer::VertexAttributeParameter::VertexAttributeParameter() {
+}
+
+Renderer::VertexAttributeParameter::VertexAttributeParameter(float f1) {
+    this->type = Type::Float1;
+    this->f[0] = f1;
+}
+
+Renderer::VertexAttributeParameter::VertexAttributeParameter(float f1, float f2) {
+    this->type = Type::Float2;
+    this->f[0] = f1;
+    this->f[1] = f2;
+}
+
+Renderer::VertexAttributeParameter::VertexAttributeParameter(float f1, float f2, float f3) {
+    this->type = Type::Float3;
+    this->f[0] = f1;
+    this->f[1] = f2;
+    this->f[2] = f3;
+}
+
+Renderer::VertexAttributeParameter::VertexAttributeParameter(float f1, float f2, float f3, float f4) {
+    this->type = Type::Float4;
+    this->f[0] = f1;
+    this->f[1] = f2;
+    this->f[2] = f3;
+    this->f[3] = f4;
+}
+
+Renderer::VertexAttributeParameter::VertexAttributeParameter(int index, GLenum glType, int size, bool normalized, int stride) {
+    this->type = Type::VertexPointer;
+    this->index = index;
+    this->glType = glType;
+    this->size = size;
+    this->normalized = normalized;
+    this->stride = stride;
+}
+
+void Renderer::VertexAttributeParameter::setVertexAttribute(unsigned int location) {
+    glEnableVertexAttribArray(location);
+    switch (this->type) {
+        case Type::Float1:
+            glVertexAttrib1f(location, this->f[0]);
+            break;
+        case Type::Float2:
+            glVertexAttrib2f(location, this->f[0], this->f[1]);
+            break;
+        case Type::Float3:
+            glVertexAttrib3f(location, this->f[0], this->f[1], this->f[2]);
+            break;
+        case Type::Float4:
+            glVertexAttrib4f(location, this->f[0], this->f[1], this->f[2], this->f[3]);
+            break;
+        case Type::VertexPointer:
+            glBindBuffer(GL_ARRAY_BUFFER, this->index);
+            glVertexAttribPointer(location, this->size, this->glType, this->normalized, this->stride, 0);
+            break;
+    }
+}
+

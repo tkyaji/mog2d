@@ -5,34 +5,35 @@
 #include <unordered_map>
 #include "mog/Constants.h"
 #include "mog/core/TouchInput.h"
+#include "mog/core/Touch.h"
 #include "mog/core/KeyEvent.h"
 #include "mog/core/NativeClass.h"
 #include "mog/core/MogStats.h"
 #include "mog/base/AppBase.h"
 
-using namespace std;
-
 extern void *enabler;
 
 namespace mog {
+    class Entity;
         
-    class Engine : public enable_shared_from_this<Engine> {
+    class Engine : public std::enable_shared_from_this<Engine> {
     public:
-        static shared_ptr<Engine> create(const shared_ptr<AppBase> &app);
-        
+        static std::shared_ptr<Engine> create(const std::shared_ptr<AppBase> &app);
+        static std::shared_ptr<Engine> getInstance();
+
         ~Engine();
 
         void startEngine();
         void stopEngine();
         
-        void onDrawFrame(map<unsigned int, TouchInput> touches);
+        void onDrawFrame(std::map<unsigned int, TouchInput> touches);
         void onLowMemory();
         void onKeyEvent(const KeyEvent &keyEvent);
 
-        shared_ptr<AppBase> getApp();
+        std::shared_ptr<AppBase> getApp();
         
-        shared_ptr<NativeObject> getNativeObject(string name);
-        void setNativeObject(string name, const shared_ptr<NativeObject> &nObj);
+        std::shared_ptr<NativeObject> getNativeObject(string name);
+        void setNativeObject(string name, const std::shared_ptr<NativeObject> &nObj);
         void removeNativeObject(string name);
         
         bool isRunning();
@@ -42,7 +43,7 @@ namespace mog {
         Size getDisplaySize();
         Size getScreenSize();
         float getScreenScale();
-        void setDisplaySize(const Size &size);
+        void setDisplaySize(const Size &displaySize, const Size &viewSize);
         void setScreenSizeBasedOnHeight(float height);
         void setScreenSizeBasedOnWidth(float width);
         
@@ -71,13 +72,14 @@ namespace mog {
     protected:
         unsigned int onUpdateFuncIdCounter;
         
-        shared_ptr<AppBase> app;
-        unordered_map<string, shared_ptr<NativeObject>> nativeObjects;
-        shared_ptr<Renderer> renderer;
-        shared_ptr<MogStats> stats;
+        std::shared_ptr<AppBase> app;
+        unordered_map<string, std::shared_ptr<NativeObject>> nativeObjects;
+        std::shared_ptr<Renderer> renderer;
+        std::shared_ptr<MogStats> stats;
         bool running = false;
         unsigned long long frameCount = 0;
         Size displaySize = Size::zero;
+        Size viewSize = Size::zero;
         Size screenSize = Size::zero;
         Color color = Color::black;
 
@@ -89,25 +91,27 @@ namespace mog {
         long long timerBackupTime = 0;
         float lastElapsedSec = 0;
         
-        unordered_map<unsigned int, function<void(unsigned int funcId)>> onUpdateFuncs;
-        unordered_map<unsigned int, function<void(unsigned int funcId)>> onUpdateFuncsToAdd;
-        vector<unsigned int> onUpdateFuncIdsToRemove;
+        std::unordered_map<unsigned int, std::function<void(unsigned int funcId)>> onUpdateFuncs;
+        std::unordered_map<unsigned int, std::function<void(unsigned int funcId)>> onUpdateFuncsToAdd;
+        std::vector<unsigned int> onUpdateFuncIdsToRemove;
         
         void invokeOnUpdateFunc();
         
     private:
+        static std::weak_ptr<Engine> instance;
+        
         bool initialized = false;
         bool displaySizeChanged = false;
         bool touchEnable = true;
         bool multiTouchEnable = true;
-        vector<shared_ptr<Entity>> touchableEntities;
-        unordered_map<int, Touch> prevTouches;
+        std::vector<shared_ptr<Entity>> touchableEntities;
+        std::unordered_map<int, Touch> prevTouches;
 
         void initParameters();
         void setViewPortScale();
         void initScreen();
-        
-        void fireTouchListeners(map<unsigned int, TouchInput> touches);
+
+        void fireTouchListeners(std::map<unsigned int, TouchInput> touches);
     };
 }
 

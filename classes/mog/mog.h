@@ -1,14 +1,6 @@
 #ifndef mog_h
 #define mog_h
 
-#include <memory>
-#include <string>
-#include <vector>
-#include <map>
-#include <unordered_map>
-#include <math.h>
-#include <stdlib.h>
-
 #include "mog/Constants.h"
 #include "mog/core/plain_objects.h"
 #include "mog/core/Tween.h"
@@ -20,19 +12,23 @@
 #include "mog/core/DataStore.h"
 #include "mog/core/PubSub.h"
 #include "mog/core/Http.h"
-#include "mog/core/MogUILoader.h"
-#include "mog/base/Entity.h"
+//#include "mog/core/MogUILoader.h"
+#include "mog/base/Drawable.h"
+#include "mog/base/Graphics.h"
 #include "mog/base/Sprite.h"
-#include "mog/base/Label.h"
-#include "mog/base/SpriteSheet.h"
-#include "mog/base/Polygon.h"
-#include "mog/base/Circle.h"
 #include "mog/base/Rectangle.h"
 #include "mog/base/RoundedRectangle.h"
-#include "mog/base/Group.h"
+#include "mog/base/Triangle.h"
+#include "mog/base/Line.h"
+#include "mog/base/Circle.h"
 #include "mog/base/Slice9Sprite.h"
+#include "mog/base/SpriteSheet.h"
+#include "mog/base/Label.h"
+#include "mog/base/Group.h"
 #include "mog/base/Scene.h"
 #include "mog/base/AppBase.h"
+#include "mog/core/Density.h"
+#include "mog/core/Shader.h"
 
 #include "mog/plugins/plugins.h"
 
