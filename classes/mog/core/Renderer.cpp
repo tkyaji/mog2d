@@ -40,10 +40,10 @@ Renderer::~Renderer() {
         glDeleteProgram(this->glShaderProgram);
     }
     
-    safe_delete_arr(this->vertices);
-    safe_delete_arr(this->indices);
-    safe_delete_arr(this->vertexColors);
-    safe_delete_arr(this->vertexTexCoords);
+    rpfree(this->vertices);
+    rpfree(this->indices);
+    rpfree(this->vertexColors);
+    rpfree(this->vertexTexCoords);
 }
 
 void Renderer::setDrawType(DrawType drawType) {
@@ -270,23 +270,20 @@ bool Renderer::setIndicesNum(int indicesNum) {
 }
 
 void Renderer::newVerticesArr() {
-    safe_delete_arr(this->vertices);
-    this->vertices = new float[this->verticesNum * 2];
+    this->vertices = (float *)rprealloc(this->vertices, sizeof(float) * this->verticesNum * 2);
 }
 
 void Renderer::newIndicesArr() {
-    safe_delete_arr(this->indices);
-    this->indices = new short[this->indicesNum];
+    this->indices = (short *)rprealloc(this->indices, sizeof(short) * this->indicesNum);
 }
 
 void Renderer::newVertexColorsArr() {
-    safe_delete_arr(this->vertexColors);
-    this->vertexColors = new float[this->verticesNum * 4];
+    this->vertexColors = (float *)rprealloc(this->vertexColors, sizeof(float) * this->verticesNum * 4);
+    
 }
 
 void Renderer::newVertexTexCoordsArr() {
-    safe_delete_arr(this->vertexTexCoords);
-    this->vertexTexCoords = new float[this->verticesNum * 2];
+    this->vertexTexCoords = (float *)rprealloc(this->vertexTexCoords, sizeof(float) * this->verticesNum * 2);
 }
 
 void Renderer::drawFrame() {

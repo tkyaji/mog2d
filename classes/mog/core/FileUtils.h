@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "mog/core/Data.h"
 
 using namespace std;
 
@@ -16,12 +17,12 @@ namespace mog {
         
         static bool existAsset(string filename);
         static string readTextAsset(string filename);
-        static bool readBytesAsset(string filename, unsigned char **data, int *len);
+        static Bytes readBytesAsset(string filename);
 
-        static bool readFile(string filename, unsigned char **data, int *len, Directory dir = Directory::Documents);
-        static bool writeFile(string filename, unsigned char *data, int len, Directory dir = Directory::Documents);
-        static bool readDataFromFile(string filepath, unsigned char **data, int *len);
-        static bool writeDataToFile(string filepath, unsigned char *data, int len);
+        static Bytes readFile(string filename, Directory dir = Directory::Documents);
+        static bool writeFile(string filename, const Bytes &bytes, Directory dir = Directory::Documents);
+        static Bytes readDataFromFile(string filepath);
+        static bool writeDataToFile(string filepath, const Bytes &bytes);
 
         static string getDocumentsDirectory();
         static string getCachesDirectory();

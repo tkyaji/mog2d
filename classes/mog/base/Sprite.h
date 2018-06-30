@@ -18,7 +18,6 @@ namespace mog {
         static shared_ptr<Sprite> create(string filename, const Rect &rect);
         static shared_ptr<Sprite> createWithFilePath(string filepath, Density density = Density::x1_0);
         static shared_ptr<Sprite> createWithFilePath(string filepath, const Rect &rect, Density density = Density::x1_0);
-        static shared_ptr<Sprite> createWithImage(unsigned char *image, int length);
         static shared_ptr<Sprite> createWithImage(const Bytes &bytes);
         static shared_ptr<Sprite> createWithRGBA(unsigned char *data, int width, int height);
         static shared_ptr<Sprite> createWithTexture(const shared_ptr<Texture2D> &texture);
@@ -43,7 +42,7 @@ namespace mog {
         
         void init(string filename, const Rect &rect);
         void initWithFilePath(string filepath, const Rect &rect, Density density);
-        void initWithImage(unsigned char *image, int length);
+        void initWithImage(const Bytes &bytes);
         void initWithRGBA(unsigned char *data, int width, int height);
         void initWithTexture(const shared_ptr<Texture2D> &texture);
 

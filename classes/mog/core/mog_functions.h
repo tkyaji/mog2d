@@ -18,25 +18,4 @@ double getTimestampSec();
 float smoothstep(float edge0, float edge1, float x);
 bool approximately(float a, float b);
 
-template <typename T>
-inline void safe_delete(T*& p) {
-    if (p == nullptr) return;
-    delete p;
-    (p) = nullptr;
-}
-
-template <typename T>
-inline void safe_delete_arr(T*& p) {
-    if (p == nullptr) return;
-    delete[] p;
-    (p) = nullptr;
-}
-
-template <typename T>
-inline void safe_free(T*& p) {
-    if (p == nullptr) return;
-    free(p);
-    (p) = nullptr;
-}
-
 #endif /* mog_functions_h */

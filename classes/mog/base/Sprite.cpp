@@ -31,14 +31,10 @@ shared_ptr<Sprite> Sprite::createWithFilePath(string filepath, const Rect &rect,
     return sprite;
 }
 
-shared_ptr<Sprite> Sprite::createWithImage(unsigned char *image, int length) {
-    auto sprite = shared_ptr<Sprite>(new Sprite());
-    sprite->initWithImage(image, length);
-    return sprite;
-}
-
 shared_ptr<Sprite> Sprite::createWithImage(const Bytes &bytes) {
-    return Sprite::createWithImage(bytes.value, bytes.length);
+    auto sprite = shared_ptr<Sprite>(new Sprite());
+    sprite->initWithImage(bytes);
+    return sprite;
 }
 
 shared_ptr<Sprite> Sprite::createWithRGBA(unsigned char *data, int width, int height) {
@@ -125,8 +121,8 @@ void Sprite::initWithFilePath(string filepath, const Rect &rect, Density density
     this->initRendererVertices(4, 4);
 }
 
-void Sprite::initWithImage(unsigned char *image, int length) {
-    this->texture = Texture2D::createWithImage(image, length);
+void Sprite::initWithImage(const Bytes &bytes) {
+    this->texture = Texture2D::createWithImage(bytes);
     
     this->transform->size.width = this->texture->width / this->texture->density.value;
     this->transform->size.height = this->texture->height / this->texture->density.value;

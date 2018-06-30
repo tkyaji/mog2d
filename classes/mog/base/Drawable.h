@@ -79,6 +79,7 @@ namespace mog {
 
     protected:
         Drawable();
+        virtual void onUpdate(float delta) {};
         virtual void bindVertex();
 
         std::weak_ptr<DrawableGroup> drawableGroup;

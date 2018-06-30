@@ -163,7 +163,7 @@ void MogStats::init(const shared_ptr<Engine> &engine) {
     this->height = max(fps->height, delta->height) +
         max(drawCallLabel->height, drawCall->height) +
         max(instantsLabel->height, instants->height) + padding * 2;
-    this->data = (unsigned char *)calloc(this->width * this->height * 4, sizeof(unsigned char));
+    this->data = (unsigned char *)rpcalloc(this->width * this->height * 4, sizeof(unsigned char));
     for (int i = 0; i < this->width * this->height; i++) {
         this->data[i * 4 + 3] = ALPHA;
     }
@@ -251,7 +251,7 @@ shared_ptr<Texture2D> MogStats::createLabelTexture(string text) {
     const char *fontFace = "";
 #endif
     auto tex2d = Texture2D::createWithText(text, 13.0f, fontFace);
-    unsigned char *tmpData = (unsigned char *)malloc(tex2d->dataLength * sizeof(unsigned char));
+    unsigned char *tmpData = (unsigned char *)rpmalloc(tex2d->dataLength * sizeof(unsigned char));
     memcpy(tmpData, tex2d->data, tex2d->dataLength * sizeof(unsigned char));
 
     for (int yi = 0; yi < tex2d->height; yi++) {
@@ -268,7 +268,7 @@ shared_ptr<Texture2D> MogStats::createLabelTexture(string text) {
         }
     }
 
-    safe_free(tmpData);
+    rpfree(tmpData);
     return tex2d;
 }
 

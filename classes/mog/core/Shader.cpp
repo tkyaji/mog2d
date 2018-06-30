@@ -1,6 +1,6 @@
 #include "mog/core/Shader.h"
 #include "mog/core/opengl.h"
-#include "mog/core/mog_functions.h"
+#include "mog/Constants.h"
 
 using namespace mog;
 
@@ -22,10 +22,10 @@ inline static GLuint compileShader(ShaderType shaderType, const GLchar *source) 
         GLsizei bufsize = 0;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &bufsize);
         GLsizei length = 0;
-        GLchar *infolog = new GLchar[bufsize];
+        GLchar *infolog = (GLchar *)rpmalloc(sizeof(GLchar) * bufsize);
         glGetShaderInfoLog(shader, bufsize, &length, infolog);
         LOGE("Shader compile error: %s", (const char *)infolog);
-        delete[] infolog;
+        rpfree(infolog);
     }
 #endif
     

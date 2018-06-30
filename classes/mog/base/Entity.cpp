@@ -19,6 +19,7 @@ void Entity::updateFrame(const shared_ptr<Engine> &engine, float delta, float *p
 }
 
 void Entity::extractEvent(const shared_ptr<Engine> &engine, float delta) {
+    if (!this->visible) return;
     auto self = static_pointer_cast<Entity>(shared_from_this());
     if (this->touchEnable && (this->swallowTouches || this->touchListeners.size() > 0)) {
         engine->pushTouchableEntity(self);
@@ -260,7 +261,7 @@ shared_ptr<OBB> Entity::getOBB() {
                      this->transform->size.width * scaleX * 0.5f);
     auto vec2 = Vec2(this->matrix[4] / scaleY, this->matrix[5] / scaleY,
                      this->transform->size.height * scaleY * 0.5f);
-    auto vec3 = Vec2(vec1.x * vec1.vLen + vec2.x * vec2.vLen, vec1.y * vec1.vLen + vec2.y * vec2.vLen);
+    auto vec3 = Vec2(vec1.x * vec1.vLen + vec2.x * vec2.vLen, vec1.y * vec1.vLen + vec2.y * vec2.vLen, 1.0f);
     float centerX = x + vec3.x;
     float centerY = y + vec3.y;
     

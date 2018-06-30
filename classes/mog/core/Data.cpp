@@ -1,3 +1,4 @@
+#include "mog/Constants.h"
 #include "mog/core/Data.h"
 #include "mog/libs/json.h"
 #include "mog/core/mog_functions.h"
@@ -173,10 +174,10 @@ void String::read(istream &in) {
     }
     unsigned int size;
     in.read((char *)&size, sizeof(unsigned int));
-    char *str = new char[size];
+    char *str = (char *)rpmalloc(sizeof(char) * size);
     in.read((char *)str, size * sizeof(char));
     this->value = string(str, size);
-    safe_delete_arr(str);
+    rpfree(str);
 }
 
 
@@ -188,14 +189,14 @@ Bytes::Bytes() {
 
 Bytes::Bytes(unsigned char *value, unsigned int length) {
     this->type = DataType::Bytes;
-    this->value = (unsigned char *)malloc(length);
+    this->value = (unsigned char *)rpmalloc(length);
     memcpy(this->value, value, length);
     this->length = length;
 }
 
 Bytes::~Bytes() {
     if (this->length > 0) {
-        safe_free(this->value);
+        rpfree(this->value);
     }
 }
 

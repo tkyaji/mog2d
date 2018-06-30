@@ -1,5 +1,6 @@
 #include "mog/core/Collision.h"
 #include "mog/core/plain_objects.h"
+#include "mog/Constants.h"
 #include <math.h>
 
 using namespace mog;
@@ -63,16 +64,7 @@ POLYGON::POLYGON(Point *points, int length) {
 }
 
 POLYGON::~POLYGON() {
-    delete[] this->points;
-}
-
-POLYGONS::POLYGONS(POLYGON *polygons, int length) {
-    this->polygons = polygons;
-    this->length = length;
-}
-
-POLYGONS::~POLYGONS() {
-    delete[] this->polygons;
+    rpfree(this->points);
 }
 
 Collider::Collider(ColliderShape shape) {
@@ -91,8 +83,6 @@ bool Collision::collides(const std::shared_ptr<Collider> &col1, const std::share
                     return Collision::obb_circle(*col1->obb.get(), *col2->circle.get());
                 case ColliderShape::Polygon:
                     return Collision::obb_polygon(*col1->obb.get(), *col2->polygon.get());
-                case ColliderShape::Polygons:
-                    return Collision::obb_polygons(*col1->obb.get(), *col2->polygons.get());
             }
         case ColliderShape::Circle:
             switch (col2->shape) {
@@ -102,8 +92,6 @@ bool Collision::collides(const std::shared_ptr<Collider> &col1, const std::share
                     return Collision::circle_circle(*col1->circle.get(), *col2->circle.get());
                 case ColliderShape::Polygon:
                     return Collision::circle_polygon(*col1->circle.get(), *col2->polygon.get());
-                case ColliderShape::Polygons:
-                    return Collision::circle_polygons(*col1->circle.get(), *col2->polygons.get());
             }
         case ColliderShape::Polygon:
             switch (col2->shape) {
@@ -113,19 +101,6 @@ bool Collision::collides(const std::shared_ptr<Collider> &col1, const std::share
                     return Collision::circle_polygon(*col2->circle.get(), *col1->polygon.get());
                 case ColliderShape::Polygon:
                     return Collision::polygon_polygon(*col1->polygon.get(), *col2->polygon.get());
-                case ColliderShape::Polygons:
-                    return Collision::polygon_polygons(*col1->polygon.get(), *col2->polygons.get());
-            }
-        case ColliderShape::Polygons:
-            switch (col2->shape) {
-                case ColliderShape::Rect:
-                    return Collision::obb_polygons(*col2->obb.get(), *col1->polygons.get());
-                case ColliderShape::Circle:
-                    return Collision::circle_polygons(*col2->circle.get(), *col1->polygons.get());
-                case ColliderShape::Polygon:
-                    return Collision::polygon_polygons(*col2->polygon.get(), *col1->polygons.get());
-                case ColliderShape::Polygons:
-                    return Collision::polygons_polygons(*col1->polygons.get(), *col2->polygons.get());
             }
     }
     return false;
@@ -142,8 +117,6 @@ bool Collision::collides(const std::shared_ptr<Collider> &col, const Point &p) {
             return circle_point(*col->circle, p);
         case ColliderShape::Polygon:
             return polygon_point(*col->polygon, p);
-        case ColliderShape::Polygons:
-            return polygons_point(*col->polygons, p);
     }
     return false;
 }
@@ -188,14 +161,14 @@ bool Collision::obb_obb(const OBB &obb1, const OBB &obb2) {
 }
 
 static POLYGON obb_to_polygon(const OBB &obb) {
-    float x1 = obb.centerX - obb.vec1.x - obb.vec2.x;
-    float y1 = obb.centerY - obb.vec1.y - obb.vec2.y;
-    float x2 = x1 + obb.vec1.x * 2.0f;
-    float y2 = y1 + obb.vec1.y * 2.0f;
-    float x3 = x2 + obb.vec2.x * 2.0f;
-    float y3 = y2 + obb.vec2.y * 2.0f;
-    float x4 = x3 + obb.vec1.x * -2.0f;
-    float y4 = y3 + obb.vec1.y * -2.0f;
+    float x1 = obb.centerX - obb.vec1.x * obb.vec1.vLen - obb.vec2.x * obb.vec2.vLen;
+    float y1 = obb.centerY - obb.vec1.y * obb.vec1.vLen - obb.vec2.y * obb.vec2.vLen;
+    float x2 = x1 + obb.vec1.x * obb.vec1.vLen * 2.0f;
+    float y2 = y1 + obb.vec1.y * obb.vec1.vLen * 2.0f;
+    float x3 = x2 + obb.vec2.x * obb.vec2.vLen * 2.0f;
+    float y3 = y2 + obb.vec2.y * obb.vec2.vLen * 2.0f;
+    float x4 = x3 + obb.vec1.x * obb.vec1.vLen * -2.0f;
+    float y4 = y3 + obb.vec1.y * obb.vec1.vLen * -2.0f;
     Point *points = new Point[4] {
         Point(x1, y1),
         Point(x2, y2),
@@ -215,47 +188,9 @@ bool Collision::obb_polygon(const OBB &obb, const POLYGON &polygon) {
     return Collision::polygon_polygon(polygon1, polygon);
 }
 
-bool Collision::obb_polygons(const OBB &obb, const POLYGONS &polygons) {
-    POLYGON polygon1 = obb_to_polygon(obb);
-    return Collision::polygon_polygons(polygon1, polygons);
-}
-
 bool Collision::obb_point(const OBB &obb, const Point &p) {
-    float x = obb.centerX - (obb.vec1.x * obb.vec1.vLen + obb.vec2.x * obb.vec2.vLen);
-    float y = obb.centerY - (obb.vec1.y * obb.vec1.vLen + obb.vec2.y * obb.vec2.vLen);
-    
-    Vec2 v1 = Vec2(obb.vec1.x * obb.vec1.vLen * 2.0f, obb.vec1.y * obb.vec1.vLen * 2.0f, 1);
-    Vec2 v2 = Vec2(obb.vec2.x * obb.vec2.vLen * 2.0f, obb.vec2.y * obb.vec2.vLen * 2.0f, 1);
-    Vec2 v3 = Vec2(v1.x * -1, v1.y * -1, 1);
-    Vec2 v4 = Vec2(v2.x * -1, v2.y * -1, 1);
-    
-    Vec2 va = Vec2(p.x - x, p.y - y, 1);
-    if (cross(v1, va) < 0) {
-        return false;
-    }
-    
-    x += obb.vec1.x * obb.vec1.vLen * 2.0f;
-    y += obb.vec1.y * obb.vec1.vLen * 2.0f;
-    Vec2 vb = Vec2(p.x - x, p.y - y, 1);
-    if (cross(v2, vb) < 0) {
-        return false;
-    }
-    
-    x += obb.vec2.x * obb.vec2.vLen * 2.0f;
-    y += obb.vec2.y * obb.vec2.vLen * 2.0f;
-    Vec2 vc = Vec2(p.x - x, p.y - y, 1);
-    if (cross(v3, vc) < 0) {
-        return false;
-    }
-    
-    x -= obb.vec1.x * obb.vec1.vLen * 2.0f;
-    y -= obb.vec1.y * obb.vec1.vLen * 2.0f;
-    Vec2 vd = Vec2(p.x - x, p.y - y, 1);
-    if (cross(v4, vd) < 0){
-        return false;
-    }
-    
-    return true;
+    POLYGON polygon = obb_to_polygon(obb);
+    return polygon_point(polygon, p);
 }
 
 bool Collision::circle_circle(const CIRCLE &circle1, const CIRCLE &circle2) {
@@ -294,13 +229,6 @@ bool Collision::circle_polygon(const CIRCLE &circle, const POLYGON &polygon) {
         }
     }
     
-    return false;
-}
-
-bool Collision::circle_polygons(const CIRCLE &circle, const POLYGONS &polygons) {
-    for (int i = 0; i < polygons.length; i++) {
-        if (Collision::circle_polygon(circle, polygons.polygons[i])) return true;
-    }
     return false;
 }
 
@@ -382,13 +310,7 @@ bool Collision::polygon_polygon(const POLYGON &polygon1, const POLYGON &polygon2
             return false;
         }
     }
-    return true;}
-
-bool Collision::polygon_polygons(const POLYGON &polygon, const POLYGONS &polygons) {
-    for (int i = 0; i < polygons.length; i++) {
-        if (Collision::polygon_polygon(polygon, polygons.polygons[i])) return true;
-    }
-    return false;
+    return true;
 }
 
 bool Collision::polygon_point(const POLYGON &polygon, const Point &p) {
@@ -406,22 +328,4 @@ bool Collision::polygon_point(const POLYGON &polygon, const Point &p) {
         s = (c < 0) ? -1 : 1;
     }
     return true;
-}
-
-bool Collision::polygons_polygons(const POLYGONS &polygons1, const POLYGONS &polygons2) {
-    for (int i = 0; i < polygons1.length; i++) {
-        auto t1 = polygons1.polygons[i];
-        for (int k = 0; k < polygons2.length; k++) {
-            auto t2 = polygons2.polygons[k];
-            if (Collision::polygon_polygon(t1, t2)) return true;
-        }
-    }
-    return false;
-}
-
-bool Collision::polygons_point(const POLYGONS &polygons, const Point &p) {
-    for (int i = 0; i < polygons.length; i++) {
-        if (Collision::polygon_point(polygons.polygons[i], p)) return true;
-    }
-    return false;
 }

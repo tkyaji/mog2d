@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include "mog/Constants.h"
 #include "mog/core/FileUtils.h"
 #include "mog/core/Data.h"
 #include "mog/libs/sha256.h"

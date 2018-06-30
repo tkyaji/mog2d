@@ -2,6 +2,7 @@
 #include <typeinfo>
 #include <unordered_map>
 #include <math.h>
+#include "mog/Constants.h"
 #include "mog/core/opengl.h"
 #include "mog/core/Engine.h"
 #include "mog/base/Entity.h"
@@ -50,6 +51,8 @@ void Engine::startEngine() {
     if (this->running) return;
     this->running = true;
     
+    rpmalloc_initialize();
+    
     this->startTimer();
     this->lastElapsedSec = this->getTimerElapsedSec();
     
@@ -81,7 +84,9 @@ void Engine::stopEngine() {
     
     this->stopTimer();
     DataStore::save();
-    
+
+    rpmalloc_finalize();
+
     this->running = false;
 }
 

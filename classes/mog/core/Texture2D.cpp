@@ -21,9 +21,9 @@ shared_ptr<Texture2D> Texture2D::createWithFile(string filepath, Density density
     return tex2d;
 }
 
-shared_ptr<Texture2D> Texture2D::createWithImage(unsigned char *image, int length) {
+shared_ptr<Texture2D> Texture2D::createWithImage(const Bytes &bytes) {
     auto tex2d = make_shared<Texture2D>();
-    tex2d->loadImageFromBuffer(image, length);
+    tex2d->loadImageFromBuffer(bytes.value, bytes.length);
     return tex2d;
 }
 
@@ -55,64 +55,63 @@ Texture2D::Texture2D() {
 }
 
 Texture2D::~Texture2D() {
-    free(this->data);
+    if (this->data) rpfree(this->data);
     if (this->textureId > 0) {
         glDeleteTextures(1, &this->textureId);
     }
 }
 
 void Texture2D::loadTextureAsset(string filename) {
-    unsigned char *buffer = nullptr;
-    int len = 0;
     Density den = Density::x1_0;
     
-    if (!this->readBytesAsset(filename, &buffer, &len, &den)) {
+    auto data = this->readBytesAsset(filename, &den);
+    if (data.length == 0) {
         LOGE("Asset not found: %s", filename.c_str());
     }
     
     this->filename = filename;
     this->density = den;
-    this->loadImageFromBuffer(buffer, len);
-    safe_free(buffer);
+    this->loadImageFromBuffer(data.value, data.length);
 }
 
 void Texture2D::loadTextureFile(string filepath, Density density) {
     this->density = density;
-    unsigned char *buffer = nullptr;
-    int len = 0;
-    FileUtils::readDataFromFile(filepath, &buffer, &len);
-    this->loadImageFromBuffer(buffer, len);
-    safe_free(buffer);
+    auto buffer = FileUtils::readDataFromFile(filepath);
+    this->loadImageFromBuffer(buffer.value, buffer.length);
 }
 
-bool Texture2D::readBytesAsset(string filename, unsigned char **data, int *len, Density *density) {
+Bytes Texture2D::readBytesAsset(string filename, Density *density) {
     Density current = Density::getCurrent();
     Density den = current;
-    if (FileUtils::readBytesAsset(den.directory + "/" + filename, data, len)) {
+    auto data = FileUtils::readBytesAsset(den.directory + "/" + filename);
+    if (data.length > 0) {
         *density = den;
-        return true;
+        return data;
     }
     for (int i = 0; i < Density::allDensities.size(); i++) {
         den = Density::allDensities[i];
         if (den.idx <= current.idx) continue;
-        if (FileUtils::readBytesAsset(den.directory + "/" + filename, data, len)) {
+        data = FileUtils::readBytesAsset(den.directory + "/" + filename);
+        if (data.length > 0) {
             *density = den;
-            return true;
+            return data;
         }
     }
-    for (int i = Density::allDensities.size() - 1; i >= 0; i--) {
+    for (int i = (int)Density::allDensities.size() - 1; i >= 0; i--) {
         den = Density::allDensities[i];
         if (den.idx >= current.idx) continue;
-        if (FileUtils::readBytesAsset(den.directory + "/" + filename, data, len)) {
+        data = FileUtils::readBytesAsset(den.directory + "/" + filename);
+        if (data.length) {
             *density = den;
-            return true;
+            return data;
         }
     }
-    if (FileUtils::readBytesAsset(filename, data, len)) {
+    data = FileUtils::readBytesAsset(filename);
+    if (data.length > 0) {
         *density = den;
-        return true;
+        return data;
     }
-    return false;
+    return data;
 }
 
 void Texture2D::loadFontTexture(string text, float fontSize, string fontFilename, float height) {
@@ -172,7 +171,7 @@ void Texture2D::loadColorTexture(TextureType textureType, const Color &color, in
     if (textureType == TextureType::RGB) {
         this->bitsPerPixel = 3;
         this->dataLength = width * height * 3;
-        this->data = (GLubyte *)calloc(width * height * 3, sizeof(GLubyte));
+        this->data = (GLubyte *)rpcalloc(width * height * 3, sizeof(GLubyte));
         for (int i = 0; i < width * height; i++) {
             this->data[i * 3 + 0] = (int)(color.r * 255.0f);
             this->data[i * 3 + 1] = (int)(color.g * 255.0f);
@@ -182,7 +181,7 @@ void Texture2D::loadColorTexture(TextureType textureType, const Color &color, in
     } else {
         this->bitsPerPixel = 4;
         this->dataLength = width * height * 4;
-        this->data = (GLubyte *)calloc(width * height * 4, sizeof(GLubyte));
+        this->data = (GLubyte *)rpcalloc(width * height * 4, sizeof(GLubyte));
         for (int i = 0; i < width * height; i++) {
             this->data[i * 4 + 0] = (int)(color.r * 255.0f);
             this->data[i * 4 + 1] = (int)(color.g * 255.0f);

@@ -54,14 +54,12 @@ bool AudioData::loadFromAssetNative(ALuint buffer, const char *filename) {
     ALsizei sampleRate = 0;
     
     if ([[filenameStr lowercaseString] hasSuffix:@".ogg"]) {
-        unsigned char *data;
-        int len;
-        FileUtils::readBytesAsset(filename, &data, &len);
+        auto data = FileUtils::readBytesAsset(filename);
         
         int _channels = 0;
         int _sampleRate = 0;
         short *_output;
-        int dataLen = stb_vorbis_decode_memory((const uint8 *)data, len, &_channels, &_sampleRate, &_output);
+        int dataLen = stb_vorbis_decode_memory((const uint8 *)data.value, data.length, &_channels, &_sampleRate, &_output);
         if (dataLen < 0) {
             LOGE("Audio resource load failed.");
             LOGE(filename);
@@ -92,12 +90,11 @@ bool AudioData::loadFromAssetNative(ALuint buffer, const char *filename) {
     
     ALenum error = alGetError();
     if (error != AL_NO_ERROR) {
-        safe_free(audioData);
+        rpfree(audioData);
         LOGE("alBufferData failed. error=%d", (int)error);
         return false;
     }
-    
-    safe_free(audioData);
+    rpfree(audioData);
     
     return true;
 }
@@ -155,7 +152,7 @@ void *AudioData::getOpenALAudioData(CFURLRef fileURL, ALsizei* dataSize,
     UInt32 bufferSize;
     AudioBufferList dataBuffer;
     bufferSize = (UInt32)(fileLengthFrames * outputFormat.mBytesPerFrame);
-    data = malloc(bufferSize);
+    data = rpmalloc(bufferSize);
     dataBuffer.mNumberBuffers = 1;
     dataBuffer.mBuffers[0].mDataByteSize = bufferSize;
     dataBuffer.mBuffers[0].mNumberChannels = outputFormat.mChannelsPerFrame;
@@ -164,7 +161,7 @@ void *AudioData::getOpenALAudioData(CFURLRef fileURL, ALsizei* dataSize,
     err = ExtAudioFileRead(audioFile, (UInt32*)&fileLengthFrames, &dataBuffer);
     if (err) {
         LOGE("getOpenALAudioData: failed to read audioFile");
-        safe_free(data);
+        rpfree(data);
         if (audioFile) ExtAudioFileDispose(audioFile);
         return data;
     }

@@ -45,8 +45,6 @@ namespace mog {
     protected:
         Entity();
         
-        virtual void onUpdate(float delta) {}
-        
         virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag = 0) override;
         virtual void extractEvent(const std::shared_ptr<Engine> &engine, float delta);
         virtual void bindVertex() override;

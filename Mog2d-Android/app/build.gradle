@@ -1,3 +1,5 @@
+import java.util.regex.Pattern
+
 apply plugin: 'com.android.application'
 
 android {
@@ -36,4 +38,31 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+def String[] getSourceFiles(File dir, String basePath) {
+    File[] files = dir.listFiles();
+    List<String> fileList = new ArrayList<>()
+    for (File file : files) {
+        if (file.isDirectory()) {
+            List subFileList = getSourceFiles(file, basePath)
+            fileList.addAll(subFileList)
+        } else if (file.getPath().endsWith(".cpp") || file.getPath().endsWith(".c")) {
+            fileList.add(file.getCanonicalPath().replace(basePath, "\${PROJ_DIR}"));
+        }
+    }
+    return fileList.toArray();
+}
+
+task refreshCmakeList << {
+
+    String basePath = new File("../").getCanonicalPath();
+    String[] classesFiles = getSourceFiles(new File("../classes/"), basePath)
+    String[] classesAndroidFiles = getSourceFiles(new File("../classes_android/"), basePath)
+
+    String cmakeContent = new File("app/CMakeLists-base.txt").text
+    cmakeContent = cmakeContent.replace("#CLASSES_SOURCE_LIST#", "    " + classesFiles.join("\n    "))
+    cmakeContent = cmakeContent.replace("#CLASSES_ANDROID_SOURCE_LIST#", "    " + classesAndroidFiles.join("\n    "))
+
+    new File("app/CMakeLists.txt").write(cmakeContent)
 }

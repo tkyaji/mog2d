@@ -1,3 +1,4 @@
+#include "mog/Constants.h"
 #include "mog/core/FileUtils.h"
 #include "mog/core/FileUtilsNative.h"
 #include "mog/core/mog_functions.h"
@@ -14,11 +15,14 @@ string FileUtils::readTextAsset(string filename) {
     return FileUtilsNative::readTextAsset(filename);
 }
 
-bool FileUtils::readBytesAsset(string filename, unsigned char **data, int *len) {
-    return FileUtilsNative::readBytesAsset(filename, data, len);
+Bytes FileUtils::readBytesAsset(string filename) {
+    unsigned char *data = nullptr;
+    int len = 0;
+    FileUtilsNative::readBytesAsset(filename, &data, &len);
+    return Bytes(data, len);
 }
 
-bool FileUtils::readFile(string filename, unsigned char **data, int *len, Directory dir) {
+Bytes FileUtils::readFile(string filename, Directory dir) {
     string fileDir = "";
     if (dir == Directory::Documents) {
         fileDir = getDocumentsDirectory();
@@ -27,10 +31,10 @@ bool FileUtils::readFile(string filename, unsigned char **data, int *len, Direct
     }
     
     string filepath = fileDir + "/" + filename;
-    return FileUtils::readDataFromFile(filepath, data, len);
+    return FileUtils::readDataFromFile(filepath);
 }
 
-bool FileUtils::writeFile(string filename, unsigned char *data, int len, Directory dir) {
+bool FileUtils::writeFile(string filename, const Bytes &bytes, Directory dir) {
     string fileDir = "";
     if (dir == Directory::Documents) {
         fileDir = getDocumentsDirectory();
@@ -39,37 +43,37 @@ bool FileUtils::writeFile(string filename, unsigned char *data, int len, Directo
     }
     
     string filepath = fileDir + "/" + filename;
-    return FileUtils::writeDataToFile(filepath, data, len);
+    return FileUtils::writeDataToFile(filepath, bytes);
 }
 
-bool FileUtils::readDataFromFile(string filepath, unsigned char **data, int *len) {
+Bytes FileUtils::readDataFromFile(string filepath) {
     std::ifstream ifs;
     ifs.open(filepath, std::ios::in | std::ios_base::binary);
     if (ifs.fail()) {
         LOGE("file open failed: %s", filepath.c_str());
-        return false;
+        return Bytes();
     }
     ifs.seekg(0, std::ios::end);
     size_t size = ifs.tellg();
     ifs.seekg(0, ios_base::beg);
     
     bool ret = true;
-    char *dt = (char *)malloc(size);
+    char *dt = (char *)rpmalloc(size);
     ifs.read(dt, size);
+    Bytes data;
     if (ifs.bad()) {
         ret = false;
-        safe_free(dt);
+        rpfree(dt);
         LOGE("file read failed: %s", filepath.c_str());
     } else {
-        *len = (int)size;
-        *data = (unsigned char *)dt;
+        data = Bytes((unsigned char *)dt, (int)size);
     }
     ifs.close();
     
-    return ret;
+    return data;
 }
 
-bool FileUtils::writeDataToFile(string filepath, unsigned char *data, int len) {
+bool FileUtils::writeDataToFile(string filepath, const Bytes &bytes) {
     std::ofstream ofs;
     ofs.open(filepath, std::ios::out | std::ios_base::binary);
     if (ofs.fail()) {
@@ -78,7 +82,7 @@ bool FileUtils::writeDataToFile(string filepath, unsigned char *data, int len) {
     }
     
     bool ret = true;
-    ofs.write((const char *)data, len);
+    ofs.write((const char *)bytes.value, bytes.length);
     if (ofs.bad()) {
         ret = false;
         LOGE("file write failed: %s", filepath.c_str());

@@ -126,16 +126,18 @@ public class MogActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         int resId = getResources().getIdentifier("plugin_classes", "array", getPackageName());
-        String[] pluginClasses = this.getResources().getStringArray(resId);
-        for (String pluginClass : pluginClasses) {
-            try {
-                Object o = Class.forName(pluginClass).newInstance();
-                pluginMap.put(pluginClass, o);
-                if (o instanceof MogActivityEvent.Listener) {
-                    this.registerActivityEventListener((MogActivityEvent.Listener)o);
+        if (resId != 0) {
+            String[] pluginClasses = this.getResources().getStringArray(resId);
+            for (String pluginClass : pluginClasses) {
+                try {
+                    Object o = Class.forName(pluginClass).newInstance();
+                    pluginMap.put(pluginClass, o);
+                    if (o instanceof MogActivityEvent.Listener) {
+                        this.registerActivityEventListener((MogActivityEvent.Listener)o);
+                    }
+                } catch (Exception e) {
+                    Log.e("MOG", e.getLocalizedMessage(), e);
                 }
-            } catch (Exception e) {
-                Log.e("MOG", e.getLocalizedMessage(), e);
             }
         }
 

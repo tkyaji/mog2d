@@ -72,7 +72,7 @@ void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float 
         textHeight = (int)(height + 0.5f);
     }
 
-    GLubyte *bitmap = (GLubyte *)calloc(textWidth * textHeight * 4, sizeof(GLubyte));
+    GLubyte *bitmap = (GLubyte *)rpcalloc(textWidth * textHeight * 4, sizeof(GLubyte));
     
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     CGContextRef context = CGBitmapContextCreate(bitmap, textWidth, textHeight,
@@ -114,12 +114,12 @@ string Texture2DNative::getLocalizedTextNative(const char *textKey, va_list args
     }
     
     const char *utf8Str = localizedStr.UTF8String;
-    char *str = new char[strlen(utf8Str) + 4096];
+    char *str = (char *)rpmalloc(sizeof(char) * strlen(utf8Str) + 4096);
     
     vsprintf(str, utf8Str, args);
     string ret = string(str);
     
-    safe_delete_arr(str);
+    rpfree(str);
     
     return ret;
 }

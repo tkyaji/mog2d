@@ -13,6 +13,7 @@ ENDIF()
 add_library(
     native-lib SHARED
 
+    ${PROJ_DIR}/classes/app/App.cpp
     ${PROJ_DIR}/classes/mog/core/Tween.cpp
     ${PROJ_DIR}/classes/mog/core/PubSub.cpp
     ${PROJ_DIR}/classes/mog/core/MogStats.cpp
@@ -35,6 +36,9 @@ add_library(
     ${PROJ_DIR}/classes/mog/core/plain_objects.cpp
     ${PROJ_DIR}/classes/mog/core/Renderer.cpp
     ${PROJ_DIR}/classes/mog/core/mog_functions.cpp
+    ${PROJ_DIR}/classes/mog/libs/json.c
+    ${PROJ_DIR}/classes/mog/libs/aes.c
+    ${PROJ_DIR}/classes/mog/libs/sha256.cpp
     ${PROJ_DIR}/classes/mog/base/Line.cpp
     ${PROJ_DIR}/classes/mog/base/SpriteSheet.cpp
     ${PROJ_DIR}/classes/mog/base/Scene.cpp
@@ -52,9 +56,6 @@ add_library(
     ${PROJ_DIR}/classes/mog/base/AppBase.cpp
     ${PROJ_DIR}/classes/mog/base/Group.cpp
     ${PROJ_DIR}/classes/mog/base/RoundedRectangle.cpp
-    ${PROJ_DIR}/classes/mog/libs/sha256.cpp
-    ${PROJ_DIR}/classes/mog/libs/json.c
-    ${PROJ_DIR}/classes/mog/libs/aes.c
 
     ${PROJ_DIR}/classes_android/mog/core/Device.cpp
     ${PROJ_DIR}/classes_android/mog/core/AudioPlayerNative.cpp
@@ -64,8 +65,6 @@ add_library(
     ${PROJ_DIR}/classes_android/mog/core/Texture2DNative.cpp
     ${PROJ_DIR}/classes_android/mog/core/PreferenceNative.cpp
     ${PROJ_DIR}/classes_android/mog/os/Java_MogJniBridge.cpp
-
-    ${PROJ_DIR}/classes/app/App.cpp
     )
 
 target_include_directories(
