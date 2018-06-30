@@ -1,6 +1,7 @@
 #include "mog/core/FileUtilsNative.h"
 #include "mog/core/Engine.h"
 #include "mog/os/AndroidHelper.h"
+#include "mog/Constants.h"
 #include <jni.h>
 #include <stdlib.h>
 
@@ -19,7 +20,7 @@ string FileUtilsNative::readTextAsset(string filename) {
     int len = 0;
     FileUtilsNative::readBytesAsset(filename, &bytes, &len);
     auto str = string((char *)bytes, len);
-    free(bytes);
+    rpfree(bytes);
     return str;
 }
 
@@ -32,7 +33,7 @@ bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, int 
         return false;
     }
     size_t size = (int)AAsset_getLength(aAsset);
-    *data = (unsigned char *)malloc(size);
+    *data = (unsigned char *)rpmalloc(size);
     AAsset_read(aAsset, *data, size);
     if (len) *len = (int)size;
 

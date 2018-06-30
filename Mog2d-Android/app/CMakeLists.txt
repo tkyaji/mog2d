@@ -38,6 +38,7 @@ add_library(
     ${PROJ_DIR}/classes/mog/core/mog_functions.cpp
     ${PROJ_DIR}/classes/mog/libs/json.c
     ${PROJ_DIR}/classes/mog/libs/aes.c
+    ${PROJ_DIR}/classes/mog/libs/rpmalloc.c
     ${PROJ_DIR}/classes/mog/libs/sha256.cpp
     ${PROJ_DIR}/classes/mog/base/Line.cpp
     ${PROJ_DIR}/classes/mog/base/SpriteSheet.cpp

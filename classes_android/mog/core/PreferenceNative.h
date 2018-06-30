@@ -1,11 +1,3 @@
-//
-//  PreferenceNative.h
-//  Flick10
-//
-//  Created by tkyaji on 2017/03/23.
-//  Copyright © 2017年 MagicAnt. All rights reserved.
-//
-
 #ifndef PreferenceNative_h
 #define PreferenceNative_h
 

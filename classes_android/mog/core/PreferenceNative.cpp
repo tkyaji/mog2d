@@ -1,11 +1,3 @@
-//
-//  PreferenceNative.m
-//  Flick10
-//
-//  Created by tkyaji on 2017/03/23.
-//  Copyright © 2017年 MagicAnt. All rights reserved.
-//
-
 #include "mog/core/PreferenceNative.h"
 
 using namespace mog;
