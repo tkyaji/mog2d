@@ -6,6 +6,7 @@
 #include "mog/core/NativeClass.h"
 #include "mog/core/Device.h"
 #include "mog/os/AndroidHelper.h"
+#include "mog/libs/rpmalloc.h"
 
 using namespace mog;
 
@@ -21,10 +22,10 @@ public:
     static MogRenderer *getInstance() {
         return MogRenderer::instance;
     }
-
+    
     void onCreate(JNIEnv* env, jobject obj, jobject jActivity, jobject jAssetManager, float scaleFactor) {
         this->engine = Engine::create(make_shared<mog::App>());
-
+        
         JavaVM *vm;
         env->GetJavaVM(&vm);
         AndroidHelper::vm = vm;
@@ -32,77 +33,89 @@ public:
         this->engine->setNativeObject(MOG_ACTIVITY, NativeObject::create(jActivity));
         this->engine->setNativeObject(MOG_AASET_MANAGER, NativeObject::create(jAssetManager));
         Device::density = scaleFactor;
+        this->removeTouchIds.reserve(8);
     }
-
+    
     void onDestroy(JNIEnv* env, jobject obj) {
     }
-
+    
     void onPause(JNIEnv* env, jobject obj) {
         this->engine->stopEngine();
     }
-
+    
     void onResume(JNIEnv* env, jobject obj) {
+        if (!this->surfaceCreated) return;
         this->engine->startEngine();
     }
-
+    
     void onStart(JNIEnv* env, jobject obj) {
     }
-
+    
     void onStop(JNIEnv* env, jobject obj) {
     }
-
+    
     void onDrawFrame(JNIEnv* env, jobject obj) {
-        std::lock_guard<std::mutex> lock(mtx);
+        std::lock_guard<std::mutex> lock(this->mtx);
+        
         this->engine->onDrawFrame(this->touches);
-        this->touches.clear();
+        
+        if (this->removeTouchIds.size() > 0) {
+            for (unsigned int touchId : this->removeTouchIds) {
+                this->touches.erase(touchId);
+            }
+            this->removeTouchIds.clear();
+        }
     }
-
+    
     void onSurfaceCreated(JNIEnv* env, jobject obj) {
+        rpmalloc_initialize();
+        this->surfaceCreated = true;
     }
-
+    
     void onSurfaceChanged(JNIEnv* env, jobject obj, jint w, jint h, int vw, int vh) {
         this->engine->setDisplaySize(Size(w, h), Size(vw, vh));
-        this->engine->setScreenSizeBasedOnHeight(BASE_SCREEN_HEIGHT);
+        this->engine->resetScreenSize();
         this->engine->startEngine();
     }
-
+    
     void onTouchEvent(JNIEnv* env, jobject obj, jint pointerId, jint touchAction, jfloat x, jfloat y) {
         NativeTouchAction action = (NativeTouchAction)touchAction;
-
-        std::lock_guard<std::mutex> lock(mtx);
+        
+        std::lock_guard<std::mutex> lock(this->mtx);
         switch (action) {
             case NativeTouchAction::Down:
-                this->touches[pointerId] = TouchInput(TouchAction::TouchDown, pointerId, x, y);
+            case NativeTouchAction::Move:
+                if (this->touches.count(pointerId) == 0) {
+                    this->touches[pointerId] = TouchInput(TouchAction::TouchDown, pointerId, x, y);
+                } else {
+                    this->touches[pointerId] = TouchInput(TouchAction::TouchMove, pointerId, x, y);
+                }
                 break;
-
+                
             case NativeTouchAction::Up:
-                if (this->touches.count(pointerId) > 0 &&
-                        (this->touches[pointerId].action == TouchAction::TouchDown || this->touches[pointerId].action == TouchAction::TouchDownUp)) {
+                if (this->touches.count(pointerId) == 0) {
                     this->touches[pointerId] = TouchInput(TouchAction::TouchDownUp, pointerId, x, y);
                 } else {
                     this->touches[pointerId] = TouchInput(TouchAction::TouchUp, pointerId, x, y);
                 }
-                break;
-
-            case NativeTouchAction::Move:
-                if (this->touches.count(pointerId) == 0 || this->touches[pointerId].action == TouchAction::TouchMove) {
-                    this->touches[pointerId] = TouchInput(TouchAction::TouchMove, pointerId, x, y);
-                }
+                this->removeTouchIds.emplace_back(pointerId);
                 break;
         }
     }
-
+    
 private:
     enum NativeTouchAction {
         Down = 1,
         Up = 2,
         Move = 3,
     };
-
+    
     static MogRenderer *instance;
     shared_ptr<mog::Engine> engine;
     map<unsigned int, TouchInput> touches;
+    vector<unsigned int> removeTouchIds;
     std::mutex mtx;
+    bool surfaceCreated = false;
 };
 MogRenderer *MogRenderer::instance;
 
@@ -153,6 +166,7 @@ JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_onStop(JNIEnv* env, jobject o
     MogRenderer::getInstance()->onStop(env, obj);
 }
 
+/*
 void __convertToNArg(JNIEnv* env, jobjectArray params, NArg **args, int *len) {
     env->PushLocalFrame(128);
 
@@ -198,7 +212,7 @@ void __convertToNArg(JNIEnv* env, jobjectArray params, NArg **args, int *len) {
             (*args)[i] = NArg((double) v);
         } else if (env->IsInstanceOf(jobj, booleanClass)) {
             jboolean v = env->CallBooleanMethod(jobj, booleanValueId);
-            (*args)[i] = NArg((bool)v);
+            (*args)[i] = NArg((bool) v);
         } else {
             jobject go = env->NewGlobalRef(jobj);
             (*args)[i] = NArg(go);
@@ -219,5 +233,5 @@ JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_runCallback(JNIEnv* env, jobj
 JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_releaseNativeFunction(JNIEnv* env, jobject obj, jlong functionPtr) {
     delete (NFunction *)functionPtr;
 }
-
+    */
 }

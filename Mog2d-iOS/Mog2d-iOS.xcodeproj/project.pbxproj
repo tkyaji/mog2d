@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		B204DA9320DFF29B0026267A /* MogAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B204D9FC20DFF29B0026267A /* MogAppDelegate.m */; };
-		B204DA9420DFF29B0026267A /* MogFunction.m in Sources */ = {isa = PBXBuildFile; fileRef = B204D9FD20DFF29B0026267A /* MogFunction.m */; };
 		B204DA9520DFF29B0026267A /* MogEngineController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B204DA0020DFF29B0026267A /* MogEngineController.mm */; };
 		B204DA9620DFF29B0026267A /* MogView.m in Sources */ = {isa = PBXBuildFile; fileRef = B204DA0120DFF29B0026267A /* MogView.m */; };
 		B204DA9720DFF29B0026267A /* MogViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B204DA0520DFF29B0026267A /* MogViewController.m */; };
@@ -34,7 +33,6 @@
 		B204DC3C20E5D07F0026267A /* PubSub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B204DBF520E5D07E0026267A /* PubSub.cpp */; };
 		B204DC3D20E5D07F0026267A /* MogStats.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B204DBF720E5D07E0026267A /* MogStats.cpp */; };
 		B204DC3E20E5D07F0026267A /* MogUILoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B204DBFB20E5D07E0026267A /* MogUILoader.cpp */; };
-		B204DC3F20E5D07F0026267A /* NativePlugin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B204DBFD20E5D07E0026267A /* NativePlugin.cpp */; };
 		B204DC4020E5D07F0026267A /* FileUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B204DBFE20E5D07E0026267A /* FileUtils.cpp */; };
 		B204DC4120E5D07F0026267A /* Data.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B204DC0320E5D07E0026267A /* Data.cpp */; };
 		B204DC4220E5D07F0026267A /* Shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B204DC0420E5D07E0026267A /* Shader.cpp */; };
@@ -65,6 +63,7 @@
 		B204DD4D20E6889C0026267A /* rpmalloc.c in Sources */ = {isa = PBXBuildFile; fileRef = B204DD4C20E6889C0026267A /* rpmalloc.c */; };
 		B2506FB21FFD073700237ECA /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2506FB11FFD073700237ECA /* JavaScriptCore.framework */; };
 		B254E0D31F360B16008DD68C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2A103441ED7170200A2EB8A /* AudioToolbox.framework */; };
+		B25BFF7020E914EA00A975F3 /* HttpNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = B25BFF6E20E914EA00A975F3 /* HttpNative.mm */; };
 		B2A101771ED713DD00A2EB8A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B2A101761ED713DD00A2EB8A /* main.m */; };
 		B2A101821ED713DD00A2EB8A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B2A101811ED713DD00A2EB8A /* Assets.xcassets */; };
 		B2A101851ED713DD00A2EB8A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B2A101831ED713DD00A2EB8A /* LaunchScreen.storyboard */; };
@@ -78,12 +77,10 @@
 		B204D9F920DFF29A0026267A /* stb_vorbis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_vorbis.h; sourceTree = "<group>"; };
 		B204D9FB20DFF29A0026267A /* MogView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogView.h; sourceTree = "<group>"; };
 		B204D9FC20DFF29B0026267A /* MogAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MogAppDelegate.m; sourceTree = "<group>"; };
-		B204D9FD20DFF29B0026267A /* MogFunction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MogFunction.m; sourceTree = "<group>"; };
 		B204D9FE20DFF29B0026267A /* MogViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogViewController.h; sourceTree = "<group>"; };
 		B204D9FF20DFF29B0026267A /* MogEngineController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogEngineController.h; sourceTree = "<group>"; };
 		B204DA0020DFF29B0026267A /* MogEngineController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MogEngineController.mm; sourceTree = "<group>"; };
 		B204DA0120DFF29B0026267A /* MogView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MogView.m; sourceTree = "<group>"; };
-		B204DA0220DFF29B0026267A /* MogFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogFunction.h; sourceTree = "<group>"; };
 		B204DA0320DFF29B0026267A /* MogAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogAppDelegate.h; sourceTree = "<group>"; };
 		B204DA0420DFF29B0026267A /* MogTouchEventDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogTouchEventDelegate.h; sourceTree = "<group>"; };
 		B204DA0520DFF29B0026267A /* MogViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MogViewController.m; sourceTree = "<group>"; };
@@ -142,7 +139,6 @@
 		B204DBFA20E5D07E0026267A /* DataStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataStore.h; sourceTree = "<group>"; };
 		B204DBFB20E5D07E0026267A /* MogUILoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MogUILoader.cpp; sourceTree = "<group>"; };
 		B204DBFC20E5D07E0026267A /* Collision.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Collision.h; sourceTree = "<group>"; };
-		B204DBFD20E5D07E0026267A /* NativePlugin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NativePlugin.cpp; sourceTree = "<group>"; };
 		B204DBFE20E5D07E0026267A /* FileUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileUtils.cpp; sourceTree = "<group>"; };
 		B204DBFF20E5D07E0026267A /* Touch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Touch.h; sourceTree = "<group>"; };
 		B204DC0020E5D07E0026267A /* Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
@@ -153,7 +149,6 @@
 		B204DC0520E5D07E0026267A /* TouchInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchInput.h; sourceTree = "<group>"; };
 		B204DC0620E5D07E0026267A /* DataStore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataStore.cpp; sourceTree = "<group>"; };
 		B204DC0720E5D07E0026267A /* Transform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Transform.cpp; sourceTree = "<group>"; };
-		B204DC0820E5D07E0026267A /* NativePlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativePlugin.h; sourceTree = "<group>"; };
 		B204DC0920E5D07E0026267A /* Transform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Transform.h; sourceTree = "<group>"; };
 		B204DC0A20E5D07E0026267A /* Http.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Http.cpp; sourceTree = "<group>"; };
 		B204DC0B20E5D07E0026267A /* Texture2D.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Texture2D.cpp; sourceTree = "<group>"; };
@@ -175,7 +170,6 @@
 		B204DC1B20E5D07E0026267A /* TouchEventListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchEventListener.h; sourceTree = "<group>"; };
 		B204DC1D20E5D07E0026267A /* json.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = json.c; sourceTree = "<group>"; };
 		B204DC1E20E5D07E0026267A /* aes.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = aes.c; sourceTree = "<group>"; };
-		B204DC1F20E5D07E0026267A /* http.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = http.h; sourceTree = "<group>"; };
 		B204DC2120E5D07E0026267A /* sha256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sha256.h; sourceTree = "<group>"; };
 		B204DC2320E5D07E0026267A /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
 		B204DC2420E5D07E0026267A /* aes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aes.h; sourceTree = "<group>"; };
@@ -200,6 +194,8 @@
 		B204DD4C20E6889C0026267A /* rpmalloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rpmalloc.c; sourceTree = "<group>"; };
 		B2506FB11FFD073700237ECA /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		B25501F71F6D809E00D1353A /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
+		B25BFF6E20E914EA00A975F3 /* HttpNative.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HttpNative.mm; sourceTree = "<group>"; };
+		B25BFF6F20E914EA00A975F3 /* HttpNative.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HttpNative.h; sourceTree = "<group>"; };
 		B26615671EF4FC9F004D1A1A /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
 		B2A101721ED713DD00A2EB8A /* Mog2d-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mog2d-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2A101761ED713DD00A2EB8A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -270,16 +266,14 @@
 		B204D9FA20DFF29A0026267A /* os */ = {
 			isa = PBXGroup;
 			children = (
-				B204D9FB20DFF29A0026267A /* MogView.h */,
+				B204DA0320DFF29B0026267A /* MogAppDelegate.h */,
 				B204D9FC20DFF29B0026267A /* MogAppDelegate.m */,
-				B204D9FD20DFF29B0026267A /* MogFunction.m */,
-				B204D9FE20DFF29B0026267A /* MogViewController.h */,
 				B204D9FF20DFF29B0026267A /* MogEngineController.h */,
 				B204DA0020DFF29B0026267A /* MogEngineController.mm */,
-				B204DA0120DFF29B0026267A /* MogView.m */,
-				B204DA0220DFF29B0026267A /* MogFunction.h */,
-				B204DA0320DFF29B0026267A /* MogAppDelegate.h */,
 				B204DA0420DFF29B0026267A /* MogTouchEventDelegate.h */,
+				B204D9FB20DFF29A0026267A /* MogView.h */,
+				B204DA0120DFF29B0026267A /* MogView.m */,
+				B204D9FE20DFF29B0026267A /* MogViewController.h */,
 				B204DA0520DFF29B0026267A /* MogViewController.m */,
 			);
 			path = os;
@@ -320,40 +314,40 @@
 		B204DBC720E5D07D0026267A /* base */ = {
 			isa = PBXGroup;
 			children = (
-				B204DBC820E5D07D0026267A /* RoundedRectangle.h */,
-				B204DBC920E5D07D0026267A /* Line.cpp */,
-				B204DBCA20E5D07D0026267A /* Polygon.h */,
-				B204DBCB20E5D07D0026267A /* Label.h */,
-				B204DBCC20E5D07D0026267A /* SpriteSheet.cpp */,
-				B204DBCD20E5D07D0026267A /* Drawable.h */,
-				B204DBCE20E5D07D0026267A /* Scene.cpp */,
-				B204DBCF20E5D07D0026267A /* Circle.h */,
-				B204DBD020E5D07D0026267A /* Entity.cpp */,
-				B204DBD120E5D07D0026267A /* AppBase.h */,
-				B204DBD220E5D07D0026267A /* Sprite.cpp */,
-				B204DBD320E5D07D0026267A /* Drawable.cpp */,
-				B204DBD420E5D07D0026267A /* Slice9Sprite.h */,
-				B204DBD520E5D07D0026267A /* Slice9Sprite.cpp */,
-				B204DBD620E5D07D0026267A /* Graphics.cpp */,
-				B204DBD720E5D07D0026267A /* Label.cpp */,
-				B204DBD820E5D07D0026267A /* Sprite.h */,
-				B204DBD920E5D07D0026267A /* Group.h */,
-				B204DBDA20E5D07D0026267A /* Triangle.cpp */,
-				B204DBDB20E5D07D0026267A /* Entity.h */,
-				B204DBDC20E5D07D0026267A /* Polygon.cpp */,
-				B204DBDD20E5D07D0026267A /* Rectangle.cpp */,
-				B204DBDE20E5D07D0026267A /* Circle.cpp */,
-				B204DBDF20E5D07D0026267A /* Triangle.h */,
-				B204DBE020E5D07D0026267A /* Line.h */,
-				B204DBE120E5D07D0026267A /* SpriteSheet.h */,
-				B204DBE220E5D07D0026267A /* DrawableGroup.cpp */,
-				B204DBE320E5D07D0026267A /* Graphics.h */,
-				B204DBE420E5D07D0026267A /* Rectangle.h */,
 				B204DBE520E5D07D0026267A /* AppBase.cpp */,
-				B204DBE620E5D07D0026267A /* Group.cpp */,
-				B204DBE720E5D07D0026267A /* RoundedRectangle.cpp */,
+				B204DBD120E5D07D0026267A /* AppBase.h */,
+				B204DBDE20E5D07D0026267A /* Circle.cpp */,
+				B204DBCF20E5D07D0026267A /* Circle.h */,
+				B204DBD320E5D07D0026267A /* Drawable.cpp */,
+				B204DBCD20E5D07D0026267A /* Drawable.h */,
+				B204DBE220E5D07D0026267A /* DrawableGroup.cpp */,
 				B204DBE820E5D07D0026267A /* DrawableGroup.h */,
+				B204DBD020E5D07D0026267A /* Entity.cpp */,
+				B204DBDB20E5D07D0026267A /* Entity.h */,
+				B204DBD620E5D07D0026267A /* Graphics.cpp */,
+				B204DBE320E5D07D0026267A /* Graphics.h */,
+				B204DBE620E5D07D0026267A /* Group.cpp */,
+				B204DBD920E5D07D0026267A /* Group.h */,
+				B204DBD720E5D07D0026267A /* Label.cpp */,
+				B204DBCB20E5D07D0026267A /* Label.h */,
+				B204DBC920E5D07D0026267A /* Line.cpp */,
+				B204DBE020E5D07D0026267A /* Line.h */,
+				B204DBDC20E5D07D0026267A /* Polygon.cpp */,
+				B204DBCA20E5D07D0026267A /* Polygon.h */,
+				B204DBDD20E5D07D0026267A /* Rectangle.cpp */,
+				B204DBE420E5D07D0026267A /* Rectangle.h */,
+				B204DBE720E5D07D0026267A /* RoundedRectangle.cpp */,
+				B204DBC820E5D07D0026267A /* RoundedRectangle.h */,
+				B204DBCE20E5D07D0026267A /* Scene.cpp */,
 				B204DBE920E5D07D0026267A /* Scene.h */,
+				B204DBD520E5D07D0026267A /* Slice9Sprite.cpp */,
+				B204DBD420E5D07D0026267A /* Slice9Sprite.h */,
+				B204DBD220E5D07D0026267A /* Sprite.cpp */,
+				B204DBD820E5D07D0026267A /* Sprite.h */,
+				B204DBCC20E5D07D0026267A /* SpriteSheet.cpp */,
+				B204DBE120E5D07D0026267A /* SpriteSheet.h */,
+				B204DBDA20E5D07D0026267A /* Triangle.cpp */,
+				B204DBDF20E5D07D0026267A /* Triangle.h */,
 			);
 			path = base;
 			sourceTree = "<group>";
@@ -361,54 +355,52 @@
 		B204DBEB20E5D07E0026267A /* core */ = {
 			isa = PBXGroup;
 			children = (
-				B204DBEC20E5D07E0026267A /* mog_functions.h */,
-				B204DBED20E5D07E0026267A /* Tween.h */,
-				B204DBEE20E5D07E0026267A /* Texture2D.h */,
-				B204DBEF20E5D07E0026267A /* plain_objects.h */,
-				B204DBF020E5D07E0026267A /* Engine.h */,
-				B204DBF120E5D07E0026267A /* Tween.cpp */,
-				B204DBF220E5D07E0026267A /* Shader.h */,
-				B204DBF320E5D07E0026267A /* Http.h */,
-				B204DBF420E5D07E0026267A /* FileUtils.h */,
-				B204DBF520E5D07E0026267A /* PubSub.cpp */,
-				B204DBF620E5D07E0026267A /* NativeClass.h */,
-				B204DBF720E5D07E0026267A /* MogStats.cpp */,
-				B204DBF820E5D07E0026267A /* Data.h */,
-				B204DBF920E5D07E0026267A /* KeyEvent.h */,
-				B204DBFA20E5D07E0026267A /* DataStore.h */,
-				B204DBFB20E5D07E0026267A /* MogUILoader.cpp */,
-				B204DBFC20E5D07E0026267A /* Collision.h */,
-				B204DBFD20E5D07E0026267A /* NativePlugin.cpp */,
-				B204DBFE20E5D07E0026267A /* FileUtils.cpp */,
-				B204DBFF20E5D07E0026267A /* Touch.h */,
-				B204DC0020E5D07E0026267A /* Renderer.h */,
-				B204DC0120E5D07E0026267A /* PubSub.h */,
-				B204DC0220E5D07E0026267A /* AudioPlayer.h */,
-				B204DC0320E5D07E0026267A /* Data.cpp */,
-				B204DC0420E5D07E0026267A /* Shader.cpp */,
-				B204DC0520E5D07E0026267A /* TouchInput.h */,
-				B204DC0620E5D07E0026267A /* DataStore.cpp */,
-				B204DC0720E5D07E0026267A /* Transform.cpp */,
-				B204DC0820E5D07E0026267A /* NativePlugin.h */,
-				B204DC0920E5D07E0026267A /* Transform.h */,
-				B204DC0A20E5D07E0026267A /* Http.cpp */,
-				B204DC0B20E5D07E0026267A /* Texture2D.cpp */,
-				B204DC0C20E5D07E0026267A /* TextureAtlas.h */,
-				B204DC0D20E5D07E0026267A /* TouchEventListener.cpp */,
-				B204DC0E20E5D07E0026267A /* Engine.cpp */,
-				B204DC0F20E5D07E0026267A /* TextureAtlas.cpp */,
-				B204DC1020E5D07E0026267A /* Density.h */,
-				B204DC1120E5D07E0026267A /* MogUILoader.h */,
-				B204DC1220E5D07E0026267A /* Density.cpp */,
-				B204DC1320E5D07E0026267A /* Preference.cpp */,
 				B204DC1420E5D07E0026267A /* AudioPlayer.cpp */,
+				B204DC0220E5D07E0026267A /* AudioPlayer.h */,
 				B204DC1520E5D07E0026267A /* Collision.cpp */,
-				B204DC1620E5D07E0026267A /* MogStats.h */,
-				B204DC1720E5D07E0026267A /* plain_objects.cpp */,
-				B204DC1820E5D07E0026267A /* Renderer.cpp */,
-				B204DC1920E5D07E0026267A /* Preference.h */,
+				B204DBFC20E5D07E0026267A /* Collision.h */,
+				B204DC0320E5D07E0026267A /* Data.cpp */,
+				B204DBF820E5D07E0026267A /* Data.h */,
+				B204DC0620E5D07E0026267A /* DataStore.cpp */,
+				B204DBFA20E5D07E0026267A /* DataStore.h */,
+				B204DC1220E5D07E0026267A /* Density.cpp */,
+				B204DC1020E5D07E0026267A /* Density.h */,
+				B204DC0E20E5D07E0026267A /* Engine.cpp */,
+				B204DBF020E5D07E0026267A /* Engine.h */,
+				B204DBFE20E5D07E0026267A /* FileUtils.cpp */,
+				B204DBF420E5D07E0026267A /* FileUtils.h */,
+				B204DC0A20E5D07E0026267A /* Http.cpp */,
+				B204DBF320E5D07E0026267A /* Http.h */,
+				B204DBF920E5D07E0026267A /* KeyEvent.h */,
 				B204DC1A20E5D07E0026267A /* mog_functions.cpp */,
+				B204DBEC20E5D07E0026267A /* mog_functions.h */,
+				B204DBF720E5D07E0026267A /* MogStats.cpp */,
+				B204DC1620E5D07E0026267A /* MogStats.h */,
+				B204DBFB20E5D07E0026267A /* MogUILoader.cpp */,
+				B204DC1120E5D07E0026267A /* MogUILoader.h */,
+				B204DBF620E5D07E0026267A /* NativeClass.h */,
+				B204DC1720E5D07E0026267A /* plain_objects.cpp */,
+				B204DBEF20E5D07E0026267A /* plain_objects.h */,
+				B204DC1320E5D07E0026267A /* Preference.cpp */,
+				B204DC1920E5D07E0026267A /* Preference.h */,
+				B204DBF520E5D07E0026267A /* PubSub.cpp */,
+				B204DC0120E5D07E0026267A /* PubSub.h */,
+				B204DC1820E5D07E0026267A /* Renderer.cpp */,
+				B204DC0020E5D07E0026267A /* Renderer.h */,
+				B204DC0420E5D07E0026267A /* Shader.cpp */,
+				B204DBF220E5D07E0026267A /* Shader.h */,
+				B204DC0B20E5D07E0026267A /* Texture2D.cpp */,
+				B204DBEE20E5D07E0026267A /* Texture2D.h */,
+				B204DC0F20E5D07E0026267A /* TextureAtlas.cpp */,
+				B204DC0C20E5D07E0026267A /* TextureAtlas.h */,
+				B204DBFF20E5D07E0026267A /* Touch.h */,
+				B204DC0D20E5D07E0026267A /* TouchEventListener.cpp */,
 				B204DC1B20E5D07E0026267A /* TouchEventListener.h */,
+				B204DC0520E5D07E0026267A /* TouchInput.h */,
+				B204DC0720E5D07E0026267A /* Transform.cpp */,
+				B204DC0920E5D07E0026267A /* Transform.h */,
+				B204DBF120E5D07E0026267A /* Tween.cpp */,
+				B204DBED20E5D07E0026267A /* Tween.h */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -420,7 +412,6 @@
 				B204DD4B20E6889C0026267A /* rpmalloc.h */,
 				B204DC1D20E5D07E0026267A /* json.c */,
 				B204DC1E20E5D07E0026267A /* aes.c */,
-				B204DC1F20E5D07E0026267A /* http.h */,
 				B204DC2120E5D07E0026267A /* sha256.h */,
 				B204DC2320E5D07E0026267A /* stb_image.h */,
 				B204DC2420E5D07E0026267A /* aes.h */,
@@ -441,20 +432,22 @@
 		B204DC5620E5D0B80026267A /* core */ = {
 			isa = PBXGroup;
 			children = (
-				B204DC5720E5D0B80026267A /* PreferenceNative.h */,
-				B204DC5820E5D0B80026267A /* Texture2DNative.h */,
-				B204DC5920E5D0B80026267A /* PreferenceNative.mm */,
-				B204DC5A20E5D0B80026267A /* Texture2DNative.mm */,
-				B204DC5B20E5D0B90026267A /* Device.h */,
-				B204DC5C20E5D0B90026267A /* opengl.h */,
-				B204DC5D20E5D0B90026267A /* FileUtilsNative.mm */,
-				B204DC5E20E5D0B90026267A /* mog_functions_native.mm */,
-				B204DC5F20E5D0B90026267A /* mog_functions_native.h */,
-				B204DC6020E5D0B90026267A /* NativeClass.mm */,
-				B204DC6120E5D0B90026267A /* FileUtilsNative.h */,
-				B204DC6220E5D0B90026267A /* Device.mm */,
 				B204DC6320E5D0B90026267A /* AudioPlayerNative.h */,
 				B204DC6420E5D0B90026267A /* AudioPlayerNative.mm */,
+				B204DC5B20E5D0B90026267A /* Device.h */,
+				B204DC6220E5D0B90026267A /* Device.mm */,
+				B204DC6120E5D0B90026267A /* FileUtilsNative.h */,
+				B204DC5D20E5D0B90026267A /* FileUtilsNative.mm */,
+				B25BFF6F20E914EA00A975F3 /* HttpNative.h */,
+				B25BFF6E20E914EA00A975F3 /* HttpNative.mm */,
+				B204DC5F20E5D0B90026267A /* mog_functions_native.h */,
+				B204DC5E20E5D0B90026267A /* mog_functions_native.mm */,
+				B204DC6020E5D0B90026267A /* NativeClass.mm */,
+				B204DC5C20E5D0B90026267A /* opengl.h */,
+				B204DC5720E5D0B80026267A /* PreferenceNative.h */,
+				B204DC5920E5D0B80026267A /* PreferenceNative.mm */,
+				B204DC5820E5D0B80026267A /* Texture2DNative.h */,
+				B204DC5A20E5D0B80026267A /* Texture2DNative.mm */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -592,13 +585,11 @@
 				B204DC6B20E5D0B90026267A /* AudioPlayerNative.mm in Sources */,
 				B204DC2B20E5D07F0026267A /* SpriteSheet.cpp in Sources */,
 				B2A101771ED713DD00A2EB8A /* main.m in Sources */,
-				B204DC3F20E5D07F0026267A /* NativePlugin.cpp in Sources */,
 				B204DC4D20E5D07F0026267A /* Collision.cpp in Sources */,
 				B204DC3020E5D07F0026267A /* Slice9Sprite.cpp in Sources */,
 				B204DC2C20E5D07F0026267A /* Scene.cpp in Sources */,
 				B204DD4D20E6889C0026267A /* rpmalloc.c in Sources */,
 				B204DC3E20E5D07F0026267A /* MogUILoader.cpp in Sources */,
-				B204DA9420DFF29B0026267A /* MogFunction.m in Sources */,
 				B204DC4E20E5D07F0026267A /* plain_objects.cpp in Sources */,
 				B204DA9620DFF29B0026267A /* MogView.m in Sources */,
 				B204DC4620E5D07F0026267A /* Texture2D.cpp in Sources */,
@@ -606,6 +597,7 @@
 				B204DC4120E5D07F0026267A /* Data.cpp in Sources */,
 				B204DC4220E5D07F0026267A /* Shader.cpp in Sources */,
 				B204DA9920DFF29B0026267A /* App.cpp in Sources */,
+				B25BFF7020E914EA00A975F3 /* HttpNative.mm in Sources */,
 				B204DC3420E5D07F0026267A /* Polygon.cpp in Sources */,
 				B204DC3920E5D07F0026267A /* Group.cpp in Sources */,
 				B204DC4420E5D07F0026267A /* Transform.cpp in Sources */,

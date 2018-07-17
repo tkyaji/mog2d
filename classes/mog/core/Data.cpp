@@ -13,28 +13,19 @@ using namespace std;
 
 void *enabler;
 
-void Data::write(ostream &out) {
-    out.write((char *)&this->type, sizeof(char));
-    out.write((char *)this, sizeof(Data));
-}
-
-void Data::read(istream &in) {
-    in.read((char *)&this->type, sizeof(char));
-    if (this->type != DataType::Null) {
-        throw std::ios_base::failure("data type is not match. type=Null");
-    }
-    in.read((char*)this, sizeof(Data));
-}
-
-
 #pragma - Int
 
-Int::Int() {
-    this->type = DataType::Int;
+std::shared_ptr<Int> Int::create(int value) {
+    return std::shared_ptr<Int>(new Int(value));
 }
+
 Int::Int(int value) {
     this->type = DataType::Int;
     this->value = value;
+}
+
+int Int::getValue() {
+    return this->value;
 }
 
 void Int::write(ostream &out) {
@@ -53,13 +44,17 @@ void Int::read(istream &in) {
 
 #pragma - Long
 
-Long::Long() {
-    this->type = DataType::Long;
+std::shared_ptr<Long> Long::create(long long value) {
+    return std::shared_ptr<Long>(new Long(value));
 }
 
 Long::Long(long long value) {
     this->type = DataType::Long;
     this->value = value;
+}
+
+long long Long::getValue() {
+    return this->value;
 }
 
 void Long::write(ostream &out) {
@@ -78,12 +73,17 @@ void Long::read(istream &in) {
 
 #pragma - Float
 
-Float::Float() {
-    this->type = DataType::Float;
+std::shared_ptr<Float> Float::create(float value) {
+    return std::shared_ptr<Float>(new Float(value));
 }
+
 Float::Float(float value) {
     this->type = DataType::Float;
     this->value = value;
+}
+
+float Float::getValue() {
+    return this->value;
 }
 
 void Float::write(ostream &out) {
@@ -102,12 +102,17 @@ void Float::read(istream &in) {
 
 #pragma - Double
 
-Double::Double() {
-    this->type = DataType::Double;
+std::shared_ptr<Double> Double::create(double value) {
+    return std::shared_ptr<Double>(new Double(value));
 }
+
 Double::Double(double value) {
     this->type = DataType::Double;
     this->value = value;
+}
+
+double Double::getValue() {
+    return this->value;
 }
 
 void Double::write(ostream &out) {
@@ -126,13 +131,17 @@ void Double::read(istream &in) {
 
 #pragma - Bool
 
-Bool::Bool() {
-    this->type = DataType::Bool;
+std::shared_ptr<Bool> Bool::create(bool value) {
+    return std::shared_ptr<Bool>(new Bool(value));
 }
 
 Bool::Bool(bool value) {
     this->type = DataType::Bool;
     this->value = value;
+}
+
+bool Bool::getValue() {
+    return this->value;
 }
 
 void Bool::write(ostream &out) {
@@ -149,15 +158,83 @@ void Bool::read(istream &in) {
 }
 
 
-#pragma - String
+#pragma - ByteArray
 
-String::String() {
-    this->type = DataType::String;
+std::shared_ptr<ByteArray> ByteArray::create(unsigned char *value, unsigned int length, bool copy) {
+    return std::shared_ptr<ByteArray>(new ByteArray(value, length, copy));
 }
 
-String::String(string value) {
+ByteArray::ByteArray(unsigned char *value, unsigned int length, bool copy) {
+    this->type = DataType::ByteArray;
+    if (copy) {
+        this->value = (unsigned char *)rpmalloc(sizeof(unsigned char) * length);
+        memcpy(this->value, value, length);
+    } else {
+        this->value = value;
+    }
+    this->length = length;
+}
+
+ByteArray::~ByteArray() {
+    if (this->value != nullptr) {
+        rpfree(this->value);
+    }
+}
+
+void ByteArray::getValue(unsigned char **value, unsigned int *length) {
+    if (value) *value = this->value;
+    if (length) *length = this->length;
+}
+
+void ByteArray::write(ostream &out) {
+    out.write((char *)&this->type, sizeof(char));
+    out.write((char *)&this->length, sizeof(unsigned int));
+    out.write((char *)this->value, this->length * sizeof(char));
+}
+
+void ByteArray::read(istream &in) {
+    in.read((char *)&this->type, sizeof(char));
+    if (this->type != DataType::ByteArray) {
+        throw std::ios_base::failure("data type is not match. type=ByteArray");
+    }
+    in.read((char *)&this->length, sizeof(unsigned int));
+    in.read((char *)this->value, this->length * sizeof(char));
+}
+
+string ByteArray::toString() {
+    return string((char *)this->value, this->length);
+}
+
+string ByteArray::toString() const {
+    return string((char *)this->value, this->length);
+}
+
+
+#pragma - String
+
+std::shared_ptr<String> String::create(std::string value) {
+    return std::shared_ptr<String>(new String(value));
+}
+
+std::shared_ptr<String> String::create(const std::shared_ptr<ByteArray> &bytes) {
+    return std::shared_ptr<String>(new String(bytes));
+}
+
+String::String(std::string value) {
     this->type = DataType::String;
     this->value = value;
+}
+
+String::String(const std::shared_ptr<ByteArray> bytes) {
+    this->type = DataType::String;
+    unsigned char *value = nullptr;
+    unsigned int length = 0;
+    bytes->getValue(&value, &length);
+    this->value = std::string((char *)value, length);
+}
+
+std::string String::getValue() {
+    return this->value;
 }
 
 void String::write(ostream &out) {
@@ -181,72 +258,41 @@ void String::read(istream &in) {
 }
 
 
-#pragma - Bytes
+#pragma - List
 
-Bytes::Bytes() {
-    this->type = DataType::Bytes;
+std::shared_ptr<List> List::create() {
+    return std::shared_ptr<List>(new List());
 }
 
-Bytes::Bytes(unsigned char *value, unsigned int length) {
-    this->type = DataType::Bytes;
-    this->value = (unsigned char *)rpmalloc(length);
-    memcpy(this->value, value, length);
-    this->length = length;
-}
-
-Bytes::~Bytes() {
-    if (this->length > 0) {
-        rpfree(this->value);
-    }
-}
-
-void Bytes::write(ostream &out) {
-    out.write((char *)&this->type, sizeof(char));
-    out.write((char *)&this->length, sizeof(unsigned int));
-    out.write((char *)this->value, this->length * sizeof(char));
-}
-
-void Bytes::read(istream &in) {
-    in.read((char *)&this->type, sizeof(char));
-    if (this->type != DataType::Bytes) {
-        throw std::ios_base::failure("data type is not match. type=Bytes");
-    }
-    in.read((char *)&this->length, sizeof(unsigned int));
-    in.read((char *)this->value, this->length * sizeof(char));
-}
-
-string Bytes::toString() {
-    return string((char *)this->value, this->length);
-}
-
-string Bytes::toString() const {
-    return string((char *)this->value, this->length);
-}
-
-
-#pragma - Array
-
-Array::Array() {
-    this->type = DataType::Array;
+List::List() {
+    this->type = DataType::List;
 };
 
-void Array::remove(int idx) {
+void List::remove(int idx) {
     this->datum.erase(this->datum.begin() + idx);
 }
 
-void Array::clear() {
+void List::clear() {
     this->datum.clear();
 }
 
-unsigned int Array::size() const {
+unsigned int List::size() const {
     return (unsigned int)this->datum.size();
 }
 
-DataType Array::atType(int idx) const {
+void List::append(const std::shared_ptr<Data> &data) {
+    this->datum.emplace_back(data);
+}
+
+void List::set(int idx, const std::shared_ptr<Data> &data) {
+    this->datum[idx] = data;
+}
+
+DataType List::atType(int idx) const {
     return this->datum.at(idx)->type;
 }
 
-void Array::write(ostream &out) {
+void List::write(ostream &out) {
     out.write((char *)&this->type, sizeof(char));
     unsigned int size = (unsigned int)this->datum.size();
     out.write((char *)&size, sizeof(unsigned int));
@@ -255,10 +301,10 @@ void Array::write(ostream &out) {
     }
 }
 
-void Array::read(istream &in) {
+void List::read(istream &in) {
     in.read((char *)&this->type, sizeof(char));
-    if (this->type != DataType::Array) {
-        throw std::ios_base::failure("data type is not match. type=Array");
+    if (this->type != DataType::List) {
+        throw std::ios_base::failure("data type is not match. type=List");
     }
     unsigned int dataSize;
     in.read((char *)&dataSize, sizeof(unsigned int));
@@ -268,69 +314,58 @@ void Array::read(istream &in) {
         in.read((char *)&type, sizeof(char));
         in.seekg(pos);
         
+        std::shared_ptr<Data> data = nullptr;
         switch (type) {
             case DataType::Int: {
-                Int i;
-                i.read(in);
-                this->append(i);
+                data = Int::create(0);
                 break;
             }
             case DataType::Long: {
-                Long l;
-                l.read(in);
-                this->append(l);
+                data = Long::create(0);
                 break;
             }
             case DataType::Float: {
-                Float f;
-                f.read(in);
-                this->append(f);
+                data = Float::create(0.0f);
                 break;
             }
             case DataType::Double: {
-                Double d;
-                d.read(in);
-                this->append(d);
+                data = Double::create(0.0);
                 break;
             }
             case DataType::Bool: {
-                Bool b;
-                b.read(in);
-                this->append(b);
+                data = Bool::create(false);
                 break;
             }
             case DataType::String: {
-                String s;
-                s.read(in);
-                this->append(s);
+                data = String::create("");
                 break;
             }
-            case DataType::Bytes: {
-                Bytes b;
-                b.read(in);
-                this->append(b);
+            case DataType::ByteArray: {
+                data = ByteArray::create(nullptr, 0);
                 break;
             }
-            case DataType::Array: {
-                Array a;
-                a.read(in);
-                this->append(a);
+            case DataType::List: {
+                data = List::create();
                 break;
             }
             case DataType::Dictionary: {
-                Dictionary d;
-                d.read(in);
-                this->append(d);
+                data = Dictionary::create();
                 break;
             }
             default:
                 break;
         }
+        data->read(in);
+        this->append(data);
     }
 }
 
 
 #pragma - Dictionary
+
+std::shared_ptr<Dictionary> Dictionary::create() {
+    return std::shared_ptr<Dictionary>(new Dictionary());
+}
 
 Dictionary::Dictionary() {
     this->type = DataType::Dictionary;
@@ -348,6 +383,10 @@ unsigned int Dictionary::size() const {
     return (unsigned int)this->datum.size();
 }
 
+void Dictionary::put(std::string key, const std::shared_ptr<Data> &data) {
+    this->datum[key] = data;
+}
+
 vector<string> Dictionary::getKeys() const {
     vector<string> keys;
     keys.reserve(this->datum.size());
@@ -363,11 +402,11 @@ DataType Dictionary::getType(string key) const {
 
 void Dictionary::write(ostream &out) {
     out.write((char *)&this->type, sizeof(char));
-    unsigned int size = this->datum.size();
+    unsigned int size = (unsigned int)this->datum.size();
     out.write((char *)&size, sizeof(unsigned int));
     for (auto &kv : this->datum) {
-        String key = String(kv.first);
-        key.write(out);
+        auto key = String::create(kv.first);
+        key->write(out);
         kv.second->write(out);
     }
 }
@@ -380,166 +419,110 @@ void Dictionary::read(istream &in) {
     unsigned int dataSize;
     in.read((char *)&dataSize, sizeof(unsigned int));
     for (int i = 0; i < dataSize; i++) {
-        String keyStr;
-        keyStr.read(in);
-        string key = keyStr.value;
+        auto keyStr = String::create("");
+        keyStr->read(in);
+        std::string key = keyStr->getValue();
         
         auto pos = in.tellg();
         DataType type;
         in.read((char *)&type, sizeof(char));
         in.seekg(pos);
 
+        std::shared_ptr<Data> data = nullptr;
         switch (type) {
             case DataType::Int: {
-                Int i;
-                i.read(in);
-                this->put(key, i);
+                data = Int::create(0);
                 break;
             }
             case DataType::Long: {
-                Long l;
-                l.read(in);
-                this->put(key, l);
+                data = Long::create(0);
                 break;
             }
             case DataType::Float: {
-                Float f;
-                f.read(in);
-                this->put(key, f);
+                data = Float::create(0.0f);
                 break;
             }
             case DataType::Double: {
-                Double d;
-                d.read(in);
-                this->put(key, d);
+                data = Double::create(0.0);
                 break;
             }
             case DataType::Bool: {
-                Bool b;
-                b.read(in);
-                this->put(key, b);
+                data = Bool::create(false);
                 break;
             }
             case DataType::String: {
-                String s;
-                s.read(in);
-                this->put(key, s);
+                data = String::create("");
                 break;
             }
-            case DataType::Bytes: {
-                Bytes b;
-                b.read(in);
-                this->put(key, b);
+            case DataType::ByteArray: {
+                data = ByteArray::create(nullptr, 0);
                 break;
             }
-            case DataType::Array: {
-                Array a;
-                a.read(in);
-                this->put(key, a);
+            case DataType::List: {
+                data = List::create();
                 break;
             }
             case DataType::Dictionary: {
-                Dictionary d;
-                d.read(in);
-                this->put(key, d);
+                data = Dictionary::create();
                 break;
             }
             default:
                 break;
         }
+        data->read(in);
+        this->put(key, data);
     }
 }
+
 
 shared_ptr<Data> jsonValueToData(json_value_s *value) {
     switch (value->type) {
         case json_type_object: {
-            auto dict = shared_ptr<Dictionary>(new Dictionary());
+            auto dict = Dictionary::create();
             json_object_s *obj = (json_object_s *)value->payload;
             json_object_element_s *elm = obj->start;
             while (elm != NULL) {
                 json_string_s *name = elm->name;
                 string key = string(name->string);
                 auto value = jsonValueToData(elm->value);
-                switch (value->type) {
-                    case DataType::Int:
-                        dict->put(key, *(Int *)value.get()); break;
-                    case DataType::Long:
-                        dict->put(key, *(Long *)value.get()); break;
-                    case DataType::Float:
-                        dict->put(key, *(Float *)value.get()); break;
-                    case DataType::Double:
-                        dict->put(key, *(Double *)value.get()); break;
-                    case DataType::Bool:
-                        dict->put(key, *(Bool *)value.get()); break;
-                    case DataType::String:
-                        dict->put(key, *(String *)value.get()); break;
-                    case DataType::Bytes:
-                        dict->put(key, *(Bytes *)value.get()); break;
-                    case DataType::Dictionary:
-                        dict->put(key, *(Dictionary *)value.get()); break;
-                    case DataType::Array:
-                        dict->put(key, *(Array *)value.get()); break;
-                    default:
-                        dict->put(key, *value.get());
-                }
+                dict->put(key, value);
                 elm = elm->next;
             }
             return dict;
         }
         case json_type_array: {
-            auto array = shared_ptr<Array>(new Array());
+            auto list = List::create();
             json_array_s *arr = (json_array_s *)value->payload;
             json_array_element_s *elm = arr->start;
             while (elm != NULL) {
                 auto value = jsonValueToData(elm->value);
-                switch (value->type) {
-                    case DataType::Int:
-                        array->append(*(Int *)value.get()); break;
-                    case DataType::Long:
-                        array->append(*(Long *)value.get()); break;
-                    case DataType::Float:
-                        array->append(*(Float *)value.get()); break;
-                    case DataType::Double:
-                        array->append(*(Double *)value.get()); break;
-                    case DataType::Bool:
-                        array->append(*(Bool *)value.get()); break;
-                    case DataType::String:
-                        array->append(*(String *)value.get()); break;
-                    case DataType::Bytes:
-                        array->append(*(Bytes *)value.get()); break;
-                    case DataType::Dictionary:
-                        array->append(*(Dictionary *)value.get()); break;
-                    case DataType::Array:
-                        array->append(*(Array *)value.get()); break;
-                    default:
-                        array->append(*value.get());
-                }
+                list->append(value);
                 elm = elm->next;
             }
-            return array;
+            return list;
         }
         case json_type_string: {
             json_string_s *str = (json_string_s *)value->payload;
-            return shared_ptr<String>(new String(string(str->string)));
+            return String::create(str->string);
         }
         case json_type_number: {
             json_number_s *number = (json_number_s *)value->payload;
             double d = atof(number->number);
             int i = atoi(number->number);
             if (d == i) {
-                return shared_ptr<Int>(new Int(i));
+                return Int::create(i);
             } else {
-                return shared_ptr<Double>(new Double(d));
+                return Double::create(d);
             }
         }
         case json_type_true: {
-            return shared_ptr<Bool>(new Bool(true));
+            return Bool::create(true);
         }
         case json_type_false: {
-            return shared_ptr<Bool>(new Bool(false));
+            return Bool::create(false);
         }
         default: {
-            return shared_ptr<Data>(new Data());
+            return nullptr;
         }
     }
 }

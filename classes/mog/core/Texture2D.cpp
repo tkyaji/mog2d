@@ -21,9 +21,12 @@ shared_ptr<Texture2D> Texture2D::createWithFile(string filepath, Density density
     return tex2d;
 }
 
-shared_ptr<Texture2D> Texture2D::createWithImage(const Bytes &bytes) {
+shared_ptr<Texture2D> Texture2D::createWithImage(const std::shared_ptr<ByteArray> &bytes) {
     auto tex2d = make_shared<Texture2D>();
-    tex2d->loadImageFromBuffer(bytes.value, bytes.length);
+    unsigned char *value = nullptr;
+    unsigned int length = 0;
+    bytes->getValue(&value, &length);
+    tex2d->loadImageFromBuffer(value, length);
     return tex2d;
 }
 
@@ -65,26 +68,34 @@ void Texture2D::loadTextureAsset(string filename) {
     Density den = Density::x1_0;
     
     auto data = this->readBytesAsset(filename, &den);
-    if (data.length == 0) {
+    unsigned char *value = nullptr;
+    unsigned int length = 0;
+    data->getValue(&value, &length);
+    if (length == 0) {
         LOGE("Asset not found: %s", filename.c_str());
     }
     
     this->filename = filename;
     this->density = den;
-    this->loadImageFromBuffer(data.value, data.length);
+    this->loadImageFromBuffer(value, length);
 }
 
 void Texture2D::loadTextureFile(string filepath, Density density) {
     this->density = density;
     auto buffer = FileUtils::readDataFromFile(filepath);
-    this->loadImageFromBuffer(buffer.value, buffer.length);
+    unsigned char *value = nullptr;
+    unsigned int length = 0;
+    buffer->getValue(&value, &length);
+    this->loadImageFromBuffer(value, length);
 }
 
-Bytes Texture2D::readBytesAsset(string filename, Density *density) {
+std::shared_ptr<ByteArray> Texture2D::readBytesAsset(string filename, Density *density) {
     Density current = Density::getCurrent();
     Density den = current;
     auto data = FileUtils::readBytesAsset(den.directory + "/" + filename);
-    if (data.length > 0) {
+    unsigned int length = 0;
+    data->getValue(nullptr, &length);
+    if (length > 0) {
         *density = den;
         return data;
     }
@@ -92,7 +103,9 @@ Bytes Texture2D::readBytesAsset(string filename, Density *density) {
         den = Density::allDensities[i];
         if (den.idx <= current.idx) continue;
         data = FileUtils::readBytesAsset(den.directory + "/" + filename);
-        if (data.length > 0) {
+        length = 0;
+        data->getValue(nullptr, &length);
+        if (length > 0) {
             *density = den;
             return data;
         }
@@ -101,13 +114,17 @@ Bytes Texture2D::readBytesAsset(string filename, Density *density) {
         den = Density::allDensities[i];
         if (den.idx >= current.idx) continue;
         data = FileUtils::readBytesAsset(den.directory + "/" + filename);
-        if (data.length) {
+        length = 0;
+        data->getValue(nullptr, &length);
+        if (length) {
             *density = den;
             return data;
         }
     }
     data = FileUtils::readBytesAsset(filename);
-    if (data.length > 0) {
+    length = 0;
+    data->getValue(nullptr, &length);
+    if (length > 0) {
         *density = den;
         return data;
     }

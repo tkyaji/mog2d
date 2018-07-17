@@ -13,148 +13,145 @@ extern void *enabler;
 
 namespace mog {
     enum class DataType : char {
-        Null,
+        Void,
         Int,
         Long,
         Float,
         Double,
         Bool,
         String,
-        Bytes,
-        Array,
+        ByteArray,
+        List,
         Dictionary,
+        NativeObject,
     };
     
     
-    class Data {
+    class Data : public std::enable_shared_from_this<Data> {
     public:
-        DataType type = DataType::Null;
+        DataType type;
         
-        
-        virtual void write(std::ostream &out);
-        virtual void read(std::istream &in);
+        virtual void write(std::ostream &out) = 0;
+        virtual void read(std::istream &in) = 0;
     };
     
     
     class Int : public Data {
     public:
-        int value = 0;
+        static std::shared_ptr<Int> create(int value);
+        virtual void write(std::ostream &out) override;
+        virtual void read(std::istream &in) override;
         
-        Int();
+        int getValue();
+
+    private:
         Int(int value);
-        
-        virtual void write(std::ostream &out);
-        virtual void read(std::istream &in);
+        int value = 0;
     };
     
     
     class Long : public Data {
     public:
-        long long value = 0;
-        
-        Long();
+        static std::shared_ptr<Long> create(long long value);
+        virtual void write(std::ostream &out) override;
+        virtual void read(std::istream &in) override;
+
+        long long getValue();
+
+    private:
         Long(long long value);
-        
-        virtual void write(std::ostream &out);
-        virtual void read(std::istream &in);
+        long long value = 0;
     };
     
     
     class Float : public Data {
     public:
-        float value = 0;
-        
-        Float();
+        static std::shared_ptr<Float> create(float value);
+        virtual void write(std::ostream &out) override;
+        virtual void read(std::istream &in) override;
+
+        float getValue();
+
+    private:
         Float(float value);
-        
-        virtual void write(std::ostream &out);
-        virtual void read(std::istream &in);
+        float value = 0;
     };
     
     
     class Double : public Data {
     public:
-        double value = 0;
-        
-        Double();
+        static std::shared_ptr<Double> create(double value);
+        virtual void write(std::ostream &out) override;
+        virtual void read(std::istream &in) override;
+
+        double getValue();
+
+    private:
         Double(double value);
-        
-        virtual void write(std::ostream &out);
-        virtual void read(std::istream &in);
+        double value = 0;
     };
     
     
     class Bool : public Data {
     public:
-        bool value = false;
-        
-        Bool();
+        static std::shared_ptr<Bool> create(bool value);
+        virtual void write(std::ostream &out) override;
+        virtual void read(std::istream &in) override;
+
+        bool getValue();
+
+    private:
         Bool(bool value);
-        
-        virtual void write(std::ostream &out);
-        virtual void read(std::istream &in);
+        bool value = false;
     };
+    
+    
+    class ByteArray : public Data {
+    public:
+        static std::shared_ptr<ByteArray> create(unsigned char *value, unsigned int length, bool copy = false);
+        virtual void write(std::ostream &out) override;
+        virtual void read(std::istream &in) override;
+        std::string toString();
+        std::string toString() const;
+        ~ByteArray();
+
+        void getValue(unsigned char **value, unsigned int *length);
+        
+    private:
+        ByteArray(unsigned char *value, unsigned int length, bool copy = false);
+        unsigned char *value = nullptr;
+        unsigned int length = 0;
+    };
+
     
     class String : public Data {
     public:
-        std::string value = "";
-        
-        String();
+        static std::shared_ptr<String> create(std::string value);
+        static std::shared_ptr<String> create(const std::shared_ptr<ByteArray> &bytes);
+        virtual void write(std::ostream &out) override;
+        virtual void read(std::istream &in) override;
+
+        std::string getValue();
+
+    private:
         String(std::string value);
-        
-        virtual void write(std::ostream &out);
-        virtual void read(std::istream &in);
+        String(const std::shared_ptr<ByteArray> bytes);
+        std::string value = "";
     };
     
     
-    class Bytes : public Data {
+    class List : public Data {
     public:
-        unsigned char *value = nullptr;
-        unsigned int length = 0;
-        
-        Bytes();
-        Bytes(unsigned char *value, unsigned int length);
-        ~Bytes();
-        
-        virtual void write(std::ostream &out);
-        virtual void read(std::istream &in);
-        std::string toString();
-        std::string toString() const;
-    };
-    
-    
-    class Array : public Data {
-    public:
-        Array();
+        static std::shared_ptr<List> create();
+        void append(const std::shared_ptr<Data> &data);
+        void set(int idx, const std::shared_ptr<Data> &data);
         
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
-        void append(const T &data) {
-            auto d = std::shared_ptr<T>(new T(data));
-            this->datum.emplace_back(d);
-        }
-        
-        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
-        void set(int idx, const T &data) {
-            auto d = std::shared_ptr<T>(new T(data));
-            if ((int)this->datum.size() - 1 < idx) {
-                int start = (int)this->datum.size();
-                for (int i = start; i <= idx; i++) {
-                    auto d = std::make_shared<Data>();
-                    this->datum.emplace_back(d);
-                }
-            }
-            this->datum[idx] = d;
-        }
-        
-        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
-        T at(int idx) const {
+        std::shared_ptr<T> at(int idx) const {
             if (idx < this->datum.size()) {
-                auto d = std::static_pointer_cast<T>(this->datum[idx]);
-                return *d.get();
-                
+                return std::static_pointer_cast<T>(this->datum[idx]);
             } else {
-                auto d = T();
-                return d;
+                return nullptr;
             }
         }
         
@@ -163,33 +160,30 @@ namespace mog {
         unsigned int size() const;
         DataType atType(int idx) const;
         
-        virtual void write(std::ostream &out);
-        virtual void read(std::istream &in);
+        virtual void write(std::ostream &out) override;
+        virtual void read(std::istream &in) override;
         
     private:
+        List();
+        
         std::vector<std::shared_ptr<Data>> datum;
     };
     
     
     class Dictionary : public Data {
     public:
-        Dictionary();
+        static std::shared_ptr<Dictionary> create();
+
+        void put(std::string key, const std::shared_ptr<Data> &data);
         
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
-        void put(std::string key, const T& data) {
-            auto d = std::shared_ptr<T>(new T(data));
-            this->datum[key] = d;
-        }
-        
-        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
-        T get(std::string key) const {
+        std::shared_ptr<T> get(std::string key) const {
             if (this->datum.count(key) > 0) {
-                return *std::static_pointer_cast<T>(this->datum.at(key)).get();
+                auto d = this->datum.at(key);
+                return std::static_pointer_cast<T>(d);
                 
             } else {
-                auto d = T();
-                d.type = DataType::Null;
-                return d;
+                return nullptr;
             }
         }
         DataType getType(std::string key) const;
@@ -199,14 +193,17 @@ namespace mog {
         unsigned int size() const;
         std::vector<std::string> getKeys() const;
         
-        virtual void write(std::ostream &out);
-        virtual void read(std::istream &in);
+        virtual void write(std::ostream &out) override;
+        virtual void read(std::istream &in) override;
         
     private:
+        Dictionary();
+        
         std::map<std::string, std::shared_ptr<Data>> datum;
     };
     
     
+    /*
     class DataValue {
     public:
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
@@ -227,7 +224,7 @@ namespace mog {
     private:
         std::unique_ptr<Data> data;
     };
-    
+    */
     
     class JsonData {
     public:

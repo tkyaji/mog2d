@@ -18,6 +18,7 @@ import java.util.HashMap;
 public class MogActivity extends Activity {
 
     static {
+        System.loadLibrary("c++_shared");
         System.loadLibrary("native-lib");
     }
 
@@ -165,13 +166,13 @@ public class MogActivity extends Activity {
         for (MogActivityEvent.OnDestroyListener listener : this.onDestroyListeners) {
             listener.onDestroy(this);
         }
+        MogJniBridge.onDestroy();
         super.onDestroy();
     }
 
     @Override
     protected void onPause() {
         Log.d(TAG, "onPause");
-
         for (MogActivityEvent.OnPauseListener listener : this.onPauseListeners) {
             listener.onPause(this);
         }
@@ -185,6 +186,7 @@ public class MogActivity extends Activity {
         Log.d(TAG, "onResume");
         super.onResume();
         this.hideNavigationBar();
+        MogJniBridge.onResume();
         this.glSurfaceView.onResume();
         for (MogActivityEvent.OnResumeListener listener : this.onResumeListeners) {
             listener.onResume(this);
@@ -223,21 +225,19 @@ public class MogActivity extends Activity {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        final int action = event.getAction();
         final int touchAction = this.toTouchAction(event.getActionMasked());
-
-        if (touchAction != TouchAction.NONE) {
-            for (int i = 0; i < event.getPointerCount(); i++) {
-                final int pId = event.getPointerId(i);
-                final float x = event.getX(i) / this.density;
-                final float y = event.getY(i) / this.density;
-                this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        MogJniBridge.onTouchEvent(pId, touchAction, x, y);
-                    }
-                });
+        int i = (action & MotionEvent.ACTION_POINTER_ID_MASK) >> MotionEvent.ACTION_POINTER_ID_SHIFT;
+        final int pId = event.getPointerId(i);
+        final float x = event.getX(i) / this.density;
+        final float y = event.getY(i) / this.density;
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                MogJniBridge.onTouchEvent(pId, touchAction, x, y);
             }
-        }
+        });
+
         return super.onTouchEvent(event);
     }
 

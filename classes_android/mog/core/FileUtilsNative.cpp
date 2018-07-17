@@ -17,14 +17,14 @@ bool FileUtilsNative::existAsset(string filename) {
 
 string FileUtilsNative::readTextAsset(string filename) {
     unsigned char *bytes = nullptr;
-    int len = 0;
+    unsigned int len = 0;
     FileUtilsNative::readBytesAsset(filename, &bytes, &len);
     auto str = string((char *)bytes, len);
     rpfree(bytes);
     return str;
 }
 
-bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, int *len) {
+bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, unsigned int *len) {
     AAssetManager *aAssetManager = AndroidHelper::getAssetManager();
     AAsset *aAsset = AAssetManager_open(aAssetManager, filename.c_str(), AASSET_MODE_BUFFER);
     if (aAsset == nullptr) {
@@ -32,24 +32,24 @@ bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, int 
         if (len) *len = 0;
         return false;
     }
-    size_t size = (int)AAsset_getLength(aAsset);
+    unsigned int size = (unsigned int)AAsset_getLength(aAsset);
     *data = (unsigned char *)rpmalloc(size);
     AAsset_read(aAsset, *data, size);
-    if (len) *len = (int)size;
+    if (len) *len = size;
 
     AAsset_close(aAsset);
     return true;
 }
 
 string FileUtilsNative::getDocumentsDirectory() {
-    auto fileRet = AndroidHelper::getActivity()->execute("getFilesDir", NRet::Type::Object);
-    auto pathRet = fileRet.o->execute("getCanonicalPath", NRet::Type::Object);
-    return NUtils::toString(pathRet);
+    auto fileRet = AndroidHelper::getActivity()->execute<NativeObject>("getFilesDir");
+    auto pathRet = fileRet->execute<String>("getCanonicalPath");
+    return pathRet->getValue();
 }
 
 string FileUtilsNative::getCachesDirectory() {
-    auto fileRet = AndroidHelper::getActivity()->execute("getCacheDir", NRet::Type::Object);
-    auto pathRet = fileRet.o->execute("getCanonicalPath", NRet::Type::Object);
-    return NUtils::toString(pathRet);
+    auto fileRet = AndroidHelper::getActivity()->execute<NativeObject>("getCacheDir");
+    auto pathRet = fileRet->execute<String>("getCanonicalPath");
+    return pathRet->getValue();
 }
 

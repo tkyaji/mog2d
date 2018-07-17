@@ -17,10 +17,10 @@ PubSub::~PubSub() {
 }
 
 void PubSub::publish(string key) {
-    this->publish(key, PubSub::Param(Data()));
+    this->publish(key, nullptr);
 }
 
-void PubSub::publish(string key, const PubSub::Param &param) {
+void PubSub::publish(string key, const std::shared_ptr<Data> &param) {
     if (this->subscribers.count(key) > 0) {
         for (auto &sub : this->subscribers[key]) {
             sub.second(param);
@@ -33,7 +33,7 @@ void PubSub::publish(string key, const PubSub::Param &param) {
     }
 }
 
-unsigned int PubSub::subscribe(string key, function<void(const Param &p)> func) {
+unsigned int PubSub::subscribe(string key, function<void(const std::shared_ptr<Data> &p)> func) {
     unsigned int pubsubId = ++this->subscribeIdCounter;
     this->subscribers[key][pubsubId] = func;
     return pubsubId;

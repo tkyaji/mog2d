@@ -16,6 +16,9 @@ void Entity::updateFrame(const shared_ptr<Engine> &engine, float delta, float *p
     Drawable::updateFrame(engine, delta, parentMatrix, parentReRenderFlag);
     this->onUpdate(delta);
     this->extractEvent(engine, delta);
+    if (((this->reRenderFlag | parentReRenderFlag) & RERENDER_VERTEX) == RERENDER_VERTEX) {
+        this->collider = nullptr;
+    }
 }
 
 void Entity::extractEvent(const shared_ptr<Engine> &engine, float delta) {
@@ -41,7 +44,6 @@ void Entity::bindVertex() {
         int indexIdx = 0;
         this->bindVertices(this->renderer, &vertexIdx, &indexIdx, false);
         this->renderer->bindVertex();
-        this->collider = nullptr;
     }
 
     if (this->texture) {
@@ -281,4 +283,12 @@ shared_ptr<AABB> Entity::getAABB() {
     Point maxP = Point(max(max(p1.x, p2.x), max(p3.x, p4.x)), max(max(p1.y, p2.y), max(p3.y, p4.y)));
     
     return shared_ptr<AABB>(new AABB(offset.x + minP.x, offset.y + minP.y, offset.x + maxP.x, offset.y + maxP.y));
+}
+
+void Entity::setParam(const std::shared_ptr<Data> &param) {
+    this->param = param;
+}
+
+std::shared_ptr<Data> Entity::getParam() {
+    return this->param;
 }

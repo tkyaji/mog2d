@@ -13,12 +13,12 @@ ENDIF()
 add_library(
     native-lib SHARED
 
+### SOURCE_LIST >> ###
     ${PROJ_DIR}/classes/app/App.cpp
     ${PROJ_DIR}/classes/mog/core/Tween.cpp
     ${PROJ_DIR}/classes/mog/core/PubSub.cpp
     ${PROJ_DIR}/classes/mog/core/MogStats.cpp
     ${PROJ_DIR}/classes/mog/core/MogUILoader.cpp
-    ${PROJ_DIR}/classes/mog/core/NativePlugin.cpp
     ${PROJ_DIR}/classes/mog/core/FileUtils.cpp
     ${PROJ_DIR}/classes/mog/core/Data.cpp
     ${PROJ_DIR}/classes/mog/core/Shader.cpp
@@ -65,7 +65,9 @@ add_library(
     ${PROJ_DIR}/classes_android/mog/core/FileUtilsNative.cpp
     ${PROJ_DIR}/classes_android/mog/core/Texture2DNative.cpp
     ${PROJ_DIR}/classes_android/mog/core/PreferenceNative.cpp
+    ${PROJ_DIR}/classes_android/mog/core/HttpNative.cpp
     ${PROJ_DIR}/classes_android/mog/os/Java_MogJniBridge.cpp
+### << SOURCE_LIST ###
     )
 
 target_include_directories(

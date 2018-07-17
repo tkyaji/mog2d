@@ -37,7 +37,7 @@ string FileUtilsNative::readTextAsset(string filename) {
     return string([content UTF8String]);
 }
 
-bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, int *len) {
+bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, unsigned int *len) {
     NSString *filenameStr = [NSString stringWithFormat:@"assets_ios/%s", filename.c_str()];
     NSString *path = [[NSBundle mainBundle] pathForResource:filenameStr ofType:nil];
     if (path == nil) {
@@ -51,9 +51,9 @@ bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, int 
     }
     
     NSData *nsData = [NSData dataWithContentsOfFile:path];
-    int l = (int)nsData.length;
-    *data = (unsigned char *)rpmalloc(sizeof(char) * l);
-    memcpy(*data, (unsigned char *)nsData.bytes, sizeof(char) * l);
+    unsigned int l = (unsigned int)nsData.length;
+    *data = (unsigned char *)rpmalloc(sizeof(unsigned char) * l);
+    memcpy(*data, (unsigned char *)nsData.bytes, sizeof(unsigned char) * l);
     if (len) *len = l;
     
     return true;

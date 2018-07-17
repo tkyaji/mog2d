@@ -6,50 +6,33 @@
 #include <unordered_map>
 #include "mog/core/PubSub.h"
 
-using namespace std;
-
-struct http_t;
-
 namespace mog {
     class Http {
     public:
-        class Response;
-        
-        enum class Status {
-            Complete,
-            Error,
-            Timeout,
+        enum class Method {
+            Get,
+            Post,
         };
         
-        
+        class Response {
+        public:
+            int statusCode = 0;
+            std::string errorDescription;
+            std::shared_ptr<mog::ByteArray> data;
+        };
+
         class Request {
         public:
-            friend class Http;
-            string url;
-            ~Request();
-            void cancel();
-            void setTimeout(float timeout);
-            
-        private:
-            http_t *request = nullptr;
-            unsigned int onUpdateFuncId = 0;
-            function<void(const Bytes &bytes, Status status)> callback;
-            float timeout = 0;
-            long long startTime = 0;
-            
-            Request(string url, function<void(const Bytes &bytes, Status status)> callback);
-            
-            void sendGet();
-            void invokeCallback(Status status);
+            std::string url;
+            Method method = Method::Get;
+            int timeout = 0;
+            std::unordered_map<std::string, std::string> params;
+
+            Request(std::string url, Method method = Method::Get, int timeout = 0);
+            Request(std::string url, std::unordered_map<std::string, std::string> params, Method method = Method::Get, int timeout = 0);
         };
-        
-        
-        static shared_ptr<Request> get(string url, function<void(const Bytes &bytes, Status status)> callback, bool requestContinuation = true);
-        // TODO
-        //static shared_ptr<Request> post(string url, function<void(const Bytes &bytes, Status status)> callback);
-        
-    private:
-        static unordered_map<intptr_t, shared_ptr<Request>> requestPool;
+
+        static void request(const Http::Request &req, std::function<void(const Http::Response &res)> callback = nullptr);
     };
 }
 

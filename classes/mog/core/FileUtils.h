@@ -17,12 +17,12 @@ namespace mog {
         
         static bool existAsset(string filename);
         static string readTextAsset(string filename);
-        static Bytes readBytesAsset(string filename);
+        static std::shared_ptr<ByteArray> readBytesAsset(string filename);
 
-        static Bytes readFile(string filename, Directory dir = Directory::Documents);
-        static bool writeFile(string filename, const Bytes &bytes, Directory dir = Directory::Documents);
-        static Bytes readDataFromFile(string filepath);
-        static bool writeDataToFile(string filepath, const Bytes &bytes);
+        static std::shared_ptr<ByteArray> readFile(string filename, Directory dir = Directory::Documents);
+        static bool writeFile(string filename, const std::shared_ptr<ByteArray> &bytes, Directory dir = Directory::Documents);
+        static std::shared_ptr<ByteArray> readDataFromFile(string filepath);
+        static bool writeDataToFile(string filepath, const std::shared_ptr<ByteArray> &bytes);
 
         static string getDocumentsDirectory();
         static string getCachesDirectory();

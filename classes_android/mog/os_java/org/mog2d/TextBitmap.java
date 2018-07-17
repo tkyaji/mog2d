@@ -58,6 +58,7 @@ public class TextBitmap {
             canvas.drawText(line, 0, (lineHeight * i) + (lineHeight - metrics.descent), forePaint);
         }
 
+
         ByteBuffer buffer = ByteBuffer.allocate(textHeight * textWidth * 4);
         bitmap.copyPixelsToBuffer(buffer);
 

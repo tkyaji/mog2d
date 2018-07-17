@@ -2,12 +2,34 @@
 #import <Foundation/Foundation.h>
 #import <unordered_map>
 #import "mog/Constants.h"
-#import "MogFunction.h"
 
 using namespace mog;
 
-void __toNativeDictionary(const Dictionary &dictionary, NSMutableDictionary *dict);
-void __toNativeArray(const Array &array, NSMutableArray *arr);
+@interface NativeFunction : NSObject
+- (instancetype)init __attribute__((unavailable("init is not available")));
+- (instancetype)initWithFunction:(std::function<void(const std::shared_ptr<mog::List> &args)>)func;
+- (void)invoke:(std::shared_ptr<List>)args;
+@end
+
+@implementation NativeFunction {
+    std::function<void(const std::shared_ptr<mog::List> &args)> _func;
+}
+- (instancetype)initWithFunction:(std::function<void(const std::shared_ptr<mog::List> &args)>)func {
+    self = [super init];
+    _func = func;
+    return self;
+}
+- (void)invoke:(std::shared_ptr<List>)args {
+    return _func(args);
+}
+@end
+
+static void toNativeDictionary(const std::shared_ptr<Dictionary> &dictionary, NSMutableDictionary *dict);
+static void toNativeList(const std::shared_ptr<List> &list, NSMutableArray *nList);
+
+static void toMogDictionary(NSDictionary *nDict, std::shared_ptr<Dictionary> &dict);
+static void toMogList(NSArray *nList, std::shared_ptr<List> &list);
+
 
 #pragma - NativeInvoker
 
@@ -17,586 +39,449 @@ public:
         this->target = target;
     }
     
-    NRet execute(string methodName, const NArg *args, int len, NRet::Type retType) {
+    std::shared_ptr<Data> execute(std::string methodName, const std::shared_ptr<List> &args, DataType retType) {
         SEL sel = NSSelectorFromString([NSString stringWithUTF8String:methodName.c_str()]);
         NSMethodSignature *sig = [this->target methodSignatureForSelector:sel];
         assert(sig);
         NSInvocation* inv = [NSInvocation invocationWithMethodSignature:sig];
         [inv setSelector:sel];
-        for (int i = 0; i < len; i++) {
-            this->setArgument(inv, args[i], 2 + i);
+        for (int i = 0; i < args->size(); i++) {
+            auto arg = args->at<Data>(i);
+            this->setArgument(inv, arg, 2 + i);
         }
         [inv invokeWithTarget:this->target];
-        NRet ret;
-        ret.type = retType;
-        this->getReturnValue(inv, &ret);
-        return ret;
+        return this->getReturnValue(inv, retType);
     }
+    
+    std::shared_ptr<mog::Data> getProperty(std::string propertyName, DataType retType) {
+        id nsId = (id)this->target;
+        id nsValue = [nsId valueForKey:[NSString stringWithUTF8String:propertyName.c_str()]];
+        switch (retType) {
+            case DataType::Int: {
+                int i = [(NSNumber *)nsValue intValue];
+                return Int::create(i);
+            }
+            case DataType::Long: {
+                long l = [(NSNumber *)nsValue longValue];
+                return Long::create(l);
+            }
+            case DataType::Float: {
+                float f = [(NSNumber *)nsValue floatValue];
+                return Float::create(f);
+            }
+            case DataType::Double: {
+                double d = [(NSNumber *)nsValue doubleValue];
+                return Double::create(d);
+            }
+            case DataType::Bool: {
+                bool b = [(NSNumber *)nsValue boolValue];
+                return Bool::create(b);
+            }
+            case DataType::String: {
+                const char *s = ((NSString *)nsValue).UTF8String;
+                return String::create(s);
+            }
+            case DataType::ByteArray: {
+                NSData *data = (NSData *)nsValue;
+                return ByteArray::create((unsigned char *)data.bytes, (unsigned int)data.length, true);
+            }
+            case DataType::Dictionary: {
+                NSDictionary *nDict = (NSDictionary *)nsValue;
+                auto dict = Dictionary::create();
+                toMogDictionary(nDict, dict);
+                return dict;
+            }
+            case DataType::List: {
+                NSArray *nList = (NSArray *)nsValue;
+                auto list = List::create();
+                toMogList(nList, list);
+                return list;
+            }
+            case DataType::NativeObject: {
+                return NativeObject::create((void *)nsValue);
+            }
+            default:
+                return nullptr;
+        }
+    }
+    
+    void setProperty(std::string propertyName, const std::shared_ptr<Data> &value) {
+        id nsId = (id)this->target;
+        NSString *key = [NSString stringWithUTF8String:propertyName.c_str()];
+        id nsValue = nil;
+        switch (value->type) {
+            case DataType::Void: {
+                break;
+            }
+            case DataType::Int: {
+                int i = std::static_pointer_cast<Int>(value)->getValue();
+                nsValue = [NSNumber numberWithInt:i];
+                break;
+            }
+            case DataType::Long: {
+                long long l = std::static_pointer_cast<Long>(value)->getValue();
+                nsValue = [NSNumber numberWithLongLong:l];
+                break;
+            }
+            case DataType::Float: {
+                float f = std::static_pointer_cast<Float>(value)->getValue();
+                nsValue = [NSNumber numberWithFloat:f];
+                break;
+            }
+            case DataType::Double: {
+                double d = std::static_pointer_cast<Double>(value)->getValue();
+                nsValue = [NSNumber numberWithDouble:d];
+                break;
+            }
+            case DataType::Bool: {
+                bool b = std::static_pointer_cast<Bool>(value)->getValue();
+                nsValue = [NSNumber numberWithBool:b];
+                break;
+            }
+            case DataType::String: {
+                std::string s = std::static_pointer_cast<String>(value)->getValue();
+                nsValue = [NSString stringWithUTF8String:s.c_str()];
+                break;
+            }
+            case DataType::List: {
+                auto list = std::static_pointer_cast<List>(value);
+                NSMutableArray *nList = [NSMutableArray new];
+                toNativeList(list, nList);
+                nsValue = nList;
+                break;
+            }
+            case DataType::Dictionary: {
+                auto dict = std::static_pointer_cast<Dictionary>(value);
+                NSMutableDictionary *nDict = [NSMutableDictionary new];
+                toNativeDictionary(dict, nDict);
+                nsValue = nDict;
+                break;
+            }
+            case DataType::ByteArray: {
+                auto bytes = std::static_pointer_cast<ByteArray>(value);
+                unsigned char *value = nullptr;
+                unsigned int length = 0;
+                bytes->getValue(&value, &length);
+                NSData *data = [NSData dataWithBytes:value length:length];
+                nsValue = data;
+                break;
+            }
+            case DataType::NativeObject: {
+                auto o = std::static_pointer_cast<NativeObject>(value);
+                nsValue = (NSObject *)o->getValue();
+            }
+        }
+        [nsId setValue:nsValue forKey:key];
+    }
+
     
 private:
     NSProxy<NSObject> *target;
     
-    void setArgument(NSInvocation* inv, const NArg &arg, int idx) {
-        switch (arg.type) {
-            case NArg::Type::Int: {
-                int i = arg.v.i;
+    void setArgument(NSInvocation* inv, const std::shared_ptr<Data> &arg, int idx) {
+        switch (arg->type) {
+            case DataType::Void: {
+                void *o = nil;
+                [inv setArgument:o atIndex:idx];
+                break;
+            }
+            case DataType::Int: {
+                int i = std::static_pointer_cast<Int>(arg)->getValue();
                 [inv setArgument:&i atIndex:idx];
                 break;
             }
-            case NArg::Type::Long: {
-                long l = arg.v.l;
+            case DataType::Long: {
+                long long l = std::static_pointer_cast<Long>(arg)->getValue();
                 [inv setArgument:&l atIndex:idx];
                 break;
             }
-            case NArg::Type::Float: {
-                float f = arg.v.f;
+            case DataType::Float: {
+                float f = std::static_pointer_cast<Float>(arg)->getValue();
                 [inv setArgument:&f atIndex:idx];
                 break;
             }
-            case NArg::Type::Double: {
-                double d = arg.v.d;
+            case DataType::Double: {
+                double d = std::static_pointer_cast<Double>(arg)->getValue();
                 [inv setArgument:&d atIndex:idx];
                 break;
             }
-            case NArg::Type::Bool: {
-                bool b = arg.v.b;
+            case DataType::Bool: {
+                bool b = std::static_pointer_cast<Bool>(arg)->getValue();
                 [inv setArgument:&b atIndex:idx];
                 break;
             }
-            case NArg::Type::Object: {
-                void *o = arg.o->getObject();
-                [inv setArgument:&o atIndex:idx];
+            case DataType::String: {
+                std::string s = std::static_pointer_cast<String>(arg)->getValue();
+                NSString *str = [NSString stringWithUTF8String:s.c_str()];
+                [inv setArgument:&str atIndex:idx];
                 break;
+            }
+            case DataType::List: {
+                auto list = std::static_pointer_cast<List>(arg);
+                NSMutableArray *nList = [NSMutableArray new];
+                toNativeList(list, nList);
+                [inv setArgument:&nList atIndex:idx];
+                break;
+            }
+            case DataType::Dictionary: {
+                auto dict = std::static_pointer_cast<Dictionary>(arg);
+                NSMutableDictionary *nDict = [NSMutableDictionary new];
+                toNativeDictionary(dict, nDict);
+                [inv setArgument:&nDict atIndex:idx];
+                break;
+            }
+            case DataType::ByteArray: {
+                auto bytes = std::static_pointer_cast<ByteArray>(arg);
+                unsigned char *value = nullptr;
+                unsigned int length = 0;
+                bytes->getValue(&value, &length);
+                NSData *data = [NSData dataWithBytes:value length:length];
+                [inv setArgument:&data atIndex:idx];
+                break;
+            }
+            case DataType::NativeObject: {
+                auto o = std::static_pointer_cast<NativeObject>(arg);
+                NSObject *no = (NSObject *)o->getValue();
+                [inv setArgument:no atIndex:idx];
             }
         }
     }
     
-    void getReturnValue(NSInvocation* inv, NRet *ret) {
-        switch (ret->type) {
-            case NRet::Type::Int: {
-                [inv getReturnValue:&ret->v.i];
-                break;
+    std::shared_ptr<Data> getReturnValue(NSInvocation* inv, DataType retType) {
+        switch (retType) {
+            case DataType::Void: {
+                return nullptr;
             }
-            case NRet::Type::Long: {
-                [inv getReturnValue:&ret->v.l];
-                break;
+            case DataType::Int: {
+                int i = 0;
+                [inv getReturnValue:&i];
+                return Int::create(i);
             }
-            case NRet::Type::Float: {
-                [inv getReturnValue:&ret->v.f];
-                break;
+            case DataType::Long: {
+                long long l = 0;
+                [inv getReturnValue:&l];
+                return Long::create(l);
             }
-            case NRet::Type::Double: {
-                [inv getReturnValue:&ret->v.d];
-                break;
+            case DataType::Float: {
+                float f = 0.0f;
+                [inv getReturnValue:&f];
+                return Float::create(f);
             }
-            case NRet::Type::Bool: {
-                [inv getReturnValue:&ret->v.b];
-                break;
+            case DataType::Double: {
+                double d = 0.0;
+                [inv getReturnValue:&d];
+                return Double::create(d);
             }
-            case NRet::Type::Object: {
-                NSObject *o;
-                [inv getReturnValue:&o];
-                if (o) {
-                    ret->o = NativeObject::create((void *)o);
+            case DataType::Bool: {
+                bool b = false;
+                [inv getReturnValue:&b];
+                return Bool::create(b);
+            }
+            case DataType::String: {
+                NSString *s = nil;
+                [inv getReturnValue:&s];
+                if (s == nil) s = @"";
+                return String::create(s.UTF8String);
+            }
+            case DataType::List: {
+                NSArray *nList = nil;
+                [inv getReturnValue:&nList];
+                auto list = List::create();
+                if (nList) {
+                    toMogList(nList, list);
                 }
-                break;
+                return list;
             }
-            case NRet::Type::Void:
-                break;
+            case DataType::Dictionary: {
+                NSDictionary *nDict = nil;
+                [inv getReturnValue:&nDict];
+                auto dict = Dictionary::create();
+                if (nDict) {
+                    toMogDictionary(nDict, dict);
+                }
+                return dict;
+            }
+            case DataType::ByteArray: {
+                NSData *data = nil;
+                [inv getReturnValue:&data];
+                if (data) {
+                    return ByteArray::create((unsigned char *)data.bytes, (unsigned int)data.length, true);
+                } else {
+                    return ByteArray::create(nullptr, 0);
+                }
+            }
+            case DataType::NativeObject: {
+                NSObject *o = nil;
+                [inv getReturnValue:&o];
+                return NativeObject::create(o);
+            }
         }
     }
 };
 
 
-#pragma - NFunction
-
-NFunction::NFunction(function<void(NArg *args, int len)> func) {
-    this->func = func;
-}
-
-void NFunction::invoke(NArg *args, int len) {
-    this->func(args, len);
-}
-
-
-#pragma - NArg
-
-NArg::NArg(int v) {
-    this->type = Type::Int;
-    this->v.i = v;
-}
-
-NArg::NArg(long v) {
-    this->type = Type::Long;
-    this->v.l = v;
-}
-
-NArg::NArg(float v) {
-    this->type = Type::Float;
-    this->v.f = v;
-}
-
-NArg::NArg(double v) {
-    this->type = Type::Double;
-    this->v.d = v;
-}
-
-NArg::NArg(bool v) {
-    this->type = Type::Bool;
-    this->v.b = v;
-}
-
-NArg::NArg(const char *v) {
-    this->type = Type::Object;
-    this->o = NativeObject::create(string(v));
-}
-
-NArg::NArg(string v) {
-    this->type = Type::Object;
-    this->o = NativeObject::create(v);
-}
-
-/*
-NArg::NArg(void *v, Type type) {
-    if (type == Type::Object) {
-        this->type = Type::Object;
-        this->v.o = v;
-        NativeObjectPool::retain(this->v.o);
-        
-    } else if (type == Type::Function) {
-        this->type = Type::Function;
-        this->v.o = v;
-    }
-}
- */
-/*
-NArg::NArg(void *v) {
-    this->type = Type::Function;
-    this->v.o = v;
-}
-*/
-
-NArg::NArg(function<void(NArg *args, int len)> func) {
-    this->type = Type::Object;
-    MogFunction *mogFunc = [[MogFunction alloc] initWithCallback:^(void *args, int len) {
-        func((NArg *)args, len);
-    }];
-    this->o = NativeObject::create((void *)mogFunc);
-}
-
-NArg::NArg(const Dictionary &v) {
-    this->type = Type::Object;
-    this->o = NativeObject::create(v);
-}
-
-NArg::NArg(const Array &v) {
-    this->type = Type::Object;
-    this->o = NativeObject::create(v);
-}
-
-NArg::NArg(const shared_ptr<NativeObject> &v) {
-    this->type = Type::Object;
-    this->o = v;
-}
-
-NArg::NArg(void *v) {
-    this->type = Type::Object;
-    this->o = NativeObject::create(v);
-}
-
-NArg::~NArg() {
-}
-
-
-#pragma - NRet
-
-NRet::NRet() {
-    this->type = Type::Void;
-}
-
-NRet::~NRet() {
-}
-
-/*
-NativeObject NRet::getNativeObject() {
-    switch (this->type) {
-        case Type::Int:
-            return NativeObject(Int(this->v.i));
-        case Type::Long:
-            return NativeObject(Long(this->v.l));
-        case Type::Float:
-            return NativeObject(Float(this->v.f));
-        case Type::Double:
-            return NativeObject(Double(this->v.d));
-        case Type::Bool:
-            return NativeObject(Bool(this->v.b));
-        case Type::Object:n
-            return NativeObject(this->v.o);
-        default:
-            return NativeObject();
-    }
-}
-*/
-
 #pragma - NativeClass
 
-shared_ptr<NativeClass> NativeClass::create(string className) {
-    auto c = shared_ptr<NativeClass>(new NativeClass());
+std::shared_ptr<NativeClass> NativeClass::create(std::string className) {
+    return std::shared_ptr<NativeClass>(new NativeClass(className));
+}
+
+NativeClass::NativeClass(std::string className) {
     Class cls = NSClassFromString([NSString stringWithUTF8String:className.c_str()]);
-    c->cls = (void *)cls;
-    return c;
+    this->cls = (void *)cls;
 }
 
 NativeClass::~NativeClass() {
 }
 
-shared_ptr<NativeObject> NativeClass::newInstance() {
+std::shared_ptr<NativeObject> NativeClass::newInstance() {
     Class cls = (Class)this->cls;
     NSObject *obj = [cls alloc];
     return NativeObject::create((void *)obj);
 }
 
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg *args, int len) {
+void NativeClass::execute(std::string methodName) {
+    auto args = List::create();
+    this->executeMain(methodName, args, DataType::Void);
+}
+
+void NativeClass::executeWithList(std::string methodName, const std::shared_ptr<mog::List> &args) {
+    this->executeMain(methodName, args, DataType::Void);
+}
+
+std::shared_ptr<mog::Data> NativeClass::executeMain(std::string methodName, const std::shared_ptr<mog::List> &args, DataType retType) {
     Class cls = (Class)this->cls;
-    NSObject *obj = [cls alloc];
-    return NativeObject::create((void *)obj);
+    return NativeInvoker(cls).execute(methodName, args, retType);
 }
 
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1) {
-    NArg args[] = {arg1};
-    return this->newInstance(args, 1);
+std::shared_ptr<mog::Data> NativeClass::getPropertyMain(std::string propertyName, DataType retType) {
+    id nsObj = (id)this->cls;
+    return NativeInvoker(nsObj).getProperty(propertyName, retType);
 }
 
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2) {
-    NArg args[] = {arg1, arg2};
-    return this->newInstance(args, 2);
+void NativeClass::setProperty(std::string propertyName, const std::shared_ptr<Data> &value) {
+    id nsObj = (id)this->cls;
+    NativeInvoker(nsObj).setProperty(propertyName, value);
 }
-
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3) {
-    NArg args[] = {arg1, arg2, arg3};
-    return this->newInstance(args, 3);
-}
-
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4) {
-    NArg args[] = {arg1, arg2, arg3, arg4};
-    return this->newInstance(args, 4);
-}
-
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5};
-    return this->newInstance(args, 5);
-}
-
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                      const NArg &arg6) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6};
-    return this->newInstance(args, 6);
-}
-
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                      const NArg &arg6, const NArg &arg7) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7};
-    return this->newInstance(args, 7);
-}
-
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                      const NArg &arg6, const NArg &arg7, const NArg &arg8) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8};
-    return this->newInstance(args, 8);
-}
-
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                      const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9};
-    return this->newInstance(args, 9);
-}
-
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                      const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9, const NArg &arg10) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10};
-    return this->newInstance(args, 10);
-}
-
-
-NRet NativeClass::execute(string methodName, NArg *args, int len, NRet::Type retType) {
-    Class cls = (Class)this->cls;
-    return NativeInvoker(cls).execute(methodName, args, len, retType);
-}
-
-NRet NativeClass::execute(string methodName, NRet::Type retType) {
-    return this->execute(methodName, nullptr, 0, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, NRet::Type retType) {
-    NArg args[] = {arg1};
-    return this->execute(methodName, args, 1, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, NRet::Type retType) {
-    NArg args[] = {arg1, arg2};
-    return this->execute(methodName, args, 2, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3};
-    return this->execute(methodName, args, 3, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4};
-    return this->execute(methodName, args, 4, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5};
-    return this->execute(methodName, args, 5, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6};
-    return this->execute(methodName, args, 6, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7};
-    return this->execute(methodName, args, 7, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8};
-    return this->execute(methodName, args, 8, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9,
-                           NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9};
-    return this->execute(methodName, args, 9, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9,
-                           const NArg &arg10, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10};
-    return this->execute(methodName, args, 10, retType);
-}
-
 
 
 #pragma - NativeObject
 
+std::shared_ptr<NativeObject> NativeObject::create(void *value) {
+    return std::shared_ptr<NativeObject>(new NativeObject(value));
+}
+
+std::shared_ptr<NativeObject> NativeObject::create(const std::shared_ptr<Dictionary> &dict) {
+    NSMutableDictionary *nsDict = [NSMutableDictionary new];
+    toNativeDictionary(dict, nsDict);
+    return create(nsDict);
+}
+
+std::shared_ptr<NativeObject> NativeObject::create(const std::shared_ptr<List> &list) {
+    NSMutableArray *nsArr = [NSMutableArray new];
+    toNativeList(list, nsArr);
+    return create(nsArr);
+}
+
+std::shared_ptr<NativeObject> NativeObject::create(const std::shared_ptr<ByteArray> &bytes) {
+    unsigned char *value = nullptr;
+    unsigned int length = 0;
+    bytes->getValue(&value, &length);
+    NSData *data = [NSData dataWithBytes:value length:length];
+    return NativeObject::create((void *)data);
+}
+
+std::shared_ptr<NativeObject> NativeObject::create(std::function<void(const std::shared_ptr<mog::List> &args)> func) {
+    NativeFunction *nativeFunc = [[NativeFunction alloc] initWithFunction:func];
+    return create(nativeFunc);
+}
+
+NativeObject::NativeObject(void *value) {
+    [(NSObject *)value retain];
+    this->value = value;
+}
+
 NativeObject::~NativeObject() {
-    if (this->obj) {
-        [(NSObject *)obj release];
+    if (this->value) {
+        [(NSObject *)this->value release];
     }
 }
 
-
-shared_ptr<NativeObject> NativeObject::create(void *obj) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    o->obj = obj;
-    [(NSObject *)obj retain];
-    return o;
+void *NativeObject::getValue() {
+    return this->value;
 }
 
-shared_ptr<NativeObject> NativeObject::create(string str) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    NSString *nsStr = [[NSString alloc] initWithUTF8String:str.c_str()];
-    [nsStr retain];
-    o->obj = (void *)nsStr;
-    return o;
+void NativeObject::execute(std::string methodName) {
+    auto args = List::create();
+    this->executeMain(methodName, args, DataType::Void);
 }
 
-shared_ptr<NativeObject> NativeObject::create(const Dictionary &dict) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    NSMutableDictionary *nsDict = [NSMutableDictionary new];
-    __toNativeDictionary(dict, nsDict);
-    [nsDict retain];
-    o->obj = (void *)nsDict;
-    return o;
+void NativeObject::executeWithList(std::string methodName, const std::shared_ptr<mog::List> &args) {
+    this->executeMain(methodName, args, DataType::Void);
 }
 
-shared_ptr<NativeObject> NativeObject::create(const Array &arr) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    NSMutableArray *nsArr = [NSMutableArray new];
-    __toNativeArray(arr, nsArr);
-    [nsArr retain];
-    o->obj = (void *)nsArr;
-    return o;
+std::shared_ptr<mog::Data> NativeObject::executeMain(std::string methodName, const std::shared_ptr<mog::List> &args, DataType retType) {
+    id nsObj = (id)this->value;
+    return NativeInvoker(nsObj).execute(methodName, args, retType);
 }
 
-shared_ptr<NativeObject> NativeObject::create(const Int &i) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    NSNumber *n = [NSNumber numberWithInt:i.value];
-    [n retain];
-    o->obj = (void *)n;
-    return o;
+std::shared_ptr<mog::Data> NativeObject::getPropertyMain(std::string propertyName, DataType retType) {
+    id nsObj = (id)this->value;
+    return NativeInvoker(nsObj).getProperty(propertyName, retType);
 }
 
-shared_ptr<NativeObject> NativeObject::create(const Long &l) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    NSNumber *n = [NSNumber numberWithLong:l.value];
-    [n retain];
-    o->obj = (void *)n;
-    return o;
+void NativeObject::setProperty(std::string propertyName, const std::shared_ptr<Data> &value) {
+    id nsObj = (id)this->value;
+    NativeInvoker(nsObj).setProperty(propertyName, value);
 }
 
-shared_ptr<NativeObject> NativeObject::create(const Float &f) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    NSNumber *n = [NSNumber numberWithFloat:f.value];
-    [n retain];
-    o->obj = (void *)n;
-    return o;
-}
-
-shared_ptr<NativeObject> NativeObject::create(const Double &d) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    NSNumber *n = [NSNumber numberWithDouble:d.value];
-    [n retain];
-    o->obj = (void *)n;
-    return o;
-}
-
-shared_ptr<NativeObject> NativeObject::create(const Bool &b) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    NSNumber *n = [NSNumber numberWithBool:b.value];
-    [n retain];
-    o->obj = (void *)n;
-    return o;
-}
-
-shared_ptr<NativeObject> NativeObject::create(const String &s) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    NSString *nsStr = [[NSString alloc] initWithUTF8String:s.value.c_str()];
-    [nsStr retain];
-    o->obj = (void *)nsStr;
-    return o;
-}
-
-shared_ptr<NativeObject> NativeObject::create(const Bytes &b) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    NSData *data = [NSData dataWithBytes:b.value length:b.length];
-    [data retain];
-    o->obj = (void *)data;
-    return o;
-}
-
-NRet NativeObject::execute(string methodName, NArg *args, int len, NRet::Type retType) {
-    id nsObj = (id)this->obj;
-    return NativeInvoker(nsObj).execute(methodName, args, len, retType);
-}
-
-NRet NativeObject::execute(string methodName, NRet::Type retType) {
-    return this->execute(methodName, nullptr, 0, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, NRet::Type retType) {
-    NArg args[] = {arg1};
-    return this->execute(methodName, args, 1, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, NRet::Type retType) {
-    NArg args[] = {arg1, arg2};
-    return this->execute(methodName, args, 2, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3};
-    return this->execute(methodName, args, 3, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4};
-    return this->execute(methodName, args, 4, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5};
-    return this->execute(methodName, args, 5, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6};
-    return this->execute(methodName, args, 6, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7};
-    return this->execute(methodName, args, 7, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8};
-    return this->execute(methodName, args, 8, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9,
-                           NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9};
-    return this->execute(methodName, args, 9, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9,
-                           const NArg &arg10, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10};
-    return this->execute(methodName, args, 10, retType);
-}
-
-void *NativeObject::getObject() {
-    return this->obj;
-}
-
-void __toNativeDictionary(const Dictionary &dictionary, NSMutableDictionary *dict) {
-    for (string key : dictionary.getKeys()) {
-        auto type = dictionary.getType(key);
+static void toNativeDictionary(const std::shared_ptr<Dictionary> &dictionary, NSMutableDictionary *dict) {
+    for (std::string key : dictionary->getKeys()) {
+        auto type = dictionary->getType(key);
         NSString *keyStr = [NSString stringWithUTF8String:key.c_str()];
         NSObject *obj = nil;
         switch (type) {
             case DataType::Int:
-                obj = [NSNumber numberWithInt:dictionary.get<Int>(key).value];
+                obj = [NSNumber numberWithInt:dictionary->get<Int>(key)->getValue()];
                 break;
             case DataType::Long:
-                obj = [NSNumber numberWithLong:dictionary.get<Long>(key).value];
+                obj = [NSNumber numberWithLong:dictionary->get<Long>(key)->getValue()];
                 break;
             case DataType::Float:
-                obj = [NSNumber numberWithFloat:dictionary.get<Float>(key).value];
+                obj = [NSNumber numberWithFloat:dictionary->get<Float>(key)->getValue()];
                 break;
             case DataType::Double:
-                obj = [NSNumber numberWithDouble:dictionary.get<Double>(key).value];
+                obj = [NSNumber numberWithDouble:dictionary->get<Double>(key)->getValue()];
                 break;
             case DataType::String:
-                obj = [NSString stringWithUTF8String:dictionary.get<String>(key).value.c_str()];
+                obj = [NSString stringWithUTF8String:dictionary->get<String>(key)->getValue().c_str()];
                 break;
             case DataType::Bool:
-                obj = [NSNumber numberWithBool:(BOOL)dictionary.get<Bool>(key).value];
+                obj = [NSNumber numberWithBool:(BOOL)dictionary->get<Bool>(key)->getValue()];
                 break;
-            case DataType::Bytes: {
-                auto bytes = dictionary.get<Bytes>(key);
-                obj = [NSData dataWithBytes:bytes.value length:bytes.length];
+            case DataType::ByteArray: {
+                auto bytes = dictionary->get<ByteArray>(key);
+                unsigned char *value = nullptr;
+                unsigned int length = 0;
+                bytes->getValue(&value, &length);
+                obj = [NSData dataWithBytes:value length:length];
                 break;
             }
             case DataType::Dictionary: {
                 NSMutableDictionary *d = [NSMutableDictionary new];
-                __toNativeDictionary(dictionary.get<Dictionary>(key), d);
+                toNativeDictionary(dictionary->get<Dictionary>(key), d);
                 obj = d;
                 break;
             }
-            case DataType::Array: {
+            case DataType::List: {
                 NSMutableArray *a = [NSMutableArray new];
-                __toNativeArray(dictionary.get<Array>(key), a);
+                toNativeList(dictionary->get<List>(key), a);
                 obj = a;
+                break;
+            }
+            case DataType::NativeObject: {
+                auto o = dictionary->get<NativeObject>(key);
+                obj = (NSObject *)o->getValue();
                 break;
             }
             default:
@@ -606,49 +491,112 @@ void __toNativeDictionary(const Dictionary &dictionary, NSMutableDictionary *dic
     }
 }
 
-void __toNativeArray(const Array &array, NSMutableArray *arr) {
-    for (int i = 0; i < array.size(); i++) {
-        auto type = array.atType(i);
+static void toNativeList(const std::shared_ptr<List> &list, NSMutableArray *nList) {
+    for (int i = 0; i < list->size(); i++) {
+        auto type = list->atType(i);
         NSObject *obj = nil;
         switch (type) {
             case DataType::Int:
-                obj = [NSNumber numberWithInt:array.at<Int>(i).value];
+                obj = [NSNumber numberWithInt:list->at<Int>(i)->getValue()];
                 break;
             case DataType::Long:
-                obj = [NSNumber numberWithLong:array.at<Long>(i).value];
+                obj = [NSNumber numberWithLong:list->at<Long>(i)->getValue()];
                 break;
             case DataType::Float:
-                obj = [NSNumber numberWithFloat:array.at<Float>(i).value];
+                obj = [NSNumber numberWithFloat:list->at<Float>(i)->getValue()];
                 break;
             case DataType::Double:
-                obj = [NSNumber numberWithDouble:array.at<Double>(i).value];
+                obj = [NSNumber numberWithDouble:list->at<Double>(i)->getValue()];
                 break;
             case DataType::String:
-                obj = [NSString stringWithUTF8String:array.at<String>(i).value.c_str()];
+                obj = [NSString stringWithUTF8String:list->at<String>(i)->getValue().c_str()];
                 break;
             case DataType::Bool:
-                obj = [NSNumber numberWithBool:(BOOL)array.at<Bool>(i).value];
+                obj = [NSNumber numberWithBool:(BOOL)list->at<Bool>(i)->getValue()];
                 break;
-            case DataType::Bytes: {
-                auto bytes = array.at<Bytes>(i);
-                obj = [NSData dataWithBytes:bytes.value length:bytes.length];
+            case DataType::ByteArray: {
+                auto bytes = list->at<ByteArray>(i);
+                unsigned char *value = nullptr;
+                unsigned int length = 0;
+                bytes->getValue(&value, &length);
+                obj = [NSData dataWithBytes:value length:length];
                 break;
             }
             case DataType::Dictionary: {
                 NSMutableDictionary *d = [NSMutableDictionary new];
-                __toNativeDictionary(array.at<Dictionary>(i), d);
+                toNativeDictionary(list->at<Dictionary>(i), d);
                 obj = d;
                 break;
             }
-            case DataType::Array: {
+            case DataType::List: {
                 NSMutableArray *a = [NSMutableArray new];
-                __toNativeArray(array.at<Array>(i), a);
+                toNativeList(list->at<List>(i), a);
                 obj = a;
+                break;
+            }
+            case DataType::NativeObject: {
+                obj = (NSObject *)list->at<NativeObject>(i)->getValue();
                 break;
             }
             default:
                 break;
         }
-        [arr addObject:obj];
+        [nList addObject:obj];
     }
 }
+
+static void toMogDictionary(NSDictionary *nDict, std::shared_ptr<Dictionary> &dict) {
+    for (NSString *key in [nDict keyEnumerator]) {
+        std::string keyStr = key.UTF8String;
+        NSObject *val = nDict[key];
+        
+        if ([val isKindOfClass:[NSNumber class]]) {
+            NSNumber *num = (NSNumber *)val;
+            long long l = [num longLongValue];
+            double d = [num doubleValue];
+            if (l == (long long)d) {
+                dict->put(keyStr, Long::create(l));
+            } else {
+                dict->put(keyStr, Double::create(d));
+            }
+            
+        } else if ([val isKindOfClass:[NSString class]]) {
+            NSString *str = (NSString *)val;
+            dict->put(keyStr, String::create(str.UTF8String));
+            
+        } else if ([val isKindOfClass:[NSData class]]) {
+            NSData *data = (NSData *)val;
+            dict->put(keyStr, ByteArray::create((unsigned char *)data.bytes, (unsigned int)data.length, true));
+            
+        } else {
+            dict->put(keyStr, NativeObject::create((void *)val));
+        }
+    }
+}
+
+static void toMogList(NSArray *nList, std::shared_ptr<List> &list) {
+    for (NSObject *val in nList) {
+        if ([val isKindOfClass:[NSNumber class]]) {
+            NSNumber *num = (NSNumber *)val;
+            long long l = [num longLongValue];
+            double d = [num doubleValue];
+            if (l == (long long)d) {
+                list->append(Long::create(l));
+            } else {
+                list->append(Double::create(d));
+            }
+            
+        } else if ([val isKindOfClass:[NSString class]]) {
+            NSString *str = (NSString *)val;
+            list->append(String::create(str.UTF8String));
+            
+        } else if ([val isKindOfClass:[NSData class]]) {
+            NSData *data = (NSData *)val;
+            list->append(ByteArray::create((unsigned char *)data.bytes, (unsigned int)data.length, true));
+            
+        } else {
+            list->append(NativeObject::create((void *)val));
+        }
+    }
+}
+

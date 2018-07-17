@@ -14,6 +14,7 @@ namespace mog {
     class AudioChannelNative;
     
     class AudioChannel {
+        friend class AudioPlayer;
     public:
         enum class State {
             Playing,
@@ -39,6 +40,8 @@ namespace mog {
         State getState();
         
     private:
+        void execute();
+        
         std::unique_ptr<AudioChannelNative> audioChannelNative;
         bool mute = false;
     };
@@ -66,9 +69,9 @@ namespace mog {
 
     private:
         static AudioPlayer *instance;
-        static void preload() {
-        }
+        static void preload() { }
         static void preloadOne(std::string filename);
+        static void execute();
 
         std::unordered_map<std::string, std::shared_ptr<AudioChannel>> channels;
         std::vector<std::shared_ptr<AudioChannel>> poolOneShotChannels;

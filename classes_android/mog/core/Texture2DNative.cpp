@@ -12,7 +12,7 @@ void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float 
     if (strlen(text) == 0) return;
 
     JNIEnv* env = AndroidHelper::getEnv();
-    jobject activity = (jobject)AndroidHelper::getActivity()->getObject();
+    jobject activity = (jobject)AndroidHelper::getActivity()->getValue();
 //    vm->AttachCurrentThread(&env, NULL);
 
     env->PushLocalFrame(16);
@@ -60,7 +60,7 @@ void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float 
 
 string Texture2DNative::getLocalizedTextNative(const char *textKey, va_list args) {
     JNIEnv* env = AndroidHelper::getEnv();
-    jobject activityObj = (jobject)AndroidHelper::getActivity()->getObject();
+    jobject activityObj = (jobject)AndroidHelper::getActivity()->getValue();
 //    vm->AttachCurrentThread(&env, NULL);
 
     env->PushLocalFrame(16);

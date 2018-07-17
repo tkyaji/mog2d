@@ -142,15 +142,15 @@ SLuint32 AudioData::getState() {
     if (!this->loaded) {
         return SL_PLAYSTATE_STOPPED;
     }
-    /*
+    if (this->getLoop()) {
+        return this->state;
+    }
     SLuint32 state;
     SLresult result = (*this->playerPlay)->GetPlayState(this->playerPlay, &state);
     if (result != SL_RESULT_SUCCESS) {
         LOGE("[AudioPlayerNative] GetPlayState failed");
     }
     return state;
-     */
-    return this->state;
 }
 
 void AudioData::setState(SLuint32 state) {
@@ -280,6 +280,7 @@ void AudioChannelNative::createOutputMix() {
 }
 
 void AudioChannelNative::load(const char *filename, bool cache) {
+    if (this->audioData && this->audioData->filename == filename) return;
     this->audioData = AudioData::loadAudioData(this->slEngine, this->outputMixObj, filename, cache);
     if (!this->audioData) {
         return;

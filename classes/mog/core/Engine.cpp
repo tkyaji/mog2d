@@ -11,7 +11,6 @@
 #include "mog/core/Device.h"
 #include "mog/core/AudioPlayer.h"
 #include "mog/core/DataStore.h"
-#include "mog/core/NativePlugin.h"
 
 using namespace mog;
 
@@ -37,7 +36,6 @@ std::shared_ptr<Engine> Engine::getInstance() {
 
 Engine::Engine() {
     AudioPlayer::initialize();
-    NativeCallbackManager::initialize();
     this->renderer = make_shared<Renderer>();
 }
 
@@ -50,8 +48,6 @@ Engine::~Engine() {
 void Engine::startEngine() {
     if (this->running) return;
     this->running = true;
-    
-    rpmalloc_initialize();
     
     this->startTimer();
     this->lastElapsedSec = this->getTimerElapsedSec();
@@ -85,8 +81,6 @@ void Engine::stopEngine() {
     this->stopTimer();
     DataStore::save();
 
-    rpmalloc_finalize();
-
     this->running = false;
 }
 
@@ -111,7 +105,6 @@ void Engine::onDrawFrame(map<unsigned int, TouchInput> touches) {
     this->frameCount++;
     
     this->fireTouchListeners(touches);
-    NativeCallbackManager::getInstance()->invokeCallback();
     
     this->invokeOnUpdateFunc();
 }
@@ -179,11 +172,14 @@ void Engine::setDisplaySize(const Size &displaySize, const Size &viewSize) {
     this->displaySizeChanged = true;
 }
 
+
 void Engine::setScreenSizeBasedOnHeight(float height) {
     auto displaySize = this->getDisplaySize();
     float scale = height / displaySize.height;
     float width = displaySize.width * scale;
     this->screenSize = Size(width, height);
+    this->baseScreenSides = 'h';
+    this->baseScreenSize = height;
 }
 
 void Engine::setScreenSizeBasedOnWidth(float width) {
@@ -191,6 +187,23 @@ void Engine::setScreenSizeBasedOnWidth(float width) {
     float scale = width / displaySize.width;
     float height = displaySize.height * scale;
     this->screenSize = Size(width, height);
+    this->baseScreenSides = 'w';
+    this->baseScreenSize = width;
+}
+
+void Engine::resetScreenSize() {
+    if (this->baseScreenSides == '_') {
+#ifdef BASE_SCREEN_WIDTH
+        this->setScreenSizeBasedOnWidth(BASE_SCREEN_WIDTH);
+#endif
+#ifdef BASE_SCREEN_HEIGHT
+        this->setScreenSizeBasedOnHeight(BASE_SCREEN_HEIGHT);
+#endif
+    } else if (this->baseScreenSides == 'w') {
+        this->setScreenSizeBasedOnWidth(this->baseScreenSize);
+    } else {
+        this->setScreenSizeBasedOnHeight(this->baseScreenSize);
+    }
 }
 
 float Engine::getScreenScale() {

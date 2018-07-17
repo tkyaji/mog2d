@@ -15,14 +15,14 @@ string FileUtils::readTextAsset(string filename) {
     return FileUtilsNative::readTextAsset(filename);
 }
 
-Bytes FileUtils::readBytesAsset(string filename) {
+std::shared_ptr<ByteArray> FileUtils::readBytesAsset(string filename) {
     unsigned char *data = nullptr;
-    int len = 0;
+    unsigned int len = 0;
     FileUtilsNative::readBytesAsset(filename, &data, &len);
-    return Bytes(data, len);
+    return ByteArray::create(data, len);
 }
 
-Bytes FileUtils::readFile(string filename, Directory dir) {
+std::shared_ptr<ByteArray> FileUtils::readFile(string filename, Directory dir) {
     string fileDir = "";
     if (dir == Directory::Documents) {
         fileDir = getDocumentsDirectory();
@@ -34,7 +34,7 @@ Bytes FileUtils::readFile(string filename, Directory dir) {
     return FileUtils::readDataFromFile(filepath);
 }
 
-bool FileUtils::writeFile(string filename, const Bytes &bytes, Directory dir) {
+bool FileUtils::writeFile(string filename, const std::shared_ptr<ByteArray> &bytes, Directory dir) {
     string fileDir = "";
     if (dir == Directory::Documents) {
         fileDir = getDocumentsDirectory();
@@ -46,34 +46,34 @@ bool FileUtils::writeFile(string filename, const Bytes &bytes, Directory dir) {
     return FileUtils::writeDataToFile(filepath, bytes);
 }
 
-Bytes FileUtils::readDataFromFile(string filepath) {
+std::shared_ptr<ByteArray> FileUtils::readDataFromFile(string filepath) {
     std::ifstream ifs;
     ifs.open(filepath, std::ios::in | std::ios_base::binary);
     if (ifs.fail()) {
         LOGE("file open failed: %s", filepath.c_str());
-        return Bytes();
+        return nullptr;
     }
     ifs.seekg(0, std::ios::end);
-    size_t size = ifs.tellg();
+    unsigned int size = (unsigned int)ifs.tellg();
     ifs.seekg(0, ios_base::beg);
     
     bool ret = true;
-    char *dt = (char *)rpmalloc(size);
+    char *dt = (char *)rpmalloc(sizeof(char) * size);
     ifs.read(dt, size);
-    Bytes data;
+    std::shared_ptr<ByteArray> data = nullptr;
     if (ifs.bad()) {
         ret = false;
         rpfree(dt);
         LOGE("file read failed: %s", filepath.c_str());
     } else {
-        data = Bytes((unsigned char *)dt, (int)size);
+        data = ByteArray::create((unsigned char *)dt, (unsigned int)size);
     }
     ifs.close();
     
     return data;
 }
 
-bool FileUtils::writeDataToFile(string filepath, const Bytes &bytes) {
+bool FileUtils::writeDataToFile(string filepath, const std::shared_ptr<ByteArray> &bytes) {
     std::ofstream ofs;
     ofs.open(filepath, std::ios::out | std::ios_base::binary);
     if (ofs.fail()) {
@@ -82,7 +82,10 @@ bool FileUtils::writeDataToFile(string filepath, const Bytes &bytes) {
     }
     
     bool ret = true;
-    ofs.write((const char *)bytes.value, bytes.length);
+    unsigned char *value;
+    unsigned int length;
+    bytes->getValue(&value, &length);
+    ofs.write((const char *)value, length);
     if (ofs.bad()) {
         ret = false;
         LOGE("file write failed: %s", filepath.c_str());

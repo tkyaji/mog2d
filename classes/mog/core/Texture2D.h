@@ -10,8 +10,6 @@
 #include "mog/core/Density.h"
 #include "mog/core/Data.h"
 
-using namespace std;
-
 namespace mog {
     
     enum class TextureType {
@@ -20,10 +18,10 @@ namespace mog {
     };
     
     
-    class Texture2D : public enable_shared_from_this<Texture2D> {
+    class Texture2D : public std::enable_shared_from_this<Texture2D> {
     public:
         GLuint textureId = 0;
-        string filename;
+        std::string filename;
         TextureType textureType = TextureType::RGBA;
         int width = 0;
         int height = 0;
@@ -33,12 +31,12 @@ namespace mog {
         bool isFlip = false;
         Density density = Density::x1_0;
         
-        static shared_ptr<Texture2D> createWithAsset(string filename);
-        static shared_ptr<Texture2D> createWithFile(string filepath, Density density = Density::x1_0);
-        static shared_ptr<Texture2D> createWithImage(const Bytes &bytes);
-        static shared_ptr<Texture2D> createWithText(string text, float fontSize, string fontFilename = "", float height = 0);
-        static shared_ptr<Texture2D> createWithColor(TextureType textureType, const Color &color, int width, int height, Density density = Density::x1_0);
-        static shared_ptr<Texture2D> createWithRGBA(unsigned char *data, int width, int height, Density density = Density::x1_0);
+        static std::shared_ptr<Texture2D> createWithAsset(std::string filename);
+        static std::shared_ptr<Texture2D> createWithFile(std::string filepath, Density density = Density::x1_0);
+        static std::shared_ptr<Texture2D> createWithImage(const std::shared_ptr<ByteArray> &bytes);
+        static std::shared_ptr<Texture2D> createWithText(std::string text, float fontSize, std::string fontFilename = "", float height = 0);
+        static std::shared_ptr<Texture2D> createWithColor(TextureType textureType, const Color &color, int width, int height, Density density = Density::x1_0);
+        static std::shared_ptr<Texture2D> createWithRGBA(unsigned char *data, int width, int height, Density density = Density::x1_0);
         
         Texture2D();
         ~Texture2D();
@@ -48,10 +46,10 @@ namespace mog {
         void loadImageFromBuffer(unsigned char *buffer, int len);
         
     private:
-        void loadTextureAsset(string filename);
-        Bytes readBytesAsset(string filename, Density *density);
-        void loadTextureFile(string filepath, Density density = Density::x1_0);
-        void loadFontTexture(string text, float fontSize, string fontFilename = "", float height = 0);
+        void loadTextureAsset(std::string filename);
+        std::shared_ptr<ByteArray> readBytesAsset(std::string filename, Density *density);
+        void loadTextureFile(std::string filepath, Density density = Density::x1_0);
+        void loadFontTexture(std::string text, float fontSize, std::string fontFilename = "", float height = 0);
         void loadColorTexture(TextureType textureType, const Color &color, int width, int height, Density density = Density::x1_0);
     };
 }

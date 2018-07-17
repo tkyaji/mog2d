@@ -31,7 +31,7 @@ shared_ptr<Sprite> Sprite::createWithFilePath(string filepath, const Rect &rect,
     return sprite;
 }
 
-shared_ptr<Sprite> Sprite::createWithImage(const Bytes &bytes) {
+shared_ptr<Sprite> Sprite::createWithImage(const std::shared_ptr<ByteArray> &bytes) {
     auto sprite = shared_ptr<Sprite>(new Sprite());
     sprite->initWithImage(bytes);
     return sprite;
@@ -121,7 +121,7 @@ void Sprite::initWithFilePath(string filepath, const Rect &rect, Density density
     this->initRendererVertices(4, 4);
 }
 
-void Sprite::initWithImage(const Bytes &bytes) {
+void Sprite::initWithImage(const std::shared_ptr<ByteArray> &bytes) {
     this->texture = Texture2D::createWithImage(bytes);
     
     this->transform->size.width = this->texture->width / this->texture->density.value;

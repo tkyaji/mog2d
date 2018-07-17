@@ -74,6 +74,9 @@ AudioChannel::State AudioChannel::getState() {
     return this->audioChannelNative->getState();
 }
 
+void AudioChannel::execute() {
+    
+}
 
 #pragma - AudioPlayer
 
@@ -161,5 +164,11 @@ void AudioPlayer::onResume() {
         c->resume();
     }
     AudioPlayer::instance->resumeChannels.clear();
+}
+
+void AudioPlayer::execute() {
+    for (const auto &pair : AudioPlayer::instance->channels) {
+        pair.second->execute();
+    }
 }
 

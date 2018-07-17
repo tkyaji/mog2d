@@ -46,7 +46,8 @@ namespace mog {
         void setDisplaySize(const Size &displaySize, const Size &viewSize);
         void setScreenSizeBasedOnHeight(float height);
         void setScreenSizeBasedOnWidth(float width);
-        
+        void resetScreenSize();
+
         Color getClearColor();
         void setClearColor(const Color &color);
         void clearColor();
@@ -106,6 +107,8 @@ namespace mog {
         bool multiTouchEnable = true;
         std::vector<shared_ptr<Entity>> touchableEntities;
         std::unordered_map<int, Touch> prevTouches;
+        char baseScreenSides = '_';
+        float baseScreenSize = 0.0f;
 
         void initParameters();
         void setViewPortScale();

@@ -59,7 +59,11 @@ bool AudioData::loadFromAssetNative(ALuint buffer, const char *filename) {
         int _channels = 0;
         int _sampleRate = 0;
         short *_output;
-        int dataLen = stb_vorbis_decode_memory((const uint8 *)data.value, data.length, &_channels, &_sampleRate, &_output);
+        
+        unsigned char *value = nullptr;
+        unsigned int length = 0;
+        data->getValue(&value, &length);
+        int dataLen = stb_vorbis_decode_memory((const uint8 *)value, length, &_channels, &_sampleRate, &_output);
         if (dataLen < 0) {
             LOGE("Audio resource load failed.");
             LOGE(filename);

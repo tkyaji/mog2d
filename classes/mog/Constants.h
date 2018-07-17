@@ -22,7 +22,9 @@
 #endif
 
 #define DEFAULT_FPS 60
+// Enable either BASE_SCREEN_HEIGHT or BASE_SCREEN_WIDTH
 #define BASE_SCREEN_HEIGHT 640
+//#define BASE_SCREEN_WIDTH 0
 
 #define LOG_DEBUG       1
 #define LOG_INFO        2

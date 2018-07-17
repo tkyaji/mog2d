@@ -5,6 +5,7 @@
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 #include "mog/core/Engine.h"
+#include "mog/core/NativeClass.h"
 
 #define MOG_ACTIVITY "Activity"
 #define MOG_AASET_MANAGER "AAssetManager"
@@ -27,14 +28,14 @@ namespace mog {
 
         static AAssetManager *getAssetManager() {
             auto assetManager = engine.lock()->getNativeObject(MOG_AASET_MANAGER);
-            return AAssetManager_fromJava(getEnv(), (jobject)assetManager->getObject());
+            return AAssetManager_fromJava(getEnv(), (jobject)assetManager->getValue());
         }
 
         static shared_ptr<NativeObject> getPluginObject(string className) {
             JNIEnv *env = getEnv();
             env->PushLocalFrame(16);
             auto activity = engine.lock()->getNativeObject(MOG_ACTIVITY);
-            jobject jActivity = (jobject)activity->getObject();
+            jobject jActivity = (jobject)activity->getValue();
             jclass jcls = env->GetObjectClass(jActivity);
             jmethodID getPluginObjectId = env->GetMethodID(jcls, "getPluginObject", "(Ljava/lang/String;)Ljava/lang/Object;");
             jstring jclassName = env->NewStringUTF(className.c_str());
@@ -45,12 +46,13 @@ namespace mog {
         }
 
         static void runOnUiThread(std::function<void()> func) {
-            auto f = [func](NArg *args, int len) {
+            auto f = [func](const std::shared_ptr<mog::List> &args) {
                 func();
             };
-            getActivity()->execute("runOnUiThread", NArg(f));
+            getActivity()->execute("runOnUiThread", NativeObject::create(f));
         }
 
+        /*
         static shared_ptr<NativeObject> toBundle(const Dictionary &dict) {
             JNIEnv *env = AndroidHelper::getEnv();
             env->PushLocalFrame(16);
@@ -76,23 +78,23 @@ namespace mog {
 
                 switch (type) {
                     case DataType::Int: {
-                        env->CallVoidMethod(bundleObj, putIntId, keyStr, (jint)dict.get<Int>(key).value);
+                        env->CallVoidMethod(bundleObj, putIntId, keyStr, (jint)dict.get<Int>(key)->getValue());
                         break;
                     }
                     case DataType::Long: {
-                        env->CallVoidMethod(bundleObj, putLongId, keyStr, (jlong)dict.get<Long>(key).value);
+                        env->CallVoidMethod(bundleObj, putLongId, keyStr, (jlong)dict.get<Long>(key)->getValue());
                         break;
                     }
                     case DataType::Float: {
-                        env->CallVoidMethod(bundleObj, putFloatId, keyStr, (jfloat)dict.get<Float>(key).value);
+                        env->CallVoidMethod(bundleObj, putFloatId, keyStr, (jfloat)dict.get<Float>(key)->getValue());
                         break;
                     }
                     case DataType::Double: {
-                        env->CallVoidMethod(bundleObj, putDoubleId, keyStr, (jdouble)dict.get<Double>(key).value);
+                        env->CallVoidMethod(bundleObj, putDoubleId, keyStr, (jdouble)dict.get<Double>(key)->getValue());
                         break;
                     }
                     case DataType::Bool: {
-                        env->CallVoidMethod(bundleObj, putBoolId, keyStr, (jboolean)dict.get<Bool>(key).value);
+                        env->CallVoidMethod(bundleObj, putBoolId, keyStr, (jboolean)dict.get<Bool>(key)->getValue());
                         break;
                     }
                     case DataType::String: {
@@ -101,7 +103,7 @@ namespace mog {
                         env->CallVoidMethod(bundleObj, putStringId, keyStr, str);
                         break;
                     }
-                    case DataType::Array: {
+                    case DataType::List: {
                         break;
                     }
                     case DataType::Dictionary: {
@@ -117,6 +119,7 @@ namespace mog {
 
             return nativeObject;
         }
+         */
 
     };
 }

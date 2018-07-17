@@ -10,7 +10,7 @@ namespace mog {
     public:
         static bool existAsset(string filename);
         static string readTextAsset(string filename);
-        static bool readBytesAsset(string filename, unsigned char **data, int *len);
+        static bool readBytesAsset(string filename, unsigned char **data, unsigned int *len);
         
         static string getDocumentsDirectory();
         static string getCachesDirectory();

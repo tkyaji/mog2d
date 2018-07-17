@@ -42,7 +42,7 @@ namespace mog {
         template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
         static T getData(string key) {
             auto defaultValue = T();
-            defaultValue.type = DataType::Null;
+            defaultValue.type = DataType::Void;
             return getData<T>(key, defaultValue);
         }
         

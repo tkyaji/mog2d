@@ -41,6 +41,8 @@ namespace mog {
         void setTouchEnable(bool enable);
         bool isTouchEnable();
         virtual std::shared_ptr<Collider> getCollider();
+        void setParam(const std::shared_ptr<Data> &param);
+        std::shared_ptr<Data> getParam();
 
     protected:
         Entity();
@@ -56,6 +58,7 @@ namespace mog {
         virtual std::shared_ptr<OBB> getOBB();
         virtual std::shared_ptr<AABB> getAABB();
 
+        std::shared_ptr<Data> param;
         std::weak_ptr<Group> group;
         std::string name;
         std::string tag;

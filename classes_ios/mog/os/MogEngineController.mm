@@ -3,6 +3,7 @@
 #import "app/App.h"
 #import "mog/Constants.h"
 #import "mog/core/NativeClass.h"
+#import "mog/libs/rpmalloc.h"
 #ifdef SCRIPT_BINDNG_ENGINE_HEADER
 #import SCRIPT_BINDNG_ENGINE_HEADER
 #endif
@@ -21,13 +22,14 @@
     self = [super init];
     if (!self) return self;
     
+    rpmalloc_initialize();
 #ifdef ENABLE_SCRIPT_BINDNG
     _engine = SCRIPT_BINDNG_ENGINE_CLASS::create();
 #else
     _engine = mog::Engine::create(make_shared<mog::App>());
 #endif
     _engine->setDisplaySize(mog::Size(view.glWidth, view.glHeight), mog::Size(view.frame.size.width, view.frame.size.height));
-    _engine->setScreenSizeBasedOnHeight(BASE_SCREEN_HEIGHT);
+    _engine->resetScreenSize();
     _mogViewController = viewController;
     _mogView = view;
     
@@ -78,6 +80,7 @@
 - (void)terminateEngine {
     [self stopEngine];
     _engine = nullptr;
+    rpmalloc_finalize();
 }
 
 - (void)didReceiveMemoryWarning {

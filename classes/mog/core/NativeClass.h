@@ -3,270 +3,219 @@
 
 #include <string>
 #include <memory>
+#include <functional>
 #include "mog/core/Data.h"
 
-using namespace std;
+extern void *enabler;
 
 namespace mog {
-
     class NativeObject;
-    class NativeClass;
-    class NArg;
-
-#pragma - NFunction
-
-    class NFunction {
+    
+    template <class T>
+    static DataType __getDataType() {
+        return DataType::Void;
+    }
+    template <>
+    __attribute__((unused)) DataType __getDataType<mog::Int>() {
+        return DataType::Int;
+    }
+    template <>
+    __attribute__((unused)) DataType __getDataType<mog::Long>() {
+        return DataType::Long;
+    }
+    template <>
+    __attribute__((unused)) DataType __getDataType<mog::Float>() {
+        return DataType::Float;
+    }
+    template <>
+    __attribute__((unused)) DataType __getDataType<mog::Double>() {
+        return DataType::Double;
+    }
+    template <>
+    __attribute__((unused)) DataType __getDataType<mog::Bool>() {
+        return DataType::Bool;
+    }
+    template <>
+    __attribute__((unused)) DataType __getDataType<mog::String>() {
+        return DataType::String;
+    }
+    template <>
+    __attribute__((unused)) DataType __getDataType<mog::ByteArray>() {
+        return DataType::ByteArray;
+    }
+    template <>
+    __attribute__((unused)) DataType __getDataType<mog::List>() {
+        return DataType::List;
+    }
+    template <>
+    __attribute__((unused)) DataType __getDataType<mog::Dictionary>() {
+        return DataType::Dictionary;
+    }
+    template <>
+    __attribute__((unused)) DataType __getDataType<mog::NativeObject>() {
+        return DataType::NativeObject;
+    }
+    
+    class NativeObject : public Data {
     public:
-        NFunction(function<void(NArg *args, int len)> func);
-        void invoke(NArg *args, int len);
+        static std::shared_ptr<NativeObject> create(void *value);
+        static std::shared_ptr<NativeObject> create(const std::shared_ptr<Dictionary> &dict);
+        static std::shared_ptr<NativeObject> create(const std::shared_ptr<List> &list);
+        static std::shared_ptr<NativeObject> create(const std::shared_ptr<ByteArray> &bytes);
+        static std::shared_ptr<NativeObject> create(std::function<void(const std::shared_ptr<mog::List> &args)> func);
+        
+        ~NativeObject();
+
+        void *getValue();
+        virtual void write(std::ostream &out) override { }
+        virtual void read(std::istream &in) override {}
+
+        void execute(std::string methodName);
+        
+        template<class... Args>
+        void execute(std::string methodName, const Args&... arg) {
+            auto args = mog::List::create();
+            this->appendArg(args, arg...);
+            this->executeWithList(methodName, args);
+        }
+        void executeWithList(std::string methodName, const std::shared_ptr<mog::List> &args);
+        
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        std::shared_ptr<T> execute(std::string methodName) {
+            auto args = mog::List::create();
+            return this->executeWithList<T>(methodName, args);
+        }
+
+        template <class T, class... Args, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        std::shared_ptr<T> execute(std::string methodName, const Args&... arg) {
+            auto args = mog::List::create();
+            this->appendArg(args, arg...);
+            auto ret = this->executeWithList<T>(methodName, args);
+            return std::static_pointer_cast<T>(ret);
+        }
+
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        std::shared_ptr<T> executeWithList(std::string methodName, const std::shared_ptr<mog::List> &args) {
+            DataType retType = __getDataType<T>();
+            auto ret = this->executeMain(methodName, args, retType);
+            return std::static_pointer_cast<T>(ret);
+        }
+
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        std::shared_ptr<T> getProperty(std::string propertyName) {
+            DataType retType = __getDataType<T>();
+            auto ret = this->getPropertyMain(propertyName, retType);
+            return std::static_pointer_cast<T>(ret);
+        }
+
+        void setProperty(std::string propertyName, const std::shared_ptr<Data> &value);
 
     private:
-        function<void(NArg *args, int len)> func;
+        NativeObject(void *value);
+        std::shared_ptr<mog::Data> executeMain(std::string methodName, const std::shared_ptr<mog::List> &args, DataType retType);
+        std::shared_ptr<mog::Data> getPropertyMain(std::string propertyName, DataType retType);
+
+        template<class First, class... Rest>
+        void appendArg(std::shared_ptr<mog::List> &args, const First& first, const Rest&... rest) {
+            args->append(first);
+            this->appendArg(args, rest...);
+        }
+        template<class First>
+        void appendArg(std::shared_ptr<mog::List> &args, const First& first) {
+            args->append(first);
+        }
+
+        void *value = nullptr;
     };
 
-
-#pragma - NArg
-
-    class NArg {
-    public:
-        friend class NativeClass;
-        friend class NativeObject;
-        friend class NRet;
-
-        enum class Type {
-            Int,
-            Long,
-            Float,
-            Double,
-            Bool,
-            Object,
-        };
-
-        union Val {
-            int i;
-            long l;
-            float f;
-            double d;
-            bool b;
-        };
-
-        Type type;
-        Val v;
-        shared_ptr<NativeObject> o;
-
-        NArg();
-        NArg(int v);
-        NArg(long v);
-        NArg(float v);
-        NArg(double v);
-        NArg(bool v);
-        NArg(const char *v);
-        NArg(string v);
-        NArg(const Dictionary &v);
-        NArg(const Array &v);
-        NArg(const shared_ptr<NativeObject> &v);
-        NArg(void *v);
-        NArg(function<void(NArg *args, int len)> func);
-        ~NArg();
-
-//    private:
-
-//        class Impl;
-//        shared_ptr<Impl> pImpl;
-    };
-
-
-#pragma - NRet
-
-    class NRet {
-    public:
-        enum class Type {
-            Void,
-            Int,
-            Long,
-            Float,
-            Double,
-            Bool,
-            Object,
-        };
-
-        union Val {
-            int i;
-            long l;
-            float f;
-            double d;
-            bool b;
-        };
-
-        Type type;
-        Val v;
-        shared_ptr<NativeObject> o;
-
-        NRet();
-        ~NRet();
-
-//        NativeObject getNativeObject();
-
-//        NRet();
-//        ~NRet();
-
-        /*
-    private:
-        class Impl;
-        shared_ptr<Impl> pImpl;
-         */
-    };
-
-
-#pragma - Native
-
-
-#pragma - NativeClass
-
+    
     class NativeClass {
     public:
-        friend class NativeObject;
-
-        static shared_ptr<NativeClass> create(string className);
-
-//        NativeClass(string className);
+        static std::shared_ptr<NativeClass> create(std::string className);
+        
         ~NativeClass();
+        
+        std::shared_ptr<NativeObject> newInstance();
+#ifndef MOG_IOS
+        template <class T, class... Args, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        std::shared_ptr<NativeObject> newInstance(const Args&... arg) {
+            auto args = mog::List::create();
+            this->appendArg(args, arg...);
+            this->newInstanceWithList(args);
+        }
 
-        shared_ptr<NativeObject> newInstance();
-        shared_ptr<NativeObject> newInstance(const NArg *args, int len);
-        shared_ptr<NativeObject> newInstance(const NArg &arg1);
-        shared_ptr<NativeObject> newInstance(const NArg &arg1, const NArg &arg2);
-        shared_ptr<NativeObject> newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3);
-        shared_ptr<NativeObject> newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4);
-        shared_ptr<NativeObject> newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5);
-        shared_ptr<NativeObject> newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                 const NArg &arg6);
-        shared_ptr<NativeObject> newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                 const NArg &arg6, const NArg &arg7);
-        shared_ptr<NativeObject> newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                 const NArg &arg6, const NArg &arg7, const NArg &arg8);
-        shared_ptr<NativeObject> newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                 const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9);
-        shared_ptr<NativeObject> newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                 const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9, const NArg &arg10);
+        std::shared_ptr<NativeObject> newInstanceWithList(const std::shared_ptr<mog::List> &args);
+#endif
+        void execute(std::string methodName);
 
-        NRet execute(string methodName, NArg *args, int len, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     const NArg &arg5, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     const NArg &arg5, const NArg &arg6, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     const NArg &arg5, const NArg &arg6, const NArg &arg7, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9,
-                     NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9,
-                     const NArg &arg10, NRet::Type retType = NRet::Type::Void);
+        template<class... Args>
+        void execute(std::string methodName, const Args&... arg) {
+            auto args = mog::List::create();
+            this->appendArg(args, arg...);
+            this->executeWithList(methodName, args);
+        }
+        void executeWithList(std::string methodName, const std::shared_ptr<mog::List> &args);
+        
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        std::shared_ptr<T> execute(std::string methodName) {
+            auto args = mog::List::create();
+            return this->executeWithList<T>(methodName, args);
+        }
 
+        template <class T, class... Args, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        std::shared_ptr<T> execute(std::string methodName, const Args&... arg) {
+            auto args = mog::List::create();
+            this->appendArg(args, arg...);
+            auto ret = this->executeWithList<T>(methodName, args);
+            return std::static_pointer_cast<T>(ret);
+        }
+
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        std::shared_ptr<T> executeWithList(std::string methodName, const std::shared_ptr<mog::List> &args) {
+            DataType retType = __getDataType<T>();
+            auto ret = this->executeMain(methodName, args, retType);
+            return std::static_pointer_cast<T>(ret);
+        }
+        
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        std::shared_ptr<T> getProperty(std::string propertyName) {
+            DataType retType = __getDataType<T>();
+            auto ret = this->getPropertyMain(propertyName, retType);
+            return std::static_pointer_cast<T>(ret);
+        }
+        
+        void setProperty(std::string propertyName, const std::shared_ptr<Data> &value);
+        
     private:
-        NativeClass() {}
+        NativeClass(std::string className);
+        std::shared_ptr<mog::Data> executeMain(std::string methodName, const std::shared_ptr<mog::List> &args, DataType retType);
+        std::shared_ptr<mog::Data> getPropertyMain(std::string propertyName, DataType retType);
+
+        template<class First, class... Rest>
+        void appendArg(std::shared_ptr<mog::List> &args, const First& first, const Rest&... rest) {
+            args->append(first);
+            this->appendArg(args, rest...);
+        }
+        template<class First>
+        void appendArg(std::shared_ptr<mog::List> &args, const First& arg) {
+            args->append(arg);
+        }
+
         void *cls;
     };
 
 
-
-
-#pragma - NativeObject
-
-    class NativeObject {
+#ifndef MOG_IOS
+    class NativeFunction {
     public:
-        /*
-        NativeObject();
-        NativeObject(void *obj, bool autoRelease = true);
-        NativeObject(string str);
-        NativeObject(const Dictionary &dict);
-        NativeObject(const Array &arr);
-        NativeObject(const Int &i);
-        NativeObject(const Long &l);
-        NativeObject(const Float &f);
-        NativeObject(const Double &d);
-        NativeObject(const Bool &b);
-        NativeObject(const String &s);
-        NativeObject(const Bytes &b);
-        ~NativeObject();
-        NativeObject(const NativeObject &copy);
-        NativeObject(const NArg &arg);
-        NativeObject(const NRet &ret);
-        NativeObject &operator=(const NativeObject &copy);
-         */
-
-        ~NativeObject();
-
-        static shared_ptr<NativeObject> create(void *obj);
-        static shared_ptr<NativeObject> create(string str);
-        static shared_ptr<NativeObject> create(const Dictionary &dict);
-        static shared_ptr<NativeObject> create(const Array &arr);
-        static shared_ptr<NativeObject> create(const Int &i);
-        static shared_ptr<NativeObject> create(const Long &l);
-        static shared_ptr<NativeObject> create(const Float &f);
-        static shared_ptr<NativeObject> create(const Double &d);
-        static shared_ptr<NativeObject> create(const Bool &b);
-        static shared_ptr<NativeObject> create(const String &s);
-        static shared_ptr<NativeObject> create(const Bytes &b);
-
-
-        NRet execute(string methodName, NArg *args, int len, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     const NArg &arg5, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     const NArg &arg5, const NArg &arg6, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     const NArg &arg5, const NArg &arg6, const NArg &arg7, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9,
-                     NRet::Type retType = NRet::Type::Void);
-        NRet execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                     const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9,
-                     const NArg &arg10, NRet::Type retType = NRet::Type::Void);
-        void *getObject();
-
-//        static NativeObject Null;
+        NativeFunction(std::function<void(const std::shared_ptr<mog::List> &args)> func);
+        void invoke(const std::shared_ptr<mog::List> &args);
 
     private:
-        void *obj = nullptr;
-
-        NativeObject() {}
+        std::function<void(const std::shared_ptr<mog::List> &args)> func;
     };
-
-
-#pragma NUtils
-    class NUtils {
-    public:
-        static Dictionary toDictionary(void *o);
-        static Dictionary toDictionary(const NArg &arg);
-        static Dictionary toDictionary(const NRet &ret);
-
-        static Array toArray(void *o);
-        static Array toArray(const NArg &arg);
-        static Array toArray(const NRet &ret);
-
-        static string toString(void *o);
-        static string toString(const NArg &arg);
-        static string toString(const NRet &ret);
-    };
-
+#endif
 }
+
 
 #endif /* NativeClass_h */

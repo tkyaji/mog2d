@@ -1,13 +1,19 @@
 #include <algorithm>
 #include <assert.h>
+#include <string.h>
 #include "mog/core/NativeClass.h"
 #include "mog/core/Engine.h"
 #include "mog/os/AndroidHelper.h"
 
 using namespace mog;
 
-void __toNativeDictionary(const Dictionary &dictionary, jobject mapObj);
-void __toNativeArray(const Array &array, jobject listObj);
+static void toNativeDictionary(const std::shared_ptr<Dictionary> &dictionary, jobject jMap);
+static void toNativeList(const std::shared_ptr<List> &list, jobject jList);
+
+static void toMogDictionary(jobject jMap, std::shared_ptr<Dictionary> &dict);
+static void toMogList(jobject jList, std::shared_ptr<List> &list);
+
+static void convertToNArg(JNIEnv* env, jobjectArray params, std::shared_ptr<List> &list);
 
 #pragma - JavaMethodInterface
 
@@ -40,24 +46,24 @@ protected:
     jvalue *values = nullptr;
     string signature = "";
     bool valid = false;
-    NRet::Type retType;
+    DataType retType;
     MethodType methodType;
 
-    bool buildParams(jobject jmethod, const NArg *args, int len) {
+    bool buildParams(jobject jmethod, const std::shared_ptr<List> &args) {
         jclass jmethodCls = this->env->GetObjectClass(jmethod);
         jmethodID getNameId = this->env->GetMethodID(jmethodCls, "getName", "()Ljava/lang/String;");
 
         jmethodID getParameterTypesId = this->env->GetMethodID(jmethodCls, "getParameterTypes", "()[Ljava/lang/Class;");
         jobjectArray jclasses = (jobjectArray )this->env->CallObjectMethod(jmethod, getParameterTypesId);
         int classesLength = this->env->GetArrayLength(jclasses);
-        if (classesLength != len) return false;
+        if (classesLength != args->size()) return false;
 
         jclass clsCls = this->env->FindClass("java/lang/Class");
         jmethodID clsGetNameId = this->env->GetMethodID(clsCls, "getName", "()Ljava/lang/String;");
 
         this->signature = "(";
         for (int j = 0; j < classesLength; j++) {
-            auto arg = args[j];
+            auto arg = args->at<Data>(j);
             jclass jparamCls = (jclass)this->env->GetObjectArrayElement(jclasses, j);
             jstring jparamClsName = (jstring)this->env->CallObjectMethod(jparamCls, clsGetNameId);
             const char *jparamClsNameCStr = this->env->GetStringUTFChars(jparamClsName, NULL);
@@ -74,36 +80,33 @@ protected:
     }
 
 
-    bool buildArg(const NArg &arg, jclass jcls, string jClsName, int idx) {
-        if (arg.type == NArg::Type::Int && jClsName == "int") {
-            this->values[idx].i = (jint)arg.v.i;
+    bool buildArg(const std::shared_ptr<Data> &arg, jclass jcls, string jClsName, int idx) {
+        if (arg->type == DataType::Int && jClsName == "int") {
+            this->values[idx].i = (jint)std::static_pointer_cast<mog::Int>(arg)->getValue();
             this->signature += "I";
-        } else if (arg.type == NArg::Type::Long && jClsName == "long") {
-            this->values[idx].j = (jlong)arg.v.l;
+        } else if (arg->type == DataType::Long && jClsName == "long") {
+            this->values[idx].j = (jlong)std::static_pointer_cast<mog::Long>(arg)->getValue();
             this->signature += "J";
-        } else if (arg.type == NArg::Type::Float && jClsName == "float") {
-            this->values[idx].f = (jfloat)arg.v.f;
+        } else if (arg->type == DataType::Float && jClsName == "float") {
+            this->values[idx].f = (jfloat)std::static_pointer_cast<mog::Float>(arg)->getValue();
             this->signature += "F";
-        } else if (arg.type == NArg::Type::Double && jClsName == "double") {
-            this->values[idx].d = (jdouble)arg.v.d;
+        } else if (arg->type == DataType ::Double && jClsName == "double") {
+            this->values[idx].d = (jdouble)std::static_pointer_cast<mog::Double>(arg)->getValue();
             this->signature += "D";
-        } else if (arg.type == NArg::Type::Bool && jClsName == "boolean") {
-            this->values[idx].z = (jboolean)arg.v.b;
+        } else if (arg->type == DataType::Bool && jClsName == "boolean") {
+            this->values[idx].z = (jboolean)std::static_pointer_cast<mog::Bool>(arg)->getValue();
             this->signature += "Z";
         } else if (jClsName == "byte") {
+            this->values[idx].b = (jbyte)std::static_pointer_cast<mog::Int>(arg)->getValue();
             this->signature += "B";
-            // TODO
-            return false;
         } else if (jClsName == "short") {
+            this->values[idx].s = (jshort)std::static_pointer_cast<mog::Int>(arg)->getValue();
             this->signature += "S";
-            // TODO
-            return false;
         } else if (jClsName == "char") {
+            this->values[idx].c = (jchar)std::static_pointer_cast<mog::Int>(arg)->getValue();
             this->signature += "C";
-            // TODO
-            return false;
-        } else if (arg.type == NArg::Type::Object && this->env->IsInstanceOf((jobject)arg.o->getObject(), jcls)) {
-            this->values[idx].l = (jobject)arg.o->getObject();
+        } else if (arg->type == DataType::NativeObject && this->env->IsInstanceOf((jobject)std::static_pointer_cast<NativeObject>(arg)->getValue(), jcls)) {
+            this->values[idx].l = (jobject)std::static_pointer_cast<NativeObject>(arg)->getValue();
             replace(jClsName.begin(), jClsName.end(), '.', '/');
             this->signature += "L" + jClsName + ";";
         } else {
@@ -165,41 +168,41 @@ protected:
 
 class JavaMethod : public JavaMethodInterface {
 public:
-    JavaMethod(jobject jobj, string methodName, NRet::Type retType) {
+    JavaMethod(jobject jobj, string methodName, DataType retType) {
         this->env = AndroidHelper::getEnv();
         this->jobj = jobj;
         this->methodName = methodName;
         this->retType = retType;
-        this->build(methodName, nullptr, 0, retType);
+        this->build(methodName, List::create(), retType);
     }
 
-    JavaMethod(jobject jobj, string methodName, const NArg *args, int len, NRet::Type retType) {
+    JavaMethod(jobject jobj, string methodName, const std::shared_ptr<List> &args, DataType retType) {
         this->env = AndroidHelper::getEnv();
         this->jobj = jobj;
         this->methodName = methodName;
         this->retType = retType;
-        this->build(methodName, args, len, retType);
+        this->build(methodName, args, retType);
     }
 
-    JavaMethod(jclass jcls, string methodName, NRet::Type retType) {
+    JavaMethod(jclass jcls, string methodName, DataType retType) {
         this->env = AndroidHelper::getEnv();
         this->jobj = jcls;
         this->isStatic = true;
         this->methodName = methodName;
         this->retType = retType;
-        this->build(methodName, nullptr, 0, retType);
+        this->build(methodName, List::create(), retType);
     }
 
-    JavaMethod(jclass jcls, string methodName, const NArg *args, int len, NRet::Type retType) {
+    JavaMethod(jclass jcls, string methodName, const std::shared_ptr<List> &args, DataType retType) {
         this->env = AndroidHelper::getEnv();
         this->jobj = jcls;
         this->isStatic = true;
         this->methodName = methodName;
         this->retType = retType;
-        this->build(methodName, args, len, retType);
+        this->build(methodName, args, retType);
     }
 
-    NRet invoke() {
+    std::shared_ptr<Data> invoke() {
         assert(this->valid);
 
         if (this->isStatic) {
@@ -210,7 +213,7 @@ public:
     }
 
 protected:
-    void build(string methodName, const NArg *args, int len, NRet::Type retType) {
+    void build(string methodName, const std::shared_ptr<List> &args, DataType retType) {
         this->env->PushLocalFrame(32);
 
         jclass jcls;
@@ -227,7 +230,7 @@ protected:
         jclass jmethodCls = this->env->FindClass("java/lang/reflect/Method");
         jmethodID getNameId = this->env->GetMethodID(jmethodCls, "getName", "()Ljava/lang/String;");
 
-        this->values = new jvalue[len];
+        this->values = new jvalue[args->size()];
         int methodsLength = this->env->GetArrayLength(methods);
         for (int i = 0; i < methodsLength; i++) {
             this->env->PushLocalFrame(16);
@@ -243,7 +246,7 @@ protected:
                 continue;
             }
 
-            if (!this->buildParams(jmethod, args, len)) {
+            if (!this->buildParams(jmethod, args)) {
                 this->env->PopLocalFrame(NULL);
                 continue;
             }
@@ -260,94 +263,102 @@ protected:
         this->env->PopLocalFrame(NULL);
     }
 
-    NRet invokeMethod() {
-        NRet ret;
-
+    std::shared_ptr<Data> invokeMethod() {
         jclass jcls = this->env->GetObjectClass(this->jobj);
         jmethodID methodId = this->env->GetMethodID(jcls, this->methodName.c_str(), this->signature.c_str());
         assert(methodId);
 
         switch (this->methodType) {
-            case MethodType::Int:
-                ret.v.i = this->env->CallIntMethodA(this->jobj, methodId, this->values);
-                break;
-            case MethodType::Long:
-                ret.v.l = this->env->CallLongMethodA(this->jobj, methodId, this->values);
-                break;
-            case MethodType::Short:
-                ret.v.i = this->env->CallShortMethodA(this->jobj, methodId, this->values);
-                break;
-            case MethodType::Byte:
-                ret.v.i = this->env->CallByteMethodA(this->jobj, methodId, this->values);
-                break;
-            case MethodType::Char:
-                ret.v.i = this->env->CallCharMethodA(this->jobj, methodId, this->values);
-                break;
-            case MethodType::Float:
-                ret.v.f = this->env->CallFloatMethodA(this->jobj, methodId, this->values);
-                break;
-            case MethodType::Double:
-                ret.v.d = this->env->CallDoubleMethodA(this->jobj, methodId, this->values);
-                break;
-            case MethodType::Boolean:
-                ret.v.b = this->env->CallBooleanMethodA(this->jobj, methodId, this->values);
-                break;
+            case MethodType::Int: {
+                int i = this->env->CallIntMethodA(this->jobj, methodId, this->values);
+                return Int::create(i);
+            }
+            case MethodType::Long: {
+                long long l = this->env->CallLongMethodA(this->jobj, methodId, this->values);
+                return Long::create(l);
+            }
+            case MethodType::Short: {
+                int i = this->env->CallShortMethodA(this->jobj, methodId, this->values);
+                return Int::create(i);
+            }
+            case MethodType::Byte: {
+                int i = this->env->CallByteMethodA(this->jobj, methodId, this->values);
+                return Int::create(i);
+            }
+            case MethodType::Char: {
+                int i = this->env->CallCharMethodA(this->jobj, methodId, this->values);
+                return Int::create(i);
+            }
+            case MethodType::Float: {
+                float f = this->env->CallFloatMethodA(this->jobj, methodId, this->values);
+                return Float::create(f);
+            }
+            case MethodType::Double: {
+                double d = this->env->CallDoubleMethodA(this->jobj, methodId, this->values);
+                return Double::create(d);
+            }
+            case MethodType::Boolean: {
+                bool b = this->env->CallBooleanMethodA(this->jobj, methodId, this->values);
+                return Bool::create(b);
+            }
             case MethodType::Object: {
                 jobject o = this->env->CallObjectMethodA(this->jobj, methodId, this->values);
-                ret.o = NativeObject::create(o);
-                break;
+                return NativeObject::create(o);
             }
             case MethodType::Void:
                 this->env->CallVoidMethodA(this->jobj, methodId, this->values);
-                break;
+                return nullptr;
         }
-
-        return ret;
     }
 
-    NRet invokeStaticMethod() {
-        NRet ret;
+    std::shared_ptr<Data> invokeStaticMethod() {
+        std::shared_ptr<Data> ret = nullptr;
 
         jclass jcls = (jclass)this->jobj;
         jmethodID methodId = this->env->GetStaticMethodID(jcls, this->methodName.c_str(), this->signature.c_str());
         assert(methodId);
 
         switch (this->methodType) {
-            case MethodType::Int:
-                ret.v.i = this->env->CallStaticIntMethodA((jclass)this->jobj, methodId, this->values);
-                break;
-            case MethodType::Long:
-                ret.v.l = this->env->CallStaticLongMethodA((jclass)this->jobj, methodId, this->values);
-                break;
-            case MethodType::Short:
-                ret.v.i = this->env->CallStaticShortMethodA((jclass)this->jobj, methodId, this->values);
-                break;
-            case MethodType::Byte:
-                ret.v.i = this->env->CallStaticByteMethodA((jclass)this->jobj, methodId, this->values);
-                break;
-            case MethodType::Char:
-                ret.v.i = this->env->CallStaticCharMethodA((jclass)this->jobj, methodId, this->values);
-                break;
-            case MethodType::Float:
-                ret.v.f = this->env->CallStaticFloatMethodA((jclass)this->jobj, methodId, this->values);
-                break;
-            case MethodType::Double:
-                ret.v.d = this->env->CallStaticDoubleMethodA((jclass)this->jobj, methodId, this->values);
-                break;
-            case MethodType::Boolean:
-                ret.v.b = this->env->CallStaticBooleanMethodA((jclass)this->jobj, methodId, this->values);
-                break;
+            case MethodType::Int: {
+                int i = this->env->CallStaticIntMethodA((jclass) this->jobj, methodId, this->values);
+                return Int::create(i);
+            }
+            case MethodType::Long: {
+                long l = this->env->CallStaticLongMethodA((jclass)this->jobj, methodId, this->values);
+                return Long::create(l);
+            }
+            case MethodType::Short: {
+                int i = this->env->CallStaticShortMethodA((jclass)this->jobj, methodId, this->values);
+                return Int::create(i);
+            }
+            case MethodType::Byte: {
+                int i = this->env->CallStaticByteMethodA((jclass)this->jobj, methodId, this->values);
+                return Int::create(i);
+            }
+            case MethodType::Char: {
+                int i = this->env->CallStaticCharMethodA((jclass)this->jobj, methodId, this->values);
+                return Int::create(i);
+            }
+            case MethodType::Float: {
+                float f = this->env->CallStaticFloatMethodA((jclass)this->jobj, methodId, this->values);
+                return Float::create(f);
+            }
+            case MethodType::Double: {
+                double d = this->env->CallStaticDoubleMethodA((jclass)this->jobj, methodId, this->values);
+                return Double::create(d);
+            }
+            case MethodType::Boolean: {
+                bool b = this->env->CallStaticBooleanMethodA((jclass)this->jobj, methodId, this->values);
+                return Bool::create(b);
+            }
             case MethodType::Object: {
                 jobject o = this->env->CallStaticObjectMethodA((jclass)this->jobj, methodId, this->values);
-                ret.o = NativeObject::create(o);
-                break;
+                return NativeObject::create(o);
             }
-            case MethodType::Void:
-                this->env->CallStaticVoidMethodA((jclass)this->jobj, methodId, this->values);
-                break;
+            case MethodType::Void: {
+                return nullptr;
+            }
         }
-
-        return ret;
     }
 };
 
@@ -361,17 +372,17 @@ public:
         this->jobj = jcls;
         this->isStatic = true;
         this->methodName = "<init>";
-        this->retType = NRet::Type::Void;
-        this->build(nullptr, 0, this->retType);
+        this->retType = DataType::Void;
+        this->build(List::create(), this->retType);
     }
 
-    JavaConstructor(jclass jcls, const NArg *args, int len) {
+    JavaConstructor(jclass jcls, const std::shared_ptr<List> &args) {
         this->env = AndroidHelper::getEnv();
         this->jobj = jcls;
         this->isStatic = true;
         this->methodName = "<init>";
-        this->retType = NRet::Type::Void;
-        this->build(args, len, this->retType);
+        this->retType = DataType::Void;
+        this->build(args, this->retType);
     }
 
     shared_ptr<NativeObject> newInstance() {
@@ -386,7 +397,7 @@ public:
     }
 
 protected:
-    void build(const NArg *args, int len, NRet::Type retType) {
+    void build(const std::shared_ptr<List> &args, DataType retType) {
         this->env->PushLocalFrame(32);
 
         jclass jcls = (jclass)this->jobj;
@@ -398,12 +409,12 @@ protected:
         jclass jconstructorCls = this->env->FindClass("java/lang/reflect/Constructor");
         jmethodID getNameId = this->env->GetMethodID(jconstructorCls, "getName", "()Ljava/lang/String;");
 
-        this->values = new jvalue[len];
+        this->values = new jvalue[args->size()];
         int methodsLength = this->env->GetArrayLength(constructors);
         for (int i = 0; i < methodsLength; i++) {
             this->env->PushLocalFrame(16);
             jobject jmethod = this->env->GetObjectArrayElement(constructors, i);
-            if (!this->buildParams(jmethod, args, len)) {
+            if (!this->buildParams(jmethod, args)) {
                 this->env->PopLocalFrame(NULL);
                 continue;
             }
@@ -419,136 +430,236 @@ protected:
 };
 
 
-#pragma - NFunction
+#pragma - JavaField
 
-NFunction::NFunction(function<void(NArg *args, int len)> func) {
-    this->func = func;
-}
+class JavaField {
+public:
+    JNIEnv *env = nullptr;
+    jobject jobj = nullptr;
+    jclass jcls = nullptr;
+    std::string fieldName;
+    DataType type;
 
-void NFunction::invoke(NArg *args, int len) {
-    this->func(args, len);
-}
-
-
-#pragma - NArg
-
-NArg::NArg() {
-    this->type = Type::Object;
-    this->o = nullptr;
-}
-
-NArg::NArg(int v) {
-    this->type = Type::Int;
-    this->v.i = v;
-}
-
-NArg::NArg(long v) {
-    this->type = Type::Long;
-    this->v.l = v;
-}
-
-NArg::NArg(float v) {
-    this->type = Type::Float;
-    this->v.f = v;
-}
-
-NArg::NArg(double v) {
-    this->type = Type::Double;
-    this->v.d = v;
-}
-
-NArg::NArg(bool v) {
-    this->type = Type::Bool;
-    this->v.b = v;
-}
-
-NArg::NArg(const char *v) {
-    this->type = Type::Object;
-    this->o = NativeObject::create(string(v));
-}
-
-NArg::NArg(string v) {
-    this->type = Type::Object;
-    this->o = NativeObject::create(v);
-}
-
-NArg::NArg(function<void(NArg *args, int len)> func) {
-    this->type = Type::Object;
-    auto nf = new NFunction(func);
-
-    JNIEnv *env = AndroidHelper::getEnv();
-    jclass jcls = env->FindClass("org/mog2d/MogFunction");
-    jmethodID mid = env->GetMethodID(jcls, "<init>", "(J)V");
-    jobject jobj = env->NewObject(jcls, mid, (jlong)nf);
-    this->o = NativeObject::create(jobj);
-}
-
-NArg::NArg(const Dictionary &v) {
-    this->type = Type::Object;
-    this->o = NativeObject::create(v);
-}
-
-NArg::NArg(const Array &v) {
-    this->type = Type::Object;
-    this->o = NativeObject::create(v);
-}
-
-NArg::NArg(const shared_ptr<NativeObject> &v) {
-    this->type = Type::Object;
-    this->o = v;
-}
-
-NArg::NArg(void *v) {
-    this->type = Type::Object;
-    this->o = NativeObject::create(v);
-}
-
-NArg::~NArg() {
-}
-
-
-#pragma - NRet
-
-NRet::NRet() {
-    this->type = Type::Void;
-}
-
-NRet::~NRet() {
-}
-
-/*
-NativeObject NRet::getNativeObject() {
-    switch (this->type) {
-        case Type::Int:
-            return NativeObject(Int(this->v.i));
-        case Type::Long:
-            return NativeObject(Long(this->v.l));
-        case Type::Float:
-            return NativeObject(Float(this->v.f));
-        case Type::Double:
-            return NativeObject(Double(this->v.d));
-        case Type::Bool:
-            return NativeObject(Bool(this->v.b));
-        case Type::Object:
-            return NativeObject(this->v.o);
-        default:
-            return NativeObject();
+    JavaField(jobject jobj, string fieldName, DataType type) {
+        this->env = AndroidHelper::getEnv();
+        this->jobj = jobj;
+        this->jcls = this->env->GetObjectClass(jobj);
+        this->fieldName = fieldName;
+        this->type = type;
     }
-}
-*/
+
+    JavaField(jclass jcls, string fieldName, DataType type) {
+        this->env = AndroidHelper::getEnv();
+        this->jcls = jcls;
+        this->fieldName = fieldName;
+        this->type = type;
+    }
+
+    std::shared_ptr<Data> getValue() {
+        this->env->PushLocalFrame(16);
+
+        jstring jFieldName = this->env->NewStringUTF(this->fieldName.c_str());
+        jclass jclscls = this->env->GetObjectClass(this->jcls);
+        jmethodID getFieldId = this->env->GetMethodID(jclscls, "getField", "(Ljava/lang/String;)Ljava/lang/reflect/Field;");
+        jobject jField = this->env->CallObjectMethod(this->jcls, getFieldId, jFieldName);
+        jclass jFieldCls = this->env->GetObjectClass(jField);
+
+        std::shared_ptr<Data> data = nullptr;
+
+        switch (this->type) {
+            case DataType::Void:
+                break;
+            case DataType::Int: {
+                jmethodID getIntId = this->env->GetMethodID(jFieldCls, "getInt", "(Ljava/lang/Object;)I");
+                jint i = env->CallIntMethod(jField, getIntId, this->jobj);
+                data = Int::create((int)i);
+                break;
+            }
+            case DataType::Long: {
+                jmethodID getLongId = this->env->GetMethodID(jFieldCls, "getLong", "(Ljava/lang/Object;)J");
+                jlong j = env->CallLongMethod(jField, getLongId, this->jobj);
+                data = Long::create((long long)j);
+                break;
+            }
+            case DataType::Float: {
+                jmethodID getFloatId = this->env->GetMethodID(jFieldCls, "getFloat", "(Ljava/lang/Object;)F");
+                jfloat f = env->CallFloatMethod(jField, getFloatId, this->jobj);
+                data = Float::create((float)f);
+                break;
+            }
+            case DataType::Double: {
+                jmethodID getDoubleId = this->env->GetMethodID(jFieldCls, "getDouble", "(Ljava/lang/Object;)D");
+                jdouble d = env->CallDoubleMethod(jField, getDoubleId, this->jobj);
+                data = Double::create((double)d);
+                break;
+            }
+            case DataType::Bool: {
+                jmethodID getBoolId = this->env->GetMethodID(jFieldCls, "getBoolean", "(Ljava/lang/Object;)Z");
+                jboolean b = env->CallBooleanMethod(jField, getBoolId, this->jobj);
+                data = Bool::create((bool)b);
+                break;
+            }
+            case DataType::String: {
+                jmethodID getStringId = this->env->GetMethodID(jFieldCls, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+                jobject s = env->CallObjectMethod(jField, getStringId, this->jobj);
+                const char *str = env->GetStringUTFChars((jstring)s, NULL);
+                data = String::create(str);
+                break;
+            }
+            case DataType::List: {
+                jmethodID getListId = this->env->GetMethodID(jFieldCls, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+                jobject l = env->CallObjectMethod(jField, getListId, this->jobj);
+                auto list = List::create();
+                toMogList(l, list);
+                data = list;
+                break;
+            }
+            case DataType::Dictionary: {
+                jmethodID getMapId = this->env->GetMethodID(jFieldCls, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+                jobject m = env->CallObjectMethod(jField, getMapId, this->jobj);
+                auto dict = Dictionary::create();
+                toMogDictionary(m, dict);
+                data = dict;
+                break;
+            }
+            case DataType::ByteArray: {
+                jmethodID getBytesId = this->env->GetMethodID(jFieldCls, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+                jobject ba = env->CallObjectMethod(jField, getBytesId, this->jobj);
+                jbyteArray jByteArr = (jbyteArray)ba;
+                jbyte *bytes = env->GetByteArrayElements(jByteArr, NULL);
+                int length = (int)env->GetArrayLength(jByteArr);
+                auto byteArr = ByteArray::create((unsigned char *)bytes, (unsigned int)length, true);
+                env->ReleaseByteArrayElements(jByteArr, bytes, JNI_ABORT);
+                data = byteArr;
+                break;
+            }
+            case DataType::NativeObject: {
+                jmethodID getObjId = this->env->GetMethodID(jFieldCls, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+                jobject o = env->CallObjectMethod(jField, getObjId, this->jobj);
+                data = NativeObject::create((void *)o);
+                break;
+            }
+        }
+
+        this->env->PopLocalFrame(NULL);
+
+        return data;
+    }
+
+    void setValue(std::shared_ptr<Data> value) {
+        this->env->PushLocalFrame(16);
+
+        jstring jFieldName = this->env->NewStringUTF(this->fieldName.c_str());
+        jclass jclscls = this->env->GetObjectClass(this->jcls);
+        jmethodID getFieldId = this->env->GetMethodID(jclscls, "getField", "(Ljava/lang/String;)Ljava/lang/reflect/Field;");
+        jobject jField = this->env->CallObjectMethod(this->jcls, getFieldId, jFieldName);
+        jclass jFieldCls = this->env->GetObjectClass(jField);
+
+        std::shared_ptr<Data> data = nullptr;
+
+        switch (this->type) {
+            case DataType::Void:
+                break;
+            case DataType::Int: {
+                jmethodID setIntId = this->env->GetMethodID(jFieldCls, "setInt", "(Ljava/lang/Object;I)V");
+                int i = std::static_pointer_cast<Int>(value)->getValue();
+                env->CallVoidMethod(jField, setIntId, this->jobj, (jint)i);
+                break;
+            }
+            case DataType::Long: {
+                jmethodID setLongId = this->env->GetMethodID(jFieldCls, "setLong", "(Ljava/lang/Object;J)V");
+                long long j = std::static_pointer_cast<Long>(value)->getValue();
+                env->CallVoidMethod(jField, setLongId, this->jobj, (jlong)j);
+                break;
+            }
+            case DataType::Float: {
+                jmethodID setFloatId = this->env->GetMethodID(jFieldCls, "setFloat", "(Ljava/lang/Object;F)V");
+                float f = std::static_pointer_cast<Float>(value)->getValue();
+                env->CallVoidMethod(jField, setFloatId, this->jobj, (jfloat)f);
+                break;
+            }
+            case DataType::Double: {
+                jmethodID setDoubleId = this->env->GetMethodID(jFieldCls, "setDouble", "(Ljava/lang/Object;D)V");
+                double d = std::static_pointer_cast<Double>(value)->getValue();
+                env->CallVoidMethod(jField, setDoubleId, this->jobj, (jdouble)d);
+                break;
+            }
+            case DataType::Bool: {
+                jmethodID setBoolId = this->env->GetMethodID(jFieldCls, "setBoolean", "(Ljava/lang/Object;Z)V");
+                bool z = std::static_pointer_cast<Bool>(value)->getValue();
+                env->CallVoidMethod(jField, setBoolId, this->jobj, (jboolean)z);
+                break;
+            }
+            case DataType::String: {
+                jmethodID setId = this->env->GetMethodID(jFieldCls, "set", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+                string s = std::static_pointer_cast<String>(value)->getValue();
+                jstring str = this->env->NewStringUTF(s.c_str());
+                env->CallVoidMethod(jField, setId, this->jobj, (jobject)str);
+                break;
+            }
+            case DataType::List: {
+                jmethodID setId = this->env->GetMethodID(jFieldCls, "set", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+                auto l = std::static_pointer_cast<List>(value);
+                jclass listClass = env->FindClass("java/util/ArrayList");
+                jmethodID listInit = env->GetMethodID(listClass, "<init>", "()V");
+                jobject jList = env->NewObject(listClass, listInit);
+                toNativeList(l, jList);
+                env->CallVoidMethod(jField, setId, this->jobj, jList);
+                break;
+            }
+            case DataType::Dictionary: {
+                jmethodID setId = this->env->GetMethodID(jFieldCls, "set", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+                auto d = std::static_pointer_cast<Dictionary>(value);
+                jclass mapClass = env->FindClass("java/util/HashMap");
+                jmethodID mapInit = env->GetMethodID(mapClass, "<init>", "()V");
+                jobject jMap = env->NewObject(mapClass, mapInit);
+                toNativeDictionary(d, jMap);
+                env->CallVoidMethod(jField, setId, this->jobj, jMap);
+                break;
+            }
+            case DataType::ByteArray: {
+                jmethodID setId = this->env->GetMethodID(jFieldCls, "set", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+                auto ba = std::static_pointer_cast<ByteArray>(value);
+                unsigned char *data = nullptr;
+                unsigned int len = 0;
+                ba->getValue(&data, &len);
+                jbyteArray jbyteArr = env->NewByteArray((jsize)len);
+                jbyte *jBytes = env->GetByteArrayElements(jbyteArr, NULL);
+                for (int i = 0; i < len; i++) {
+                    jBytes[i] = (jbyte)data[i];
+                }
+                env->CallVoidMethod(jField, setId, this->jobj, (jobject)jbyteArr);
+                env->ReleaseByteArrayElements(jbyteArr, jBytes, 0);
+                break;
+            }
+            case DataType::NativeObject: {
+                jmethodID setId = this->env->GetMethodID(jFieldCls, "set", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+                jmethodID getObjId = this->env->GetMethodID(jFieldCls, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+                jobject o = (jobject)std::static_pointer_cast<NativeObject>(value)->getValue();
+                env->CallVoidMethod(jField, setId, this->jobj, o);
+                break;
+            }
+        }
+
+        this->env->PopLocalFrame(NULL);
+    }
+};
+
 
 #pragma - NativeClass
 
-shared_ptr<NativeClass> NativeClass::create(string className) {
-    auto c = shared_ptr<NativeClass>(new NativeClass());
+shared_ptr<NativeClass> NativeClass::create(std::string className) {
+    return shared_ptr<NativeClass>(new NativeClass(className));
+}
+
+NativeClass::NativeClass(std::string className) {
     replace(className.begin(), className.end(), '.', '/');
     JNIEnv *env = AndroidHelper::getEnv();
     jclass jcls = env->FindClass(className.c_str());
     assert(jcls);
-    jobject go = env->NewGlobalRef(jcls);
+    jobject jgo = env->NewGlobalRef(jcls);
     env->DeleteLocalRef(jcls);
-    c->cls = (void *)go;
-    return c;
+    this->cls = (void *)jgo;
 }
 
 NativeClass::~NativeClass() {
@@ -558,508 +669,142 @@ NativeClass::~NativeClass() {
     }
 }
 
-shared_ptr<NativeObject> NativeClass::newInstance() {
+std::shared_ptr<NativeObject> NativeClass::newInstance() {
     return JavaConstructor((jclass)this->cls).newInstance();
 }
 
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg *args, int len) {
-    return JavaConstructor((jclass)this->cls, args, len).newInstance();
+std::shared_ptr<NativeObject> NativeClass::newInstanceWithList(const std::shared_ptr<mog::List> &args) {
+    return JavaConstructor((jclass)this->cls, args).newInstance();
 }
 
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1) {
-    NArg args[] = {arg1};
-    return this->newInstance(args, 1);
+void NativeClass::execute(std::string methodName) {
+    JavaMethod((jclass)this->cls, methodName, List::create(), DataType::Void).invoke();
 }
 
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2) {
-    NArg args[] = {arg1, arg2};
-    return this->newInstance(args, 2);
+void NativeClass::executeWithList(std::string methodName, const std::shared_ptr<mog::List> &args) {
+    JavaMethod((jclass)this->cls, methodName, args, DataType::Void).invoke();
 }
 
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3) {
-    NArg args[] = {arg1, arg2, arg3};
-    return this->newInstance(args, 3);
+void NativeClass::setProperty(std::string propertyName, const std::shared_ptr<Data> &value) {
+    JavaField((jclass)this->cls, propertyName, value->type).setValue(value);
 }
 
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4) {
-    NArg args[] = {arg1, arg2, arg3, arg4};
-    return this->newInstance(args, 4);
+std::shared_ptr<mog::Data> NativeClass::executeMain(std::string methodName, const std::shared_ptr<mog::List> &args, DataType retType) {
+    return JavaMethod((jclass)this->cls, methodName, args, retType).invoke();
 }
 
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5};
-    return this->newInstance(args, 5);
+std::shared_ptr<mog::Data> NativeClass::getPropertyMain(std::string propertyName, DataType retType) {
+    return JavaField((jclass)this->cls, propertyName, retType).getValue();
 }
-
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                      const NArg &arg6) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6};
-    return this->newInstance(args, 6);
-}
-
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                      const NArg &arg6, const NArg &arg7) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7};
-    return this->newInstance(args, 7);
-}
-
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                      const NArg &arg6, const NArg &arg7, const NArg &arg8) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8};
-    return this->newInstance(args, 8);
-}
-
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                      const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9};
-    return this->newInstance(args, 9);
-}
-
-shared_ptr<NativeObject> NativeClass::newInstance(const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4, const NArg &arg5,
-                                      const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9, const NArg &arg10) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10};
-    return this->newInstance(args, 10);
-}
-
-NRet NativeClass::execute(string methodName, NArg *args, int len, NRet::Type retType) {
-    return JavaMethod((jclass)this->cls, methodName, args, len, retType).invoke();
-}
-
-NRet NativeClass::execute(string methodName, NRet::Type retType) {
-    return JavaMethod((jclass)this->cls, methodName, retType).invoke();
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, NRet::Type retType) {
-    NArg args[] = {arg1};
-    return this->execute(methodName, args, 1, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, NRet::Type retType) {
-    NArg args[] = {arg1, arg2};
-    return this->execute(methodName, args, 2, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3};
-    return this->execute(methodName, args, 3, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4};
-    return this->execute(methodName, args, 4, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5};
-    return this->execute(methodName, args, 5, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6};
-    return this->execute(methodName, args, 6, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7};
-    return this->execute(methodName, args, 7, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8};
-    return this->execute(methodName, args, 8, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9,
-                           NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9};
-    return this->execute(methodName, args, 9, retType);
-}
-
-NRet NativeClass::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9,
-                           const NArg &arg10, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10};
-    return this->execute(methodName, args, 10, retType);
-}
-
 
 
 #pragma - NativeObject
 
-NativeObject::~NativeObject() {
-    if (this->obj) {
-        JNIEnv *env = AndroidHelper::getEnv();
-        env->DeleteGlobalRef((jobject)this->obj);
-    }
-}
-
-shared_ptr<NativeObject> NativeObject::create(void *obj) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    if (obj) {
-        JNIEnv *env = AndroidHelper::getEnv();
-        jobject go = env->NewGlobalRef((jobject)obj);
-        o->obj = go;
-    }
-    return o;
-}
-
-shared_ptr<NativeObject> NativeObject::create(string str) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
+NativeObject::NativeObject(void *value) {
     JNIEnv *env = AndroidHelper::getEnv();
-    const char *cstr = str.c_str();
-    jstring s = env->NewStringUTF(cstr);
-    jobject go = env->NewGlobalRef(s);
-    env->DeleteLocalRef(s);
-    o->obj = go;
-    return o;
+    jobject go = env->NewGlobalRef((jobject)value);
+    this->value = go;
 }
 
-shared_ptr<NativeObject> NativeObject::create(const Dictionary &dict) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
+NativeObject::~NativeObject() {
+    if (this->value) {
+        JNIEnv *env = AndroidHelper::getEnv();
+        env->DeleteGlobalRef((jobject)this->value);
+    }
+}
+
+std::shared_ptr<NativeObject> NativeObject::create(void *value) {
+    return shared_ptr<NativeObject>(new NativeObject(value));
+}
+
+std::shared_ptr<NativeObject> NativeObject::create(const std::shared_ptr<Dictionary> &dict) {
     JNIEnv *env = AndroidHelper::getEnv();
     env->PushLocalFrame(16);
     jclass mapClass = env->FindClass("java/util/HashMap");
     jmethodID mapInit = env->GetMethodID(mapClass, "<init>", "()V");
-    jmethodID putMethod = env->GetMethodID(mapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-    jobject mapObj = env->NewObject(mapClass, mapInit);
-    __toNativeDictionary(dict, mapObj);
-    jobject go = env->NewGlobalRef((jobject)mapObj);
+    jobject jMap = env->NewObject(mapClass, mapInit);
+    toNativeDictionary(dict, jMap);
+    auto no = create((void *)jMap);
     env->PopLocalFrame(NULL);
-    o->obj = go;
-    return o;
+    return no;
 }
 
-shared_ptr<NativeObject> NativeObject::create(const Array &arr) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
+std::shared_ptr<NativeObject> NativeObject::create(const std::shared_ptr<List> &list) {
     JNIEnv *env = AndroidHelper::getEnv();
     env->PushLocalFrame(16);
     jclass listClass = env->FindClass("java/util/ArrayList");
     jmethodID listInit = env->GetMethodID(listClass, "<init>", "()V");
-    jmethodID addMethod = env->GetMethodID(listClass, "add", "(Ljava/lang/Object;)Z");
-    jobject listObj = env->NewObject(listClass, listInit);
-    __toNativeArray(arr, listObj);
-    jobject go = env->NewGlobalRef((jobject)listObj);
+    jobject jList = env->NewObject(listClass, listInit);
+    toNativeList(list, jList);
+    auto no = create((void *)jList);
     env->PopLocalFrame(NULL);
-    o->obj = go;
-    return o;
+    return no;
 }
 
-shared_ptr<NativeObject> NativeObject::create(const Int &i) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
+std::shared_ptr<NativeObject> NativeObject::create(const std::shared_ptr<ByteArray> &bytes) {
     JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(8);
-    jclass jcls = env->FindClass("java/lang/Integer");
-    jmethodID integerInit = env->GetMethodID(jcls, "<init>", "(I)V");
-    jobject jobj= env->NewObject(jcls, integerInit, i.value);
-    jobject go = env->NewGlobalRef(jobj);
-    env->PopLocalFrame(NULL);
-    o->obj = go;
-    return o;
-}
-
-shared_ptr<NativeObject> NativeObject::create(const Long &l) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(8);
-    jclass jcls = env->FindClass("java/lang/Long");
-    jmethodID integerInit = env->GetMethodID(jcls, "<init>", "(J)V");
-    jobject jobj= env->NewObject(jcls, integerInit, l.value);
-    jobject go = env->NewGlobalRef(jobj);
-    env->PopLocalFrame(NULL);
-    o->obj = go;
-    return o;
-}
-
-shared_ptr<NativeObject> NativeObject::create(const Float &f) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(8);
-    jclass jcls = env->FindClass("java/lang/Float");
-    jmethodID integerInit = env->GetMethodID(jcls, "<init>", "(F)V");
-    jobject jobj= env->NewObject(jcls, integerInit, f.value);
-    jobject go = env->NewGlobalRef(jobj);
-    env->PopLocalFrame(NULL);
-    o->obj = go;
-    return o;
-}
-
-shared_ptr<NativeObject> NativeObject::create(const Double &d) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(8);
-    jclass jcls = env->FindClass("java/lang/Double");
-    jmethodID integerInit = env->GetMethodID(jcls, "<init>", "(D)V");
-    jobject jobj= env->NewObject(jcls, integerInit, d.value);
-    jobject go = env->NewGlobalRef(jobj);
-    env->PopLocalFrame(NULL);
-    o->obj = go;
-    return o;
-}
-
-shared_ptr<NativeObject> NativeObject::create(const Bool &b) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(8);
-    jclass jcls = env->FindClass("java/lang/Boolean");
-    jmethodID integerInit = env->GetMethodID(jcls, "<init>", "(Z)V");
-    jobject jobj= env->NewObject(jcls, integerInit, b.value);
-    jobject go = env->NewGlobalRef(jobj);
-    env->PopLocalFrame(NULL);
-    o->obj = go;
-    return o;
-}
-
-shared_ptr<NativeObject> NativeObject::create(const String &s) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(8);
-    const char *cstr = s.value.c_str();
-    jstring jstr = env->NewStringUTF(cstr);
-    jobject go = env->NewGlobalRef(jstr);
-    env->PopLocalFrame(NULL);
-    o->obj = go;
-    return o;
-}
-
-shared_ptr<NativeObject> NativeObject::create(const Bytes &b) {
-    auto o = shared_ptr<NativeObject>(new NativeObject());
-    JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(8);
-    jbyteArray jbyteArr = env->NewByteArray(b.length);
-    jbyte *bytes = env->GetByteArrayElements(jbyteArr, NULL);
-    for (int i = 0; i < b.length; i++) {
-        bytes[i] = b.value[i];
+    unsigned char *data = nullptr;
+    unsigned int length = 0;
+    bytes->getValue(&data, &length);
+    jbyteArray jbyteArr = env->NewByteArray((jsize)length);
+    jbyte *jBytes = env->GetByteArrayElements(jbyteArr, NULL);
+    for (int i = 0; i < length; i++) {
+        jBytes[i] = (jbyte)data[i];
     }
-    jobject go = env->NewGlobalRef(jbyteArr);
-    env->ReleaseByteArrayElements(jbyteArr, bytes, 0);
-    env->PopLocalFrame(NULL);
-    o->obj = go;
-    return o;
-}
-
-
-
-//NativeObject NativeObject::Null = NativeObject();
-
-/*
-NativeObject::NativeObject() {
-}
-
-NativeObject::NativeObject(void *obj, bool autoRelease) {
-    this->obj = obj;
-    if (autoRelease) {
-        NativeObjectPool::retain((jobject)obj);
-    }
-}
-
-NativeObject::NativeObject(string str) {
-    JNIEnv *env = AndroidHelper::getEnv();
-    const char *cstr = str.c_str();
-    jstring s = env->NewStringUTF(cstr);
-    jobject go = env->NewGlobalRef(s);
-    env->DeleteLocalRef(s);
-    this->obj = go;
-}
-
-NativeObject::NativeObject(const Dictionary &dict) {
-    void *nativeDict = toNativeDictionary(dict).getObject();
-    NativeObjectPool::retain((jobject)nativeDict);
-    this->obj = nativeDict;
-}
-
-NativeObject::NativeObject(const Array &arr) {
-    void *nativeArr = toNativeArray(arr).getObject();
-    NativeObjectPool::retain((jobject)nativeArr);
-    this->obj = nativeArr;
-}
-
-NativeObject::NativeObject(const Int &i) {
-    JNIEnv *env = AndroidHelper::getEnv();
-    jclass jcls = env->FindClass("java/lang/Integer");
-    jmethodID integerInit = env->GetMethodID(jcls, "<init>", "(I)V");
-    jobject jobj= env->NewObject(jcls, integerInit, i.value);
-    this->obj = env->NewGlobalRef(jobj);
-    env->DeleteLocalRef(jobj);
-    env->DeleteLocalRef(jcls);
-}
-
-NativeObject::NativeObject(const Long &l) {
-    JNIEnv *env = AndroidHelper::getEnv();
-    jclass jcls = env->FindClass("java/lang/Long");
-    jmethodID integerInit = env->GetMethodID(jcls, "<init>", "(J)V");
-    jobject jobj= env->NewObject(jcls, integerInit, l.value);
-    this->obj = env->NewGlobalRef(jobj);
-    env->DeleteLocalRef(jobj);
-    env->DeleteLocalRef(jcls);
-}
-
-NativeObject::NativeObject(const Float &f) {
-    JNIEnv *env = AndroidHelper::getEnv();
-    jclass jcls = env->FindClass("java/lang/Float");
-    jmethodID integerInit = env->GetMethodID(jcls, "<init>", "(F)V");
-    jobject jobj= env->NewObject(jcls, integerInit, f.value);
-    this->obj = env->NewGlobalRef(jobj);
-    env->DeleteLocalRef(jobj);
-    env->DeleteLocalRef(jcls);
-}
-
-NativeObject::NativeObject(const Double &d) {
-    JNIEnv *env = AndroidHelper::getEnv();
-    jclass jcls = env->FindClass("java/lang/Double");
-    jmethodID integerInit = env->GetMethodID(jcls, "<init>", "(D)V");
-    jobject jobj= env->NewObject(jcls, integerInit, d.value);
-    this->obj = env->NewGlobalRef(jobj);
-    env->DeleteLocalRef(jobj);
-    env->DeleteLocalRef(jcls);
-}
-
-NativeObject::NativeObject(const Bool &b) {
-    JNIEnv *env = AndroidHelper::getEnv();
-    jclass jcls = env->FindClass("java/lang/Boolean");
-    jmethodID integerInit = env->GetMethodID(jcls, "<init>", "(Z)V");
-    jobject jobj= env->NewObject(jcls, integerInit, b.value);
-    this->obj = env->NewGlobalRef(jobj);
-    env->DeleteLocalRef(jobj);
-    env->DeleteLocalRef(jcls);
-}
-
-NativeObject::NativeObject(const String &s) {
-    JNIEnv *env = AndroidHelper::getEnv();
-    const char *cstr = s.value.c_str();
-    jstring jstr = env->NewStringUTF(cstr);
-    this->obj = env->NewGlobalRef(jstr);
-    env->DeleteLocalRef(jstr);
-}
-
-NativeObject::NativeObject(const Bytes &b) {
-    JNIEnv *env = AndroidHelper::getEnv();
-    jbyteArray jbyteArr = env->NewByteArray(b.length);
-    jbyte *bytes = env->GetByteArrayElements(jbyteArr, NULL);
-    for (int i = 0; i < b.length; i++) {
-        bytes[i] = b.value[i];
-    }
-    this->obj = env->NewGlobalRef(jbyteArr);
-    env->ReleaseByteArrayElements(jbyteArr, bytes, 0);
+    auto no = create((void *)jbyteArr);
+    env->ReleaseByteArrayElements(jbyteArr, jBytes, 0);
     env->DeleteLocalRef(jbyteArr);
+    return no;
 }
 
-NativeObject::~NativeObject() {
-    if (this->obj) {
-        NativeObjectPool::release((jobject)this->obj);
-    }
+std::shared_ptr<NativeObject> NativeObject::create(std::function<void(const std::shared_ptr<mog::List> &args)> func) {
+    auto nativeFunc = new NativeFunction(func);
+    JNIEnv *env = AndroidHelper::getEnv();
+    env->PushLocalFrame(16);
+    jclass mogFuncClass = env->FindClass("org/mog/MogFunction");
+    jmethodID mogFuncInit = env->GetMethodID(mogFuncClass, "<init>", "(J)V");
+    jobject mogFuncObj = env->NewObject(mogFuncClass, mogFuncInit, (long long)nativeFunc);
+    auto mogFunc = create((void *)mogFuncObj);
+    env->PopLocalFrame(NULL);
+    return mogFunc;
 }
 
-NativeObject::NativeObject(const NativeObject &copy) {
-    if (copy.obj) {
-        this->obj = copy.obj;
-        NativeObjectPool::retain((jobject)this->obj);
-    }
+void *NativeObject::getValue() {
+    return this->value;
 }
 
-NativeObject::NativeObject(const NArg &arg) {
-    this->obj = arg.v.o;
-    NativeObjectPool::retain((jobject)this->obj);
+void NativeObject::execute(std::string methodName) {
+    JavaMethod((jobject)this->value, methodName, List::create(), DataType::Void).invoke();
 }
 
-NativeObject::NativeObject(const NRet &ret) {
-    this->obj = ret.v.o;
-    NativeObjectPool::retain((jobject)this->obj);
+void NativeObject::executeWithList(std::string methodName, const std::shared_ptr<mog::List> &args) {
+    JavaMethod((jobject)this->value, methodName, args, DataType::Void).invoke();
 }
 
-NativeObject &NativeObject::operator=(const NativeObject &copy) {
-    if (this != &copy) {
-        if (copy.obj) {
-            this->obj = copy.obj;
-            NativeObjectPool::retain((jobject)this->obj);
-        }
-    }
-    return *this;
-}
-*/
-
-
-NRet NativeObject::execute(string methodName, NArg *args, int len, NRet::Type retType) {
-    jobject jobj = (jobject)this->obj;
-//    return NativeInvoker(jobj).execute(methodName, args, len, retType);
-    return JavaMethod(jobj, methodName, args, len, retType).invoke();
+void NativeObject::setProperty(std::string propertyName, const std::shared_ptr<Data> &value) {
+    JavaField((jobject)this->value, propertyName, value->type).setValue(value);
 }
 
-NRet NativeObject::execute(string methodName, NRet::Type retType) {
-    jobject jobj = (jobject)this->obj;
-//    return NativeInvoker(jobj).execute(methodName, retType);
-    return JavaMethod(jobj, methodName, retType).invoke();
+std::shared_ptr<mog::Data> NativeObject::executeMain(std::string methodName, const std::shared_ptr<mog::List> &args, DataType retType) {
+    return JavaMethod((jobject)this->value, methodName, args, retType).invoke();
 }
 
-NRet NativeObject::execute(string methodName, const NArg &arg1, NRet::Type retType) {
-    NArg args[] = {arg1};
-    return this->execute(methodName, args, 1, retType);
+std::shared_ptr<mog::Data> NativeObject::getPropertyMain(std::string propertyName, DataType retType) {
+    return JavaField((jobject)this->value, propertyName, retType).getValue();
 }
 
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, NRet::Type retType) {
-    NArg args[] = {arg1, arg2};
-    return this->execute(methodName, args, 2, retType);
+
+#pragma - NativeFunction
+
+NativeFunction::NativeFunction(std::function<void(const std::shared_ptr<mog::List> &args)> func) {
+    this->func = func;
 }
 
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3};
-    return this->execute(methodName, args, 3, retType);
+void NativeFunction::invoke(const std::shared_ptr<mog::List> &args) {
+    this->func(args);
 }
 
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4};
-    return this->execute(methodName, args, 4, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5};
-    return this->execute(methodName, args, 5, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6};
-    return this->execute(methodName, args, 6, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7};
-    return this->execute(methodName, args, 7, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8};
-    return this->execute(methodName, args, 8, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9,
-                           NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9};
-    return this->execute(methodName, args, 9, retType);
-}
-
-NRet NativeObject::execute(string methodName, const NArg &arg1, const NArg &arg2, const NArg &arg3, const NArg &arg4,
-                           const NArg &arg5, const NArg &arg6, const NArg &arg7, const NArg &arg8, const NArg &arg9,
-                           const NArg &arg10, NRet::Type retType) {
-    NArg args[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10};
-    return this->execute(methodName, args, 10, retType);
-}
-
-void *NativeObject::getObject() {
-    return this->obj;
-}
-
-void __toNativeDictionary(const Dictionary &dictionary, jobject mapObj) {
+static void toNativeDictionary(const std::shared_ptr<Dictionary> &dictionary, jobject jMap) {
     JNIEnv *env = AndroidHelper::getEnv();
     env->PushLocalFrame(16);
 
@@ -1069,7 +814,6 @@ void __toNativeDictionary(const Dictionary &dictionary, jobject mapObj) {
 
     jclass listClass = env->FindClass("java/util/ArrayList");
     jmethodID listInit = env->GetMethodID(listClass, "<init>", "()V");
-    jmethodID addMethod = env->GetMethodID(listClass, "add", "(Ljava/lang/Object;)Z");
 
     jclass integerClass = env->FindClass("java/lang/Integer");
     jmethodID integerInit = env->GetMethodID(integerClass, "<init>", "(I)V");
@@ -1082,74 +826,90 @@ void __toNativeDictionary(const Dictionary &dictionary, jobject mapObj) {
     jclass booleanClass = env->FindClass("java/lang/Boolean");
     jmethodID booleanInit = env->GetMethodID(booleanClass, "<init>", "(Z)V");
 
-    auto keys = dictionary.getKeys();
+    auto keys = dictionary->getKeys();
     for (auto &key : keys) {
         env->PushLocalFrame(16);
 
         jvalue v;
-        const char *keyCStr = key.c_str();
         jstring keyStr = env->NewStringUTF(key.c_str());
-        auto type = dictionary.getType(key);
+        auto type = dictionary->getType(key);
 
         switch (type) {
+            case DataType::Void:
+                break;
             case DataType::Int: {
-                jobject integerObj = env->NewObject(integerClass, integerInit, dictionary.get<Int>(key).value);
-                env->CallObjectMethod(mapObj, putMethod, keyStr, integerObj);
+                jobject integerObj = env->NewObject(integerClass, integerInit, dictionary->get<mog::Int>(key)->getValue());
+                env->CallObjectMethod(jMap, putMethod, keyStr, integerObj);
                 break;
             }
             case DataType::Long: {
-                jobject longObj = env->NewObject(longClass, longInit, dictionary.get<Long>(key).value);
-                env->CallObjectMethod(mapObj, putMethod, keyStr, longObj);
+                jobject longObj = env->NewObject(longClass, longInit, dictionary->get<mog::Long>(key)->getValue());
+                env->CallObjectMethod(jMap, putMethod, keyStr, longObj);
                 break;
             }
             case DataType::Float: {
-                jobject floatObj = env->NewObject(floatClass, floatInit, dictionary.get<Float>(key).value);
-                env->CallObjectMethod(mapObj, putMethod, keyStr, floatObj);
+                jobject floatObj = env->NewObject(floatClass, floatInit, dictionary->get<mog::Float>(key)->getValue());
+                env->CallObjectMethod(jMap, putMethod, keyStr, floatObj);
                 break;
             }
             case DataType::Double: {
-                jobject doubleObj = env->NewObject(doubleClass, doubleInit, dictionary.get<Double>(key).value);
-                env->CallObjectMethod(mapObj, putMethod, keyStr, doubleObj);
+                jobject doubleObj = env->NewObject(doubleClass, doubleInit, dictionary->get<mog::Double>(key)->getValue());
+                env->CallObjectMethod(jMap, putMethod, keyStr, doubleObj);
                 break;
             }
             case DataType::Bool: {
-                jobject booleanObj = env->NewObject(booleanClass, booleanInit, dictionary.get<Bool>(key).value);
-                env->CallObjectMethod(mapObj, putMethod, keyStr, booleanObj);
+                jobject booleanObj = env->NewObject(booleanClass, booleanInit, dictionary->get<mog::Bool>(key)->getValue());
+                env->CallObjectMethod(jMap, putMethod, keyStr, booleanObj);
                 break;
             }
             case DataType::String: {
-                const char *s = dictionary.get<String>(key).value.c_str();
+                const char *s = dictionary->get<mog::String>(key)->getValue().c_str();
                 jstring str = env->NewStringUTF(s);
-                env->CallObjectMethod(mapObj, putMethod, keyStr, str);
+                env->CallObjectMethod(jMap, putMethod, keyStr, str);
                 break;
             }
-            case DataType::Array: {
-                jobject list = env->NewObject(listClass, listInit);
-                __toNativeArray(dictionary.get<Array>(key), list);
-                env->CallObjectMethod(mapObj, putMethod, keyStr, list);
+            case DataType::List: {
+                jobject jList = env->NewObject(listClass, listInit);
+                toNativeList(dictionary->get<mog::List>(key), jList);
+                env->CallObjectMethod(jMap, putMethod, keyStr, jList);
                 break;
             }
             case DataType::Dictionary: {
-                jobject map = env->NewObject(mapClass, mapInit);
-                __toNativeDictionary(dictionary.get<Dictionary>(key), map);
-                env->CallObjectMethod(mapObj, putMethod, keyStr, map);
+                jobject jMap2 = env->NewObject(mapClass, mapInit);
+                toNativeDictionary(dictionary->get<mog::Dictionary>(key), jMap2);
+                env->CallObjectMethod(jMap, putMethod, keyStr, jMap2);
                 break;
             }
-            default:
+            case DataType::ByteArray: {
+                unsigned char *data = nullptr;
+                unsigned int len = 0;
+                dictionary->get<mog::ByteArray>(key)->getValue(&data, &len);
+                jbyteArray jbyteArr = env->NewByteArray((jsize)len);
+                jbyte *jBytes = env->GetByteArrayElements(jbyteArr, NULL);
+                for (int i = 0; i < len; i++) {
+                    jBytes[i] = (jbyte)data[i];
+                }
+                env->CallObjectMethod(jMap, putMethod, keyStr, jbyteArr);
                 break;
+            }
+            case DataType::NativeObject: {
+                auto no = dictionary->get<mog::NativeObject>(key);
+                jobject jno = (jobject)no->getValue();
+                env->CallObjectMethod(jMap, putMethod, keyStr, jno);
+                break;
+            }
         }
         env->PopLocalFrame(NULL);
     }
     env->PopLocalFrame(NULL);
 }
 
-void __toNativeArray(const Array &array, jobject listObj) {
+static void toNativeList(const std::shared_ptr<List> &list, jobject jList) {
     JNIEnv *env = AndroidHelper::getEnv();
     env->PushLocalFrame(16);
 
     jclass mapClass = env->FindClass("java/util/HashMap");
     jmethodID mapInit = env->GetMethodID(mapClass, "<init>", "()V");
-    jmethodID putMethod = env->GetMethodID(mapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
     jclass listClass = env->FindClass("java/util/ArrayList");
     jmethodID listInit = env->GetMethodID(listClass, "<init>", "()V");
@@ -1166,77 +926,89 @@ void __toNativeArray(const Array &array, jobject listObj) {
     jclass booleanClass = env->FindClass("java/lang/Boolean");
     jmethodID booleanInit = env->GetMethodID(booleanClass, "<init>", "(Z)V");
 
-    for (int i = 0; i < array.size(); i++) {
+    for (int i = 0; i < list->size(); i++) {
         env->PushLocalFrame(16);
 
         jvalue v;
-        auto type = array.atType(i);
+        auto type = list->atType(i);
 
         switch (type) {
+            case DataType::Void:
+                break;
             case DataType::Int: {
-                jobject integerObj = env->NewObject(integerClass, integerInit, array.at<Int>(i).value);
-                env->CallBooleanMethod(listObj, addMethod, integerObj);
+                jobject integerObj = env->NewObject(integerClass, integerInit, list->at<mog::Int>(i)->getValue());
+                env->CallBooleanMethod(jList, addMethod, integerObj);
                 break;
             }
             case DataType::Long: {
-                jobject longObj = env->NewObject(longClass, longInit, array.at<Long>(i).value);
-                env->CallBooleanMethod(listObj, addMethod, longObj);
+                jobject longObj = env->NewObject(longClass, longInit, list->at<mog::Long>(i)->getValue());
+                env->CallBooleanMethod(jList, addMethod, longObj);
                 break;
             }
             case DataType::Float: {
-                jobject floatObj = env->NewObject(floatClass, floatInit, array.at<Float>(i).value);
-                env->CallBooleanMethod(listObj, addMethod, floatObj);
+                jobject floatObj = env->NewObject(floatClass, floatInit, list->at<mog::Float>(i)->getValue());
+                env->CallBooleanMethod(jList, addMethod, floatObj);
                 break;
             }
             case DataType::Double: {
-                jobject doubleObj = env->NewObject(doubleClass, doubleInit, array.at<Double>(i).value);
-                env->CallBooleanMethod(listObj, addMethod, doubleObj);
+                jobject doubleObj = env->NewObject(doubleClass, doubleInit, list->at<mog::Double>(i)->getValue());
+                env->CallBooleanMethod(jList, addMethod, doubleObj);
                 break;
             }
             case DataType::Bool: {
-                jobject booleanObj = env->NewObject(booleanClass, booleanInit, array.at<Bool>(i).value);
-                env->CallBooleanMethod(listObj, addMethod, booleanObj);
+                jobject booleanObj = env->NewObject(booleanClass, booleanInit, list->at<mog::Bool>(i)->getValue());
+                env->CallBooleanMethod(jList, addMethod, booleanObj);
                 break;
             }
             case DataType::String: {
-                const char *s = array.at<String>(i).value.c_str();
+                const char *s = list->at<String>(i)->getValue().c_str();
                 jstring str = env->NewStringUTF(s);
-                env->CallBooleanMethod(listObj, addMethod, str);
+                env->CallBooleanMethod(jList, addMethod, str);
                 break;
             }
-            case DataType::Array: {
-                jobject list = env->NewObject(listClass, listInit);
-                __toNativeArray(array.at<Array>(i), list);
-                env->CallBooleanMethod(listObj, addMethod, list);
+            case DataType::List: {
+                jobject jList2 = env->NewObject(listClass, listInit);
+                toNativeList(list->at<List>(i), jList2);
+                env->CallBooleanMethod(jList, addMethod, jList2);
                 break;
             }
             case DataType::Dictionary: {
                 jobject map = env->NewObject(mapClass, mapInit);
-                __toNativeDictionary(array.at<Dictionary>(i), map);
-                env->CallBooleanMethod(listObj, addMethod, map);
+                toNativeDictionary(list->at<Dictionary>(i), map);
+                env->CallBooleanMethod(jList, addMethod, map);
                 break;
             }
-            default:
-                break;
+            case DataType::ByteArray: {
+                unsigned char *data = nullptr;
+                unsigned int len = 0;
+                list->at<mog::ByteArray>(i)->getValue(&data, &len);
+                jbyteArray jbyteArr = env->NewByteArray((jsize)len);
+                jbyte *jBytes = env->GetByteArrayElements(jbyteArr, NULL);
+                for (int i = 0; i < len; i++) {
+                    jBytes[i] = (jbyte)data[i];
+                }
+                env->CallBooleanMethod(jList, addMethod, jbyteArr);
+            }
+            case DataType::NativeObject: {
+                auto no = list->at<mog::NativeObject>(i);
+                jobject jno = (jobject)no->getValue();
+                env->CallBooleanMethod(jList, addMethod, jno);
+            }
         }
         env->PopLocalFrame(NULL);
     }
     env->PopLocalFrame(NULL);
 }
 
-
-Dictionary NUtils::toDictionary(void *o) {
-    Dictionary dict;
-
+static void toMogDictionary(jobject jMap, std::shared_ptr<Dictionary> &dict) {
     JNIEnv *env = AndroidHelper::getEnv();
     env->PushLocalFrame(128);
 
-    jobject jobj = (jobject)o;
-    jclass jcls = env->GetObjectClass(jobj);
+    jclass jcls = env->GetObjectClass(jMap);
     jclass mapCls = env->FindClass("java/util/Map");
-    if (env->IsInstanceOf(jobj, mapCls)) {
+    if (env->IsInstanceOf(jMap, mapCls)) {
         jmethodID keySetId = env->GetMethodID(jcls, "keySet", "()Ljava/util/Set;");
-        jobject jKeySet = env->CallObjectMethod(jobj, keySetId);
+        jobject jKeySet = env->CallObjectMethod(jMap, keySetId);
         jclass jKeySetCls = env->GetObjectClass(jKeySet);
         jmethodID toArrayId = env->GetMethodID(jKeySetCls, "toArray", "()[Ljava/lang/Object;");
         jobjectArray keyArr = (jobjectArray)env->CallObjectMethod(jKeySet, toArrayId);
@@ -1259,78 +1031,74 @@ Dictionary NUtils::toDictionary(void *o) {
         jclass stringClass = env->FindClass("java/lang/String");
         jclass listClass = env->FindClass("java/util/List");
         jclass mapClass = env->FindClass("java/util/Map");
+        jclass byteArrClass = env->FindClass("[B");
 
         int len = env->GetArrayLength(keyArr);
         for (int i = 0; i < len; i++) {
             jstring jKey = (jstring)env->GetObjectArrayElement(keyArr, i);
             const char *keyCStr = env->GetStringUTFChars(jKey, NULL);
             auto key = string(keyCStr);
-            jobject jElement = env->CallObjectMethod(jobj, getId, jKey);
+            jobject jElement = env->CallObjectMethod(jMap, getId, jKey);
             if (!jElement) continue;
 
             jclass jElmCls = env->GetObjectClass(jElement);
 
             if (env->IsInstanceOf(jElement, integerClass)) {
                 jint i = env->CallIntMethod(jElement, intValueId);
-                dict.put(key, Int((int)i));
+                dict->put(key, mog::Int::create((int)i));
             } else if (env->IsInstanceOf(jElement, longClass)) {
                 jlong l = env->CallLongMethod(jElement, longValueId);
-                dict.put(key, Long((long)l));
+                dict->put(key, mog::Long::create((long long)l));
             } else if (env->IsInstanceOf(jElement, charClass)) {
                 jchar c = env->CallCharMethod(jElement, charValueId);
-                dict.put(key, Int((int)c));
+                dict->put(key, mog::Int::create((int)c));
             } else if (env->IsInstanceOf(jElement, byteClass)) {
                 jbyte b = env->CallByteMethod(jElement, byteValueId);
-                dict.put(key, Int((int)b));
+                dict->put(key, mog::Int::create((int)b));
             } else if (env->IsInstanceOf(jElement, floatClass)) {
                 jfloat f = env->CallFloatMethod(jElement, floatValueId);
-                dict.put(key, Float((float)f));
+                dict->put(key, mog::Float::create((float)f));
             } else if (env->IsInstanceOf(jElement, doubleClass)) {
                 jdouble d = env->CallDoubleMethod(jElement, doubleValueId);
-                dict.put(key, Double((double)d));
+                dict->put(key, mog::Double::create((double)d));
             } else if (env->IsInstanceOf(jElement, booleanClass)) {
                 jboolean b = env->CallBooleanMethod(jElement, booleanValueId);
-                dict.put(key, Bool((bool)b));
+                dict->put(key, mog::Bool::create((bool)b));
             } else if (env->IsInstanceOf(jElement, stringClass)) {
                 const char *cstr = env->GetStringUTFChars((jstring)jElement, NULL);
-                dict.put(key, String(cstr));
+                dict->put(key, mog::String::create(cstr));
                 env->ReleaseStringUTFChars((jstring)jElement, cstr);
             } else if (env->IsInstanceOf(jElement, mapClass)) {
-                Dictionary d = NUtils::toDictionary(jElement);
-                dict.put(key, d);
+                auto dict2 = Dictionary::create();
+                toMogDictionary(jElement, dict2);
+                dict->put(key, dict2);
             } else if (env->IsInstanceOf(jElement, listClass)) {
-                Array a = NUtils::toArray(jElement);
-                dict.put(key, a);
+                auto list = List::create();
+                toMogList(jElement, list);
+                dict->put(key, list);
+            } else if (env->IsInstanceOf(jElement, byteArrClass)) {
+                jbyteArray jByteArr = (jbyteArray)jElement;
+                jbyte *bytes = env->GetByteArrayElements(jByteArr, NULL);
+                int length = (int)env->GetArrayLength(jByteArr);
+                auto byteArr = ByteArray::create((unsigned char *)bytes, (unsigned int)length, true);
+                env->ReleaseByteArrayElements(jByteArr, bytes, JNI_ABORT);
+                dict->put(key, byteArr);
             }
         }
     }
 
     env->PopLocalFrame(NULL);
-
-    return dict;
 }
 
-Dictionary NUtils::toDictionary(const NArg &arg) {
-    return NUtils::toDictionary(arg.o->getObject());
-}
-
-Dictionary NUtils::toDictionary(const NRet &ret) {
-    return NUtils::toDictionary(ret.o->getObject());
-}
-
-
-Array NUtils::toArray(void *o) {
-    Array arr;
-
+static void toMogList(jobject jList, std::shared_ptr<List> &list) {
     JNIEnv *env = AndroidHelper::getEnv();
     env->PushLocalFrame(128);
 
-    jobject jobj = (jobject)o;
-    jclass jcls = env->GetObjectClass(jobj);
+    jclass jcls = env->GetObjectClass(jList);
     jclass listCls = env->FindClass("java/util/List");
-    if (env->IsInstanceOf(jobj, listCls)) {
+    if (env->IsInstanceOf(jList, listCls)) {
         jmethodID sizeId = env->GetMethodID(jcls, "size", "()I");
-        int size = env->CallIntMethod(jobj, sizeId);
+        int size = env->CallIntMethod(jList, sizeId);
         jmethodID getId = env->GetMethodID(jcls, "get", "(I)Ljava/lang/Object;");
 
         jclass integerClass = env->FindClass("java/lang/Integer");
@@ -1350,73 +1118,131 @@ Array NUtils::toArray(void *o) {
         jclass stringClass = env->FindClass("java/lang/String");
         jclass listClass = env->FindClass("java/util/List");
         jclass mapClass = env->FindClass("java/util/Map");
+        jclass byteArrClass = env->FindClass("[B");
 
         for (int i = 0; i < size; i++) {
-            jobject jElement = env->CallObjectMethod(jobj, getId, (jint)i);
+            jobject jElement = env->CallObjectMethod(jList, getId, (jint)i);
             jclass jElmCls = env->GetObjectClass(jElement);
 
             if (env->IsInstanceOf(jElement, integerClass)) {
                 jint i = env->CallIntMethod(jElement, intValueId);
-                arr.append(Int((int)i));
+                list->append(Int::create((int)i));
             } else if (env->IsInstanceOf(jElement, longClass)) {
                 jlong l = env->CallLongMethod(jElement, longValueId);
-                arr.append(Long((long)l));
+                list->append(Long::create((long long)l));
             } else if (env->IsInstanceOf(jElement, charClass)) {
                 jchar c = env->CallCharMethod(jElement, charValueId);
-                arr.append(Int((int)c));
+                list->append(Int::create((int)c));
             } else if (env->IsInstanceOf(jElement, byteClass)) {
                 jbyte b = env->CallByteMethod(jElement, byteValueId);
-                arr.append(Int((int)b));
+                list->append(Int::create((int)b));
             } else if (env->IsInstanceOf(jElement, floatClass)) {
                 jfloat f = env->CallFloatMethod(jElement, floatValueId);
-                arr.append(Float((float)f));
+                list->append(Float::create((float)f));
             } else if (env->IsInstanceOf(jElement, doubleClass)) {
                 jdouble d = env->CallDoubleMethod(jElement, doubleValueId);
-                arr.append(Double((double)d));
+                list->append(Double::create((double)d));
             } else if (env->IsInstanceOf(jElement, booleanClass)) {
                 jboolean b = env->CallBooleanMethod(jElement, booleanValueId);
-                arr.append(Bool((bool)b));
+                list->append(Bool::create((bool)b));
             } else if (env->IsInstanceOf(jElement, stringClass)) {
                 const char *cstr = env->GetStringUTFChars((jstring)jElement, NULL);
-                arr.append(String(cstr));
+                list->append(String::create(cstr));
                 env->ReleaseStringUTFChars((jstring)jElement, cstr);
             } else if (env->IsInstanceOf(jElement, mapClass)) {
-                Dictionary d = NUtils::toDictionary(jElement);
-                arr.append(d);
+                auto dict = Dictionary::create();
+                toMogDictionary(jElement, dict);
+                list->append(dict);
             } else if (env->IsInstanceOf(jElement, listClass)) {
-                Array a = NUtils::toArray(jElement);
-                arr.append(a);
+                auto list2 = List::create();
+                toMogList(jElement, list2);
+                list->append(list2);
+            } else if (env->IsInstanceOf(jElement, byteArrClass)) {
+                jbyteArray jByteArr = (jbyteArray)jElement;
+                jbyte *bytes = env->GetByteArrayElements(jByteArr, NULL);
+                int length = (int)env->GetArrayLength(jByteArr);
+                auto byteArr = ByteArray::create((unsigned char *)bytes, (unsigned int)length, true);
+                env->ReleaseByteArrayElements(jByteArr, bytes, JNI_ABORT);
+                list->append(byteArr);
             }
         }
     }
 
     env->PopLocalFrame(NULL);
-
-    return arr;
-}
-
-Array NUtils::toArray(const NArg &arg) {
-    return NUtils::toArray(arg.o->getObject());
-}
-
-Array NUtils::toArray(const NRet &ret) {
-    return NUtils::toArray(ret.o->getObject());
 }
 
 
-string NUtils::toString(void *o) {
-    JNIEnv *env = AndroidHelper::getEnv();
-    jstring jobj = (jstring)o;
-    const char *cstr = env->GetStringUTFChars(jobj, NULL);
-    string str = string(cstr);
-    env->ReleaseStringUTFChars(jobj, cstr);
-    return str;
+static void convertArgs(JNIEnv* env, jobjectArray params, std::shared_ptr<List> &list) {
+    env->PushLocalFrame(128);
+
+    int len = env->GetArrayLength(params);
+
+    jclass integerClass = env->FindClass("java/lang/Integer");
+    jmethodID intValueId = env->GetMethodID(integerClass, "intValue", "()I");
+    jclass longClass = env->FindClass("java/lang/Long");
+    jmethodID longValueId = env->GetMethodID(longClass, "longValue", "()J");
+    jclass charClass = env->FindClass("java/lang/Character");
+    jmethodID charValueId = env->GetMethodID(charClass, "charValue", "()C");
+    jclass byteClass = env->FindClass("java/lang/Byte");
+    jmethodID byteValueId = env->GetMethodID(byteClass, "byteValue", "()B");
+    jclass floatClass = env->FindClass("java/lang/Float");
+    jmethodID floatValueId = env->GetMethodID(floatClass, "floatValue", "()F");
+    jclass doubleClass = env->FindClass("java/lang/Double");
+    jmethodID doubleValueId = env->GetMethodID(doubleClass, "doubleValue", "()D");
+    jclass booleanClass = env->FindClass("java/lang/Boolean");
+    jmethodID booleanValueId = env->GetMethodID(booleanClass, "booleanValue", "()Z");
+    jclass byteArrClass = env->FindClass("[B");
+
+    for (int i = 0; i < len; i++) {
+        jobject jobj = env->GetObjectArrayElement(params, i);
+        if (jobj == NULL) {
+            list->append(nullptr);
+        } else if (env->IsInstanceOf(jobj, integerClass)) {
+            jint v = env->CallIntMethod(jobj, intValueId);
+            list->append(Int::create((int)v));
+        } else if (env->IsInstanceOf(jobj, longClass)) {
+            jlong v = env->CallLongMethod(jobj, longValueId);
+            list->append(Long::create((long long)v));
+        } else if (env->IsInstanceOf(jobj, charClass)) {
+            jchar v = env->CallCharMethod(jobj, charValueId);
+            list->append(Int::create((int)v));
+        } else if (env->IsInstanceOf(jobj, byteClass)) {
+            jbyte v = env->CallByteMethod(jobj, byteValueId);
+            list->append(Int::create((int)v));
+        } else if (env->IsInstanceOf(jobj, floatClass)) {
+            jfloat v = env->CallFloatMethod(jobj, floatValueId);
+            list->append(Float::create((float)v));
+        } else if (env->IsInstanceOf(jobj, doubleClass)) {
+            jdouble v = env->CallDoubleMethod(jobj, doubleValueId);
+            list->append(Double::create((double)v));
+        } else if (env->IsInstanceOf(jobj, booleanClass)) {
+            jboolean v = env->CallBooleanMethod(jobj, booleanValueId);
+            list->append(Bool::create((bool)v));
+        } else if (env->IsInstanceOf(jobj, byteArrClass)) {
+            jbyteArray jByteArr = (jbyteArray)jobj;
+            jbyte *bytes = env->GetByteArrayElements(jByteArr, NULL);
+            int length = (int)env->GetArrayLength(jByteArr);
+            auto byteArr = ByteArray::create((unsigned char *)bytes, (unsigned int)length, true);
+            env->ReleaseByteArrayElements(jByteArr, bytes, JNI_ABORT);
+            list->append(byteArr);
+        } else {
+            jobject go = env->NewGlobalRef(jobj);
+            list->append(NativeObject::create((void *)go));
+        }
+    }
+    env->PopLocalFrame(NULL);
 }
 
-string NUtils::toString(const NArg &arg) {
-    return NUtils::toString(arg.o->getObject());
+
+extern "C" {
+JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_runCallback(JNIEnv* env, jobject obj, jlong functionPtr, jobjectArray params) {
+    NativeFunction *nf = (NativeFunction *)functionPtr;
+    auto args = List::create();
+    convertArgs(env, params, args);
+    nf->invoke(args);
 }
 
-string NUtils::toString(const NRet &ret) {
-    return NUtils::toString(ret.o->getObject());
+JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_releaseNativeFunction(JNIEnv* env, jobject obj, jlong functionPtr) {
+    delete (NativeFunction *)functionPtr;
+}
 }
