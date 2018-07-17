@@ -5,10 +5,10 @@ android {
     buildToolsVersion '27.0.3'
     sourceSets {
         main {
-            manifest.srcFile '../../classes_android/mog/os_java/AndroidManifest.xml'
+            manifest.srcFile '../../sources_android/mog/os_java/AndroidManifest.xml'
             assets.srcDirs = ['../../assets', '../../assets_android']
-            res.srcDirs = ['../../classes_android/mog/os_java/res']
-            java.srcDirs = ['../../classes_android/mog/os_java']
+            res.srcDirs = ['../../sources_android/mog/os_java/res']
+            java.srcDirs = ['../../sources_android/mog/os_java']
         }
     }
     defaultConfig {
@@ -61,8 +61,8 @@ def String[] getSourceFiles(File dir, String basePath) {
 
 task refreshCmakeList << {
     String basePath = new File(project.projectDir.absolutePath + "/../../").getCanonicalPath()
-    String[] classesFiles = getSourceFiles(new File(basePath + "/classes/"), basePath)
-    String[] classesAndroidFiles = getSourceFiles(new File(basePath + "/classes_android/"), basePath)
+    String[] sourcesFiles = getSourceFiles(new File(basePath + "/sources/"), basePath)
+    String[] sourcesAndroidFiles = getSourceFiles(new File(basePath + "/sources_android/"), basePath)
     File cmakeFile = new File(project.projectDir.absolutePath + "/CMakeLists.txt")
     String cmakeContent = cmakeFile.text
 
@@ -74,8 +74,8 @@ task refreshCmakeList << {
 
     StringBuilder strb = new StringBuilder()
     strb.append(cmakeContent.substring(0, start + startStr.length()) + "\n")
-    strb.append("    " + classesFiles.join("\n    ") + "\n")
-    strb.append("    " + classesAndroidFiles.join("\n    ") + "\n")
+    strb.append("    " + sourcesFiles.join("\n    ") + "\n")
+    strb.append("    " + sourcesAndroidFiles.join("\n    ") + "\n")
     strb.append(cmakeContent.substring(end))
 
     cmakeFile.write(strb.toString())

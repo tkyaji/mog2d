@@ -1,4 +1,4 @@
-    #include "mog/core/plain_objects.h"
+#include "mog/core/plain_objects.h"
 
 using namespace mog;
 
