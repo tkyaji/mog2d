@@ -24,7 +24,7 @@ namespace mog {
     class DataStore {
     public:
         template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
-        static T getData(string key, const T &defaultValue) {
+        static std::shared_ptr<T> getData(string key, const std::shared_ptr<T> &defaultValue) {
             std::lock_guard<std::mutex> lock(mtx);
             
             if (!_hasKey(key)) {
@@ -33,80 +33,43 @@ namespace mog {
             
             auto data = DataStore::caches[key];
             if (data) {
-                return *static_pointer_cast<T>(data).get();
+                return static_pointer_cast<T>(data);
             } else {
                 return _deserialize<T>(key);
             }
         }
         
         template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
-        static T getData(string key) {
-            auto defaultValue = T();
-            defaultValue.type = DataType::Void;
+        static std::shared_ptr<T> getData(string key) {
+            auto defaultValue = std::shared_ptr<T>(new T());
             return getData<T>(key, defaultValue);
         }
         
-        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
-        static void setData(string key, const T &value, bool immediatelySave = false) {
-            std::lock_guard<std::mutex> lock(mtx);
-            
-            DataStore::caches[key] = shared_ptr<T>(new T(value));
-            if (immediatelySave) {
-                _save(key);
-            } else {
-                DataStore::unsaved[key] = true;
-            }
-        }
-        
-        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
-        static void serialize(string filepath, T &data) {
-            string tmp = filepath + ".tmp";
-            ofstream fout;
-            fout.exceptions(ios::failbit|ios::badbit);
-            fout.open(tmp, ios::out|ios::binary);
-            data.write(fout);
-            fout.flush();
-            fout.close();
-            const char *filec = filepath.c_str();
-            const char *tmpc = tmp.c_str();
-            if (std::rename(tmpc, filec) != 0) {
-                std::remove(filec);
-                if (std::rename(tmpc, filec) != 0) {
-                    throw std::ios_base::failure("failed to write file.");
-                }
-            }
-        }
+        static void setData(string key, const std::shared_ptr<Data> &value, bool immediatelySave = false);
+        static void serialize(string filepath, const std::shared_ptr<Data> &data);
+        static void serialize(unsigned char **byteData, int *len, const std::shared_ptr<Data> &data);
 
         template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
-        static void serialize(unsigned char **byteData, int *len, T &data) {
-            ostringstream sout(ios::binary);
-            sout.exceptions(ios::failbit|ios::badbit);
-            data.write(sout);
-            const char *sdata = sout.str().data();
-            size_t size = sout.str().size();
-            *len = (int)size;
-            *byteData = (unsigned char *)malloc(size);
-            memcpy(*byteData, sdata, size);
-        }
-
-        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
-        static T deserialize(string filepath) {
-            T data;
+        static std::shared_ptr<T> deserialize(string filepath) {
+            auto data = std::shared_ptr<T>(new T());
             ifstream fin;
             fin.exceptions(ios::failbit|ios::badbit);
             fin.open(filepath, ios::in|ios::binary);
-            data.read(fin);
+            data->read(fin);
             fin.close();
             return data;
         }
         
         template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
-        static T deserialize(unsigned char *byteData, int len) {
-            T data;
+        static std::shared_ptr<T> deserialize(const std::shared_ptr<ByteArray> &bytes) {
+            auto data = std::shared_ptr<T>(new T());
+            unsigned char *byteData = nullptr;
+            unsigned int len = 0;
+            bytes->getValue(&byteData, &len);
             auto str = std::string(byteData, byteData + len);
             istringstream sin(str, ios::binary);
             sin.exceptions(ios::failbit|ios::badbit);
-            data.read(sin);
+            data->read(sin);
             return data;
         }
         
@@ -125,7 +88,7 @@ namespace mog {
         static void clearCache();
         
     private:
-        static unordered_map<string, shared_ptr<Data>> caches;
+        static unordered_map<string, std::shared_ptr<Data>> caches;
         static unordered_map<string, bool> unsaved;
         static mutex mtx;
         
@@ -135,27 +98,17 @@ namespace mog {
         static void _save();
         static void _save(string key);
         
-        template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
-        static void _serialize(string key, T &data) {
-            string dirStr = getStoreDirectory();
-            const char *dir = dirStr.c_str();
-            struct stat st;
-            if (stat(dir, &st) == -1) {
-                mkdir(dir, S_IRWXU|S_IRWXG);
-            }
-            string file = getStoreFilePath(key);
-            serialize(file, data);
-        }
+        static void _serialize(string key, const std::shared_ptr<Data> &data);
         
         template <class T, typename enable_if<is_base_of<Data, T>::value>::type*& = enabler>
-        static T _deserialize(string key) {
-            T d;
+        static std::shared_ptr<T> _deserialize(string key) {
+            std::shared_ptr<T> d = nullptr;
             string file = getStoreFilePath(key);
             struct stat st;
             if (stat(file.c_str(), &st) != 0) return d;
             
             d = deserialize<T>(file);
-            DataStore::caches[key] = shared_ptr<T>(new T(d));
+            DataStore::caches[key] = d;
             return d;
         }
         

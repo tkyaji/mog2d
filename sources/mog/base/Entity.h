@@ -42,7 +42,10 @@ namespace mog {
         bool isTouchEnable();
         virtual std::shared_ptr<Collider> getCollider();
         void setParam(const std::shared_ptr<Data> &param);
-        std::shared_ptr<Data> getParam();
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        std::shared_ptr<Data> getParam() {
+            static_pointer_cast<T>(this->param);
+        }
 
     protected:
         Entity();

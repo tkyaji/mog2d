@@ -186,6 +186,14 @@ void ByteArray::getValue(unsigned char **value, unsigned int *length) {
     if (length) *length = this->length;
 }
 
+unsigned int ByteArray::getLength() {
+    return this->length;
+}
+
+unsigned char ByteArray::getByte(int idx) {
+    return this->value[idx];
+}
+
 void ByteArray::write(ostream &out) {
     out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->length, sizeof(unsigned int));
@@ -396,6 +404,12 @@ vector<string> Dictionary::getKeys() const {
     return keys;
 }
 
+std::pair<std::string, std::shared_ptr<Data>> Dictionary::getKeyValue(int idx) {
+    auto itr = this->datum.begin();
+    for (int i = 0; i < idx; i++) itr++;
+    return std::pair<std::string, std::shared_ptr<Data>>(itr->first, itr->second);
+}
+
 DataType Dictionary::getType(string key) const {
     return this->datum.at(key)->type;
 }
@@ -475,7 +489,7 @@ void Dictionary::read(istream &in) {
 }
 
 
-shared_ptr<Data> jsonValueToData(json_value_s *value) {
+static shared_ptr<Data> jsonValueToData(json_value_s *value) {
     switch (value->type) {
         case json_type_object: {
             auto dict = Dictionary::create();
@@ -527,10 +541,99 @@ shared_ptr<Data> jsonValueToData(json_value_s *value) {
     }
 }
 
-JsonData JsonData::parse(string jsonText) {
-    JsonData jsonData;
+static void dataTojsonString(stringstream &ss, const std::shared_ptr<Data> &data) {
+    switch (data->type) {
+        case DataType::Int:
+            ss << static_pointer_cast<Int>(data)->getValue();
+            break;
+            
+        case DataType::Long:
+            ss << static_pointer_cast<Long>(data)->getValue();
+            break;
+            
+        case DataType::Float:
+            ss << static_pointer_cast<Float>(data)->getValue();
+            break;
+            
+        case DataType::Double:
+            ss << static_pointer_cast<Double>(data)->getValue();
+            break;
+            
+        case DataType::Bool: {
+            bool b = static_pointer_cast<Bool>(data)->getValue();
+            if (b) {
+                ss << "true";
+            } else {
+                ss << "false";
+            }
+            break;
+        }
+            
+        case DataType::String: {
+            string str = static_pointer_cast<String>(data)->getValue();
+            if (!str.empty()) {
+                std::string::size_type pos = 0;
+                while ((pos = str.find('"', pos)) != std::string::npos) {
+                    str.replace(pos, 1, "\\\"");
+                    pos += 2;
+                }
+            }
+            ss << "\"" << str << "\"";
+            break;
+        }
+            
+        case DataType::ByteArray: {
+            auto bytes = static_pointer_cast<ByteArray>(data);
+            ss << "[";
+            for (int i = 0; i < bytes->getLength(); i++) {
+                if (i > 0) ss << ",";
+                unsigned char b = bytes->getByte(i);
+                ss << (int)b;
+            }
+            ss << "]";
+            break;
+        }
+            
+        case DataType::Dictionary: {
+            auto dict = static_pointer_cast<Dictionary>(data);
+            ss << "{";
+            for (int i = 0; i < dict->size(); i++) {
+                if (i > 0) ss << ",";
+                auto pair = dict->getKeyValue(i);
+                dataTojsonString(ss, String::create(pair.first));
+                ss << ":";
+                dataTojsonString(ss, pair.second);
+            }
+            ss << "}";
+            break;
+        }
+            
+        case DataType::List: {
+            auto list = static_pointer_cast<List>(data);
+            ss << "[";
+            for (int i = 0; i < list->size(); i++) {
+                if (i > 0) ss << ",";
+                dataTojsonString(ss, list->at<Data>(i));
+            }
+            ss << "]";
+            break;
+        }
+            
+        case DataType::NativeObject:
+        case DataType::Void:
+            break;
+    }
+}
+
+
+std::shared_ptr<Data> Json::_parse(string jsonText) {
     json_value_s *root = json_parse(jsonText.c_str(), jsonText.size());
-    jsonData.data = jsonValueToData(root);
-    return jsonData;
+    return jsonValueToData(root);
+}
+
+std::string Json::toJson(const std::shared_ptr<Data> &data) {
+    stringstream ss;
+    dataTojsonString(ss, data);
+    return ss.str();
 }
 

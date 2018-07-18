@@ -37,6 +37,7 @@ namespace mog {
     
     
     class Int : public Data {
+        friend class DataStore;
     public:
         static std::shared_ptr<Int> create(int value);
         virtual void write(std::ostream &out) override;
@@ -45,12 +46,14 @@ namespace mog {
         int getValue();
 
     private:
+        Int() {}
         Int(int value);
         int value = 0;
     };
     
     
     class Long : public Data {
+        friend class DataStore;
     public:
         static std::shared_ptr<Long> create(long long value);
         virtual void write(std::ostream &out) override;
@@ -59,12 +62,14 @@ namespace mog {
         long long getValue();
 
     private:
+        Long() {}
         Long(long long value);
         long long value = 0;
     };
     
     
     class Float : public Data {
+        friend class DataStore;
     public:
         static std::shared_ptr<Float> create(float value);
         virtual void write(std::ostream &out) override;
@@ -73,12 +78,14 @@ namespace mog {
         float getValue();
 
     private:
+        Float() {}
         Float(float value);
         float value = 0;
     };
     
     
     class Double : public Data {
+        friend class DataStore;
     public:
         static std::shared_ptr<Double> create(double value);
         virtual void write(std::ostream &out) override;
@@ -87,12 +94,14 @@ namespace mog {
         double getValue();
 
     private:
+        Double() {}
         Double(double value);
         double value = 0;
     };
     
     
     class Bool : public Data {
+        friend class DataStore;
     public:
         static std::shared_ptr<Bool> create(bool value);
         virtual void write(std::ostream &out) override;
@@ -101,12 +110,14 @@ namespace mog {
         bool getValue();
 
     private:
+        Bool() {}
         Bool(bool value);
         bool value = false;
     };
     
     
     class ByteArray : public Data {
+        friend class DataStore;
     public:
         static std::shared_ptr<ByteArray> create(unsigned char *value, unsigned int length, bool copy = false);
         virtual void write(std::ostream &out) override;
@@ -116,8 +127,11 @@ namespace mog {
         ~ByteArray();
 
         void getValue(unsigned char **value, unsigned int *length);
+        unsigned int getLength();
+        unsigned char getByte(int idx);
         
     private:
+        ByteArray() {}
         ByteArray(unsigned char *value, unsigned int length, bool copy = false);
         unsigned char *value = nullptr;
         unsigned int length = 0;
@@ -125,6 +139,7 @@ namespace mog {
 
     
     class String : public Data {
+        friend class DataStore;
     public:
         static std::shared_ptr<String> create(std::string value);
         static std::shared_ptr<String> create(const std::shared_ptr<ByteArray> &bytes);
@@ -134,6 +149,7 @@ namespace mog {
         std::string getValue();
 
     private:
+        String() {}
         String(std::string value);
         String(const std::shared_ptr<ByteArray> bytes);
         std::string value = "";
@@ -141,6 +157,7 @@ namespace mog {
     
     
     class List : public Data {
+        friend class DataStore;
     public:
         static std::shared_ptr<List> create();
         void append(const std::shared_ptr<Data> &data);
@@ -171,6 +188,7 @@ namespace mog {
     
     
     class Dictionary : public Data {
+        friend class DataStore;
     public:
         static std::shared_ptr<Dictionary> create();
 
@@ -192,6 +210,7 @@ namespace mog {
         void clear();
         unsigned int size() const;
         std::vector<std::string> getKeys() const;
+        std::pair<std::string, std::shared_ptr<Data>> getKeyValue(int idx);
         
         virtual void write(std::ostream &out) override;
         virtual void read(std::istream &in) override;
@@ -203,44 +222,18 @@ namespace mog {
     };
     
     
-    /*
-    class DataValue {
+    class Json {
     public:
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
-        DataValue(T data) {
-            this->data = std::unique_ptr<T>(new T(data));
-        }
-        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
-        T get() {
-            return *std::static_pointer_cast<T>(this->data).get();
-        }
-        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
-        T get() const {
-            return *std::static_pointer_cast<T>(this->data).get();
-        }
-        DataType getType() {
-            return this->data->type;
-        }
-    private:
-        std::unique_ptr<Data> data;
-    };
-    */
-    
-    class JsonData {
-    public:
-        static JsonData parse(std::string jsonText);
-        
-        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
-        T toData() {
-            return *(T *)this->data.get();
+        static std::shared_ptr<T> parse(std::string jsonText) {
+            auto data = _parse(jsonText);
+            return std::static_pointer_cast<T>(data);
         }
         
-        DataType getType() {
-            return this->data->type;
-        }
+        static std::string toJson(const std::shared_ptr<Data> &data);
         
     private:
-        std::shared_ptr<Data> data;
+        static std::shared_ptr<Data> _parse(std::string jsonText);
     };
 }
 

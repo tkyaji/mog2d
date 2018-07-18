@@ -288,7 +288,3 @@ shared_ptr<AABB> Entity::getAABB() {
 void Entity::setParam(const std::shared_ptr<Data> &param) {
     this->param = param;
 }
-
-std::shared_ptr<Data> Entity::getParam() {
-    return this->param;
-}
