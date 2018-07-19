@@ -1,6 +1,6 @@
 # mog2d
 
-mog2d is a simple 2d game engine for iOS / android. It's based on OpenGL 1.x.
+mog2d is a simple 2d game engine for iOS / android. It's based on OpenGL ES2.
 
 
 ## Getting Start
@@ -52,14 +52,15 @@ void FirstScene::onLoad() {
 * mog::Group
 * mog::BatchingGroup
 
-### Group, BatchingGroup
+### Group
 
 `mog::Group` class can grouping multiple Entities.
 
 **Ex.**
 
 ```cpp
-auto group = Group::create();
+// If you specify true for the argument, combine draw calls into one.
+auto group = Group::create(true);
 
 auto sprite = Sprite::create("test.png");
 group->add(sprite);
@@ -69,10 +70,6 @@ group->add(rect);
 
 this->add(group);
 ```
-
-In addition, `BatchingGroup` combine draw calls into one.
-
-
 
 
 
