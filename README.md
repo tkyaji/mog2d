@@ -44,13 +44,15 @@ void FirstScene::onLoad() {
 
 ## Subclass of `mog::Entity`
 
+* mog::Sprite
+* mog::Slice9Sprite
+* mog::SpriteSheet
+* mog::Label
 * mog::Rectangle
 * mog::RoundedRectangle
 * mog::Circle
-* mog::Sprite
-* mog::Label
+* mog::Triangle
 * mog::Group
-* mog::BatchingGroup
 
 ### Group
 
