@@ -70,6 +70,7 @@
 		B2A103321ED7154000A2EB8A /* assets in Resources */ = {isa = PBXBuildFile; fileRef = B2A103311ED7154000A2EB8A /* assets */; };
 		B2A103411ED716D100A2EB8A /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2A103401ED716D100A2EB8A /* OpenAL.framework */; };
 		B2B4730B1F0E79930043D501 /* assets_ios in Resources */ = {isa = PBXBuildFile; fileRef = B2B4730A1F0E79930043D501 /* assets_ios */; };
+		B2E421882100D93A006F18A2 /* SampleScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2E421872100D93A006F18A2 /* SampleScene.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -211,6 +212,8 @@
 		B2A103441ED7170200A2EB8A /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		B2A1034A1ED725BD00A2EB8A /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		B2B4730A1F0E79930043D501 /* assets_ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets_ios; path = ../../assets_ios; sourceTree = "<group>"; };
+		B2E421852100D66C006F18A2 /* SampleScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SampleScene.h; sourceTree = "<group>"; };
+		B2E421872100D93A006F18A2 /* SampleScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SampleScene.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -242,6 +245,8 @@
 			children = (
 				B268127620FDF94300AC7AAB /* App.h */,
 				B268127720FDF94300AC7AAB /* App.cpp */,
+				B2E421852100D66C006F18A2 /* SampleScene.h */,
+				B2E421872100D93A006F18A2 /* SampleScene.cpp */,
 			);
 			path = app;
 			sourceTree = "<group>";
@@ -605,6 +610,7 @@
 				B268132620FDF94400AC7AAB /* Texture2DNative.mm in Sources */,
 				B268131A20FDF94300AC7AAB /* Slice9Sprite.cpp in Sources */,
 				B26812FD20FDF94300AC7AAB /* MogStats.cpp in Sources */,
+				B2E421882100D93A006F18A2 /* SampleScene.cpp in Sources */,
 				B268131D20FDF94300AC7AAB /* Triangle.cpp in Sources */,
 				B268130B20FDF94300AC7AAB /* AudioPlayer.cpp in Sources */,
 				B268130820FDF94300AC7AAB /* TextureAtlas.cpp in Sources */,

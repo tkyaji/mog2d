@@ -337,17 +337,17 @@ namespace mog {
     public:
         static std::shared_ptr<TweenUpdate> create();
         
-        virtual void setOnModifyEvent(std::function<void(float delta, const std::shared_ptr<Drawable> &d)> callback);
-        virtual void update(float delta, const std::shared_ptr<Drawable> &drawable);
+        virtual void setOnUpdateEvent(std::function<void(float delta, const std::shared_ptr<Drawable> &d)> callback);
+        virtual void update(float delta, const std::shared_ptr<Drawable> &drawable) override;
         
         void finish();
         
     protected:
         TweenUpdate();
         
-        virtual void onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) {}
+        virtual void onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) override {}
         
-        std::function<void(float delta, const std::shared_ptr<Drawable> &d)> onModifyEvent;
+        std::function<void(float delta, const std::shared_ptr<Drawable> &d)> onUpdateEvent;
     };
     
     

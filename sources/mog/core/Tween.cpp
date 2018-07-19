@@ -519,13 +519,13 @@ shared_ptr<TweenUpdate> TweenUpdate::create() {
 TweenUpdate::TweenUpdate() {
 }
 
-void TweenUpdate::setOnModifyEvent(function<void(float delta, const shared_ptr<Drawable> &d)> callback) {
-    this->onModifyEvent = callback;
+void TweenUpdate::setOnUpdateEvent(function<void(float delta, const shared_ptr<Drawable> &d)> callback) {
+    this->onUpdateEvent = callback;
 }
 
 void TweenUpdate::update(float delta, const shared_ptr<Drawable> &drawable) {
-    if (this->onModifyEvent) {
-        this->onModifyEvent(delta, drawable);
+    if (this->onUpdateEvent) {
+        this->onUpdateEvent(delta, drawable);
     }
 }
 

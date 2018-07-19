@@ -1,7 +1,8 @@
 #include "app/App.h"
+#include "app/SampleScene.h"
 
 using namespace mog;
 
 void App::onLoad() {
-    // TODO: load first scene
+    this->loadScene(make_shared<SampleScene>());
 }
