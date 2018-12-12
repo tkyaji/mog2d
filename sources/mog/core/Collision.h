@@ -59,6 +59,20 @@ namespace mog {
         int length = 0;
         POLYGON(Point *points, int length);
         ~POLYGON();
+        Point getCentroid();
+        
+    private:
+        Point centroid = Point::zero;
+    };
+
+    
+    class POLYGONS {
+    public:
+        POLYGON *polygons = nullptr;
+        int length = 0;
+        Point centroid;
+        POLYGONS(POLYGON *polygons, int length);
+        ~POLYGONS();
     };
 
     
@@ -78,8 +92,12 @@ namespace mog {
         std::shared_ptr<OBB> obb;
         std::shared_ptr<CIRCLE> circle;
         std::shared_ptr<POLYGON> polygon;
+        std::shared_ptr<POLYGONS> polygons;
 
         Collider(ColliderShape shape);
+        
+        Point getCentroid();
+        float getRotation();
     };
 
     
@@ -94,14 +112,20 @@ namespace mog {
         static bool obb_obb(const OBB &obb1, const OBB &obb2);
         static bool obb_circle(const OBB &obb, const CIRCLE &circle);
         static bool obb_polygon(const OBB &obb, const POLYGON &polygon);
+        static bool obb_polygons(const OBB &obb, const POLYGONS &polygons);
         static bool obb_point(const OBB &obb, const Point &p);
 
         static bool circle_circle(const CIRCLE &circle1, const CIRCLE &circle2);
         static bool circle_polygon(const CIRCLE &circle, const POLYGON &polygon);
+        static bool circle_polygons(const CIRCLE &circle, const POLYGONS &polygons);
         static bool circle_point(const CIRCLE &circle, const Point &p);
 
         static bool polygon_polygon(const POLYGON &polygon1, const POLYGON &polygon2);
+        static bool polygon_polygons(const POLYGON &polygon, const POLYGONS &polygons);
         static bool polygon_point(const POLYGON &polygon, const Point &p);
+        
+        static bool polygons_polygons(const POLYGONS &polygons1, const POLYGONS &polygons2);
+        static bool polygons_point(const POLYGONS &polygons, const Point &p);
     };
 }
 

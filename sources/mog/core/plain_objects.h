@@ -20,12 +20,25 @@ namespace mog {
         Point operator-(float value) const;
         Point operator*(float value) const;
         Point operator/(float value) const;
+        Point &operator+=(const Point &p);
+        Point &operator-=(const Point &p);
+        Point &operator*=(const Point &p);
+        Point &operator/=(const Point &p);
+        Point &operator+=(float value);
+        Point &operator-=(float value);
+        Point &operator*=(float value);
+        Point &operator/=(float value);
         bool operator==(const Point &p) const;
         bool operator!=(const Point &p) const;
 
         static Point zero;
         static Point one;
         static Point half;
+        
+        static float dot(const Point &p1, const Point &p2);
+        static float cross(const Point &p1, const Point &p2);
+        static float length(const Point &p);
+        static Point normalize(const Point &p);
     };
     
     
@@ -45,12 +58,18 @@ namespace mog {
         Size operator-(float value) const;
         Size operator*(float value) const;
         Size operator/(float value) const;
+        Size &operator+=(const Size &p);
+        Size &operator-=(const Size &p);
+        Size &operator*=(const Size &p);
+        Size &operator/=(const Size &p);
+        Size &operator+=(float value);
+        Size &operator-=(float value);
+        Size &operator*=(float value);
+        Size &operator/=(float value);
         bool operator==(const Size &size) const;
         bool operator!=(const Size &size) const;
 
         static Size zero;
-        static Size half;
-        static Size one;
     };
     
     

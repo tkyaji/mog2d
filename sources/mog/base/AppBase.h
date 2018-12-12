@@ -44,10 +44,9 @@ namespace mog {
     
     
     class AppBase : public enable_shared_from_this<AppBase> {
+        friend class Engine;
     public:
         AppBase();
-        
-        void setEngine(const std::shared_ptr<Engine> &engine);
         
         void loadScene(const std::shared_ptr<Scene> &scene);
         void loadScene(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing = Easing::Linear);
@@ -98,6 +97,8 @@ namespace mog {
         std::shared_ptr<PubSub> pubsub;
         std::vector<std::shared_ptr<Scene>> sceneStack;
         std::shared_ptr<Scene> currentScene;
+
+        void setEngine(const std::shared_ptr<Engine> &engine);
 
     private:
         struct LoadSceneParams {

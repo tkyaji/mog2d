@@ -23,15 +23,13 @@ namespace mog {
 
         void setOnTapEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTapEvent);
         void setOnTouchBeginEvent(function<bool(const Touch &t, const shared_ptr<Entity> &e)> onTouchBeginEvent);
-        void setOnTouchDragEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchDragEvent);
+        void setOnTouchMoveEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchMoveEvent);
         void setOnTouchEndEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchEndEvent);
         void setOnTouchEnterEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchEnterEvent);
         void setOnTouchOverEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchOverEvent);
         void setOnTouchExitEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchExitEvent);
 
         void setEnable(bool enabled);
-        bool isTouchBegan(unsigned long long touchId);
-        bool isTouchEntered(unsigned long long touchId);
         
     protected:
         TouchEventListener();
@@ -39,9 +37,12 @@ namespace mog {
         set<unsigned long long> touchBeganIds;
         set<unsigned long long> touchEnteredIds;
 
+        bool isTouchBegan(unsigned long long touchId);
+        bool isTouchEntered(unsigned long long touchId);
+
         function<void(const Touch &t, const shared_ptr<Entity> &e)> onTapEvent;
         function<bool(const Touch &t, const shared_ptr<Entity> &e)> onTouchBeginEvent;
-        function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchDragEvent;
+        function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchMoveEvent;
         function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchEndEvent;
         function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchEnterEvent;
         function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchOverEvent;

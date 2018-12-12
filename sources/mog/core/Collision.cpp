@@ -67,8 +67,52 @@ POLYGON::~POLYGON() {
     rpfree(this->points);
 }
 
+Point POLYGON::getCentroid() {
+    if (this->centroid.x != 0 || this->centroid.y != 0) {
+        return this->centroid;
+    }
+    float suma = 0;
+    Point sumcp = Point::zero;
+    for (int i = 1; i < length - 1; i++) {
+        Point &p0 = points[0];
+        Point &p1 = points[i];
+        Point &p2 = points[i + 1];
+        
+        float a = fabs(((p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x)) / 2.0f);
+        Point cp = Point((p0.x + p1.x + p2.x) / 3.0f, (p0.y + p1.y + p2.y) / 3.0f);
+        
+        suma += a;
+        sumcp += cp * a;
+    }
+    this->centroid = Point(sumcp.x / suma, sumcp.y / suma);
+    return this->centroid;
+}
+
+POLYGONS::POLYGONS(POLYGON *polygons, int length) {
+    this->polygons = polygons;
+    this->length = length;
+}
+
+POLYGONS::~POLYGONS() {
+    rpfree(this->polygons);
+}
+
 Collider::Collider(ColliderShape shape) {
     this->shape = shape;
+}
+
+Point Collider::getCentroid() {
+    switch (this->shape) {
+        case ColliderShape::Rect:
+            return Point(this->obb->centerX, this->obb->centerY);
+        case ColliderShape::Circle:
+            return this->circle->center;
+        case ColliderShape::Polygon:
+            return this->polygon->getCentroid();
+        case ColliderShape::Polygons:
+        default:
+            return Point::zero;
+    }
 }
 
 bool Collision::collides(const std::shared_ptr<Collider> &col1, const std::shared_ptr<Collider> &col2) {
@@ -83,6 +127,8 @@ bool Collision::collides(const std::shared_ptr<Collider> &col1, const std::share
                     return Collision::obb_circle(*col1->obb.get(), *col2->circle.get());
                 case ColliderShape::Polygon:
                     return Collision::obb_polygon(*col1->obb.get(), *col2->polygon.get());
+                case ColliderShape::Polygons:
+                    return Collision::obb_polygons(*col1->obb.get(), *col2->polygons.get());
             }
         case ColliderShape::Circle:
             switch (col2->shape) {
@@ -92,6 +138,8 @@ bool Collision::collides(const std::shared_ptr<Collider> &col1, const std::share
                     return Collision::circle_circle(*col1->circle.get(), *col2->circle.get());
                 case ColliderShape::Polygon:
                     return Collision::circle_polygon(*col1->circle.get(), *col2->polygon.get());
+                case ColliderShape::Polygons:
+                    return Collision::circle_polygons(*col1->circle.get(), *col2->polygons.get());
             }
         case ColliderShape::Polygon:
             switch (col2->shape) {
@@ -101,6 +149,19 @@ bool Collision::collides(const std::shared_ptr<Collider> &col1, const std::share
                     return Collision::circle_polygon(*col2->circle.get(), *col1->polygon.get());
                 case ColliderShape::Polygon:
                     return Collision::polygon_polygon(*col1->polygon.get(), *col2->polygon.get());
+                case ColliderShape::Polygons:
+                    return Collision::polygon_polygons(*col1->polygon.get(), *col2->polygons.get());
+            }
+        case ColliderShape::Polygons:
+            switch (col2->shape) {
+                case ColliderShape::Rect:
+                    return Collision::obb_polygons(*col2->obb.get(), *col1->polygons.get());
+                case ColliderShape::Circle:
+                    return Collision::circle_polygons(*col2->circle.get(), *col1->polygons.get());
+                case ColliderShape::Polygon:
+                    return Collision::polygon_polygons(*col2->polygon.get(), *col1->polygons.get());
+                case ColliderShape::Polygons:
+                    return Collision::polygons_polygons(*col1->polygons.get(), *col2->polygons.get());
             }
     }
     return false;
@@ -117,6 +178,8 @@ bool Collision::collides(const std::shared_ptr<Collider> &col, const Point &p) {
             return circle_point(*col->circle, p);
         case ColliderShape::Polygon:
             return polygon_point(*col->polygon, p);
+        case ColliderShape::Polygons:
+            return polygons_point(*col->polygons, p);
     }
     return false;
 }
@@ -169,12 +232,11 @@ static POLYGON obb_to_polygon(const OBB &obb) {
     float y3 = y2 + obb.vec2.y * obb.vec2.vLen * 2.0f;
     float x4 = x3 + obb.vec1.x * obb.vec1.vLen * -2.0f;
     float y4 = y3 + obb.vec1.y * obb.vec1.vLen * -2.0f;
-    Point *points = new Point[4] {
-        Point(x1, y1),
-        Point(x2, y2),
-        Point(x3, y3),
-        Point(x4, y4),
-    };
+    Point *points = (Point *)rpmalloc(sizeof(Point) * 3);
+    points[0] = Point(x1, y1);
+    points[1] = Point(x2, y2);
+    points[2] = Point(x3, y3);
+    points[3] = Point(x4, y4);
     return POLYGON(points, 4);
 }
 
@@ -186,6 +248,15 @@ bool Collision::obb_circle(const OBB &obb, const CIRCLE &circle) {
 bool Collision::obb_polygon(const OBB &obb, const POLYGON &polygon) {
     POLYGON polygon1 = obb_to_polygon(obb);
     return Collision::polygon_polygon(polygon1, polygon);
+}
+
+bool Collision::obb_polygons(const OBB &obb, const POLYGONS &polygons) {
+    for (int i = 0; i < polygons.length; i++) {
+        if (Collision::obb_polygon(obb, polygons.polygons[i])) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool Collision::obb_point(const OBB &obb, const Point &p) {
@@ -229,6 +300,15 @@ bool Collision::circle_polygon(const CIRCLE &circle, const POLYGON &polygon) {
         }
     }
     
+    return false;
+}
+
+bool Collision::circle_polygons(const CIRCLE &circle, const POLYGONS &polygons) {
+    for (int i = 0; i < polygons.length; i++) {
+        if (Collision::circle_polygon(circle, polygons.polygons[i])) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -313,6 +393,15 @@ bool Collision::polygon_polygon(const POLYGON &polygon1, const POLYGON &polygon2
     return true;
 }
 
+bool Collision::polygon_polygons(const POLYGON &polygon, const POLYGONS &polygons) {
+    for (int i = 0; i < polygons.length; i++) {
+        if (Collision::polygon_polygon(polygon, polygons.polygons[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Collision::polygon_point(const POLYGON &polygon, const Point &p) {
     int s = 0;
     for (int i = 0; i < polygon.length; i++) {
@@ -328,4 +417,24 @@ bool Collision::polygon_point(const POLYGON &polygon, const Point &p) {
         s = (c < 0) ? -1 : 1;
     }
     return true;
+}
+
+bool Collision::polygons_polygons(const POLYGONS &polygons1, const POLYGONS &polygons2) {
+    for (int i1 = 0; i1 < polygons1.length; i1++) {
+        for (int i2 = 0; i2 < polygons2.length; i2++) {
+            if (Collision::polygon_polygon(polygons1.polygons[i1], polygons2.polygons[i2])) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool Collision::polygons_point(const POLYGONS &polygons, const Point &p) {
+    for (int i = 0; i < polygons.length; i++) {
+        if (Collision::polygon_point(polygons.polygons[i], p)) {
+            return true;
+        }
+    }
+    return false;
 }

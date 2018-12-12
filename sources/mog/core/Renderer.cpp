@@ -66,6 +66,11 @@ void Renderer::initScreenParameters(const shared_ptr<Engine> &engine) {
     this->screenParameterInitialized = true;
 }
 
+void Renderer::setBlendFunc(BlendingFactor blendingFactorSrc, BlendingFactor blendingFactorDest) {
+    this->blendingFactorSrc = blendingFactorSrc;
+    this->blendingFactorDest = blendingFactorDest;
+}
+
 void Renderer::setUniformMatrix(const float *matrix) {
     this->setUniformParameter("u_matrix", matrix, 4);
 }
@@ -291,6 +296,7 @@ void Renderer::drawFrame() {
         this->initShaderProgram();
     }
     
+    glBlendFunc((GLenum)this->blendingFactorSrc, (GLenum)this->blendingFactorDest);
     glUseProgram(this->glShaderProgram);
     
     glEnableVertexAttribArray(0);
@@ -340,14 +346,6 @@ void Renderer::initShaderProgram() {
     }
     
     glLinkProgram(this->glShaderProgram);
-    
-    if (this->uniformParamsMap.count("u_matrix") == 0) {
-        this->setUniformMatrix(Renderer::identityMatrix);
-    }
-    if (this->uniformParamsMap.count("u_color") == 0) {
-        this->setUniformColor(1.0f, 1.0f, 1.0f, 1.0f);
-    }
-    
 #ifdef MOG_DEBUG
     GLint status = GL_FALSE;
     glGetProgramiv(this->glShaderProgram, GL_LINK_STATUS, &status);
@@ -355,6 +353,13 @@ void Renderer::initShaderProgram() {
         LOGD("Shader link error.");
     }
 #endif
+
+    if (this->uniformParamsMap.count("u_matrix") == 0) {
+        this->setUniformMatrix(Renderer::identityMatrix);
+    }
+    if (this->uniformParamsMap.count("u_color") == 0) {
+        this->setUniformColor(1.0f, 1.0f, 1.0f, 1.0f);
+    }
 }
 
 std::shared_ptr<Shader> Renderer::getDefaultShader(ShaderType shaderType) {

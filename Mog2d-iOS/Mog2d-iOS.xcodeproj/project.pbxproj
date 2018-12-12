@@ -255,11 +255,11 @@
 			isa = PBXGroup;
 			children = (
 				B268127920FDF94300AC7AAB /* core */,
+				B26812B620FDF94300AC7AAB /* base */,
 				B26812A820FDF94300AC7AAB /* plugins */,
 				B26812AA20FDF94300AC7AAB /* libs */,
 				B26812B420FDF94300AC7AAB /* Constants.h */,
 				B26812B520FDF94300AC7AAB /* mog.h */,
-				B26812B620FDF94300AC7AAB /* base */,
 			);
 			path = mog;
 			sourceTree = "<group>";
@@ -765,6 +765,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = AE855DM39N;
 				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
 					"${SRCROOT}/../sources",
 					"${SRCROOT}/../sources_ios",
 				);
@@ -781,6 +782,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = AE855DM39N;
 				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
 					"${SRCROOT}/../sources",
 					"${SRCROOT}/../sources_ios",
 				);

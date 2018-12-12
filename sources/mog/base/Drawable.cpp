@@ -1,6 +1,5 @@
 #include "mog/base/Drawable.h"
 #include "mog/base/DrawableGroup.h"
-#include "mog/base/Scene.h"
 #include "mog/core/MogStats.h"
 #include <string.h>
 
@@ -17,7 +16,6 @@ Drawable::~Drawable() {
 }
 
 void Drawable::updateFrame(const shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
-    this->onUpdate(delta);
     this->updateTween(delta);
     this->renderer->initScreenParameters(engine);
     this->reRenderFlag |= parentReRenderFlag;
@@ -46,16 +44,16 @@ void Drawable::drawFrame(float delta) {
 }
 
 void Drawable::updateTween(float delta) {
-    if (this->tweens.size() > 0) {
-        for (const auto &t : this->tweens) {
-            t.second->update(delta, shared_from_this());
-        }
-    }
     if (this->tweenIdsToRemove.size() > 0) {
         for (unsigned id : this->tweenIdsToRemove) {
             this->tweens.erase(id);
         }
         this->tweenIdsToRemove.clear();
+    }
+    if (this->tweens.size() > 0) {
+        for (const auto &t : this->tweens) {
+            t.second->update(delta, shared_from_this());
+        }
     }
 }
 
@@ -172,7 +170,7 @@ float Drawable::getScaleY() {
 }
 
 void Drawable::setRotation(float angle) {
-    this->transform->rotation = angle;
+    this->transform->rotation = fmod(angle, 360.0f);
     this->reRenderFlag |= RERENDER_VERTEX;
 }
 
@@ -293,5 +291,21 @@ void Drawable::removeFromParent() {
     if (auto dg = this->drawableGroup.lock()) {
         dg->removeChild(shared_from_this());
     }
+}
+
+std::shared_ptr<Renderer> Drawable::getRenderer() {
+    return this->renderer;
+}
+
+std::shared_ptr<Transform> Drawable::getTransform() {
+    return this->transform;
+}
+
+unsigned char Drawable::getReRenderFlag() {
+    return this->reRenderFlag;
+}
+
+float *Drawable::getMatrix() {
+    return this->matrix;
 }
 

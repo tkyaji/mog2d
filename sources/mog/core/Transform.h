@@ -11,6 +11,7 @@ namespace mog {
     public:
         static void multiplyMatrix(float *matrix1, float *matrix2, float *dstMatrix);
         static void multiplyColor(float *matrix1, float *matrix2, float *dstMatrix);
+        static bool inverseMatrix(float *matrix, float *dstMatrix);
 
         Point anchor = Point::zero;
         Point position = Point::zero;
@@ -41,6 +42,7 @@ namespace mog {
         };
         void updateMatrix(float *parentMatrix = nullptr);
         void updateColor(float *parentMatrix = nullptr);
+        void setMatrix(float *matrix);
     };
 }
 

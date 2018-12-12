@@ -6,12 +6,20 @@
 
 namespace mog {
     class Density {
+        enum class Type {
+            x1_0 = 0,
+            x1_5,
+            x2_0,
+            x3_0,
+            x4_0,
+        };
+        
     public:
         static Density getCurrent();
         
-        Density(int idx);
+        Density(Type type);
         operator int() const {
-            return this->idx;
+            return (int)this->type;
         }
         
         static const Density x1_0;
@@ -21,7 +29,7 @@ namespace mog {
         static const Density x4_0;
         static std::vector<Density> allDensities;
         
-        int idx;
+        Type type;
         float value;
         std::string directory;
     };

@@ -5,11 +5,11 @@
 using namespace std;
 using namespace mog;
 
-const Density Density::x1_0 = Density(0);
-const Density Density::x1_5 = Density(1);
-const Density Density::x2_0 = Density(2);
-const Density Density::x3_0 = Density(3);
-const Density Density::x4_0 = Density(4);
+const Density Density::x1_0 = Density(Type::x1_0);
+const Density Density::x1_5 = Density(Type::x1_5);
+const Density Density::x2_0 = Density(Type::x2_0);
+const Density Density::x3_0 = Density(Type::x3_0);
+const Density Density::x4_0 = Density(Type::x4_0);
 
 #ifdef MOG_IOS
 vector<Density> Density::allDensities = {Density::x1_0, Density::x2_0, Density::x3_0};
@@ -33,28 +33,28 @@ Density Density::getCurrent() {
     return density;
 }
 
-Density::Density(int idx) {
-    switch (idx) {
-        case 0:
+Density::Density(Type type) {
+    switch (type) {
+        case Type::x1_0:
             this->value = 1.0f;
             this->directory = "@1x";
             break;
-        case 1:
+        case Type::x1_5:
             this->value = 1.5f;
             this->directory = "@1_5x";
             break;
-        case 2:
+        case Type::x2_0:
             this->value = 2.0f;
             this->directory = "@2x";
             break;
-        case 3:
+        case Type::x3_0:
             this->value = 3.0f;
             this->directory = "@3x";
             break;
-        case 4:
+        case Type::x4_0:
             this->value = 4.0f;
             this->directory = "@4x";
             break;
     }
-    this->idx = idx;
+    this->type = type;
 }

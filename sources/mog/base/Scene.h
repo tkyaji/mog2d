@@ -15,15 +15,8 @@ namespace mog {
         friend class AppBase;
         friend class Drawable;
     public:
-        virtual void onLoad() {};
-        virtual void onDispose() {};
-        virtual void onEnable() {};
-        virtual void onDisable() {};
-        virtual void onUpdate(float delta) {};
-        
-        void updateFrame(const shared_ptr<Engine> &engine, float delta);
-        void drawFrame(float delta);
-        void setApp(const std::shared_ptr<AppBase> &app);
+        virtual void updateFrame(const shared_ptr<Engine> &engine, float delta);
+        virtual void drawFrame(float delta);
         void add(const std::shared_ptr<Drawable> &drawable);
         void remove(const std::shared_ptr<Drawable> &drawable);
         void removeAll();
@@ -32,6 +25,13 @@ namespace mog {
 
     protected:
         Scene();
+        void setApp(const std::shared_ptr<AppBase> &app);
+
+        virtual void onLoad() {};
+        virtual void onDispose() {};
+        virtual void onEnable() {};
+        virtual void onDisable() {};
+        virtual void onUpdate(float delta) {};
         
         std::shared_ptr<DrawableGroup> drawableGroup;
         std::shared_ptr<PubSub> pubsub;

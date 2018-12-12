@@ -13,5 +13,6 @@
 - (void)didReceiveMemoryWarning;
 - (void)setFps:(float)fps;
 - (void)fireTouchEvent:(unsigned int)touchId location:(CGPoint)location action:(TouchAction)action;
+- (void)clearTouchEvent;
 
 @end

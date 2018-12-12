@@ -12,15 +12,15 @@ namespace mog {
     public:
         static std::shared_ptr<Triangle> create(const Point &p1, const Point &p2, const Point &p3);
         static std::shared_ptr<Triangle> create(float x1, float y1, float x2, float y2, float x3, float y3);
-        std::array<Point, 3> getPoints();
-        
+        virtual std::array<Point, 3> getPoints();
+        virtual shared_ptr<Collider> getCollider() override;
+
     protected:
         Triangle();
         
         std::array<Point, 3> points;
         void init(const Point &p1, const Point &p2, const Point &p3);
-        shared_ptr<POLYGON> getPOLYGON();
-        virtual shared_ptr<Collider> getCollider() override;
+        virtual shared_ptr<POLYGON> getPOLYGON();
     };
 }
 

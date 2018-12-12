@@ -21,12 +21,12 @@ void Scene::removeAll() {
 }
 
 void Scene::updateFrame(const shared_ptr<Engine> &engine, float delta) {
+    this->onUpdate(delta);
     this->drawableGroup->sortChildDrawablesToDraw();
     for (auto drawable : this->drawableGroup->sortedChildDrawables) {
         drawable->reRenderFlag |= this->reRenderFlag;
         drawable->updateFrame(engine, delta, this->matrix, this->reRenderFlag);
     }
-    this->onUpdate(delta);
 }
 
 void Scene::drawFrame(float delta) {

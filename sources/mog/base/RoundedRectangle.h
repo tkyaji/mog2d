@@ -3,11 +3,11 @@
 
 #include <memory>
 #include <unordered_map>
-#include "mog/base/Polygon.h"
+#include "mog/base/Sprite.h"
 #include "mog/core/plain_objects.h"
 
 namespace mog {
-    class RoundedRectangle : public Polygon {
+    class RoundedRectangle : public Sprite {
     public:
         static shared_ptr<RoundedRectangle> create(const Size &size, float cornerRadius);
         static shared_ptr<RoundedRectangle> create(float width, float height, float cornerRadius);

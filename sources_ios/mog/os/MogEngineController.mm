@@ -40,10 +40,6 @@
     _fps = DEFAULT_FPS;
     
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"LaunchScreen" bundle:nil];
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        UIStoryboard *ipadStoryboard = [UIStoryboard storyboardWithName:@"LaunchScreen-iPad" bundle:nil];
-        if (ipadStoryboard) storyboard = ipadStoryboard;
-    }
     _launchScreenView = storyboard.instantiateInitialViewController.view;
     [view addSubview:_launchScreenView];
     
@@ -100,7 +96,7 @@
         [EAGLContext setCurrentContext:_mogView.glContext];
         
         _engine->onDrawFrame(_touches);
-        _touches.clear();
+        [self clearTouchEvent];
         
         [_mogView.glContext presentRenderbuffer:GL_RENDERBUFFER];
         
@@ -134,7 +130,20 @@
                 break;
         }
     }
-    
+}
+
+- (void)clearTouchEvent {
+    std::vector<unsigned int> touchIdToRemove;
+    for (auto &pair : _touches) {
+        if (pair.second.action == mog::TouchAction::TouchUp || pair.second.action == mog::TouchAction::TouchDownUp) {
+            touchIdToRemove.emplace_back(pair.first);
+        } else {
+            pair.second.action = mog::TouchAction::TouchMove;
+        }
+    }
+    for (unsigned int touchId : touchIdToRemove) {
+        _touches.erase(touchId);
+    }
 }
 
 @end

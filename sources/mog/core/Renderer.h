@@ -28,6 +28,24 @@ namespace mog {
         Points          = GL_POINTS,
     };
     
+    enum class BlendingFactor {
+        Zero                    = GL_ZERO,
+        One                     = GL_ONE,
+        SrcColor                = GL_SRC_COLOR,
+        OneMinusSrcColor        = GL_ONE_MINUS_SRC_COLOR,
+        DstColor                = GL_DST_COLOR,
+        OneMinusDstColor        = GL_ONE_MINUS_DST_COLOR,
+        SrcAlpha                = GL_SRC_ALPHA,
+        OneMinusSrcAlpha        = GL_ONE_MINUS_SRC_ALPHA,
+        DstAlpha                = GL_DST_ALPHA,
+        OneMinusDstAlpha        = GL_ONE_MINUS_DST_ALPHA,
+        ConstantColor           = GL_CONSTANT_COLOR,
+        OneMinusConstantColor   = GL_ONE_MINUS_CONSTANT_COLOR,
+        ConstantAlpha           = GL_CONSTANT_ALPHA,
+        OneMinusConstantAlpha   = GL_ONE_MINUS_CONSTANT_ALPHA,
+        SrcAlphaSaturate        = GL_SRC_ALPHA_SATURATE,
+    };
+
     
     class Renderer {
     public:
@@ -54,6 +72,7 @@ namespace mog {
         void setDrawType(DrawType drawType);
         
         void initScreenParameters(const shared_ptr<Engine> &engine);
+        void setBlendFunc(BlendingFactor blendingFactorSrc, BlendingFactor blendingFactorDest);
         void setLineWidth(float width);
         void setUniformPointSize(float size);
         void setUniformMatrix(const float *matrix);
@@ -188,7 +207,9 @@ namespace mog {
         bool enableVertexColor = false;
 
         DrawType drawType = DrawType::TrinangleStrip;
-        
+        BlendingFactor blendingFactorSrc = BlendingFactor::SrcAlpha;
+        BlendingFactor blendingFactorDest = BlendingFactor::OneMinusSrcAlpha;
+
         void initShaderProgram();
         void setUniformParameter(std::string name, const UniformParameter &param);
         void setVertexAttributeParameter(unsigned int location, const VertexAttributeParameter &param);

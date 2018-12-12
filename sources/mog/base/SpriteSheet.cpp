@@ -90,6 +90,8 @@ void SpriteSheet::updateSpriteFrame(float delta) {
                     this->stopAnimation();
                 } else if (this->loopType == LoopType::Loop) {
                     this->nextFrame = 0;
+                } else if (this->loopType == LoopType::PingPong) {
+                    this->nextFrame -= offset;
                 }
                 
             } else {
@@ -100,6 +102,7 @@ void SpriteSheet::updateSpriteFrame(float delta) {
 }
 
 void SpriteSheet::selectFrame(unsigned int frame) {
+    LOGD("%d\n", frame);
     this->frame = frame % this->frameCount;
     this->reRenderFlag |= RERENDER_TEX_COORDS;
 }

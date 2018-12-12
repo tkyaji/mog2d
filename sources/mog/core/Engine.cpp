@@ -14,12 +14,6 @@
 
 using namespace mog;
 
-#if defined(MOG_OSX) || defined(MOG_QT)
-inline void glOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar) {
-    glOrtho(left, right, bottom, top, zNear, zFar);
-}
-#endif
-
 std::weak_ptr<Engine> Engine::instance;
 
 std::shared_ptr<Engine> Engine::create(const shared_ptr<AppBase> &app) {
@@ -120,7 +114,6 @@ void Engine::onLowMemory() {
 
 void Engine::initParameters() {
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_CULL_FACE);
 }
 

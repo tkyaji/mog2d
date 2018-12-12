@@ -25,7 +25,9 @@ namespace mog {
         std::string getTag();
         void setTag(std::string tag);
         std::shared_ptr<Group> getGroup();
-        Point getAbsolutePosition();
+        virtual Point getAbsolutePosition();
+        virtual Size getAbsoluteSize();
+        virtual Point getAbsoluteScale();
 
         virtual bool contains(const Point &point);
         virtual bool collidesWith(const std::shared_ptr<Entity> &other);
@@ -41,16 +43,17 @@ namespace mog {
         void setTouchEnable(bool enable);
         bool isTouchEnable();
         virtual std::shared_ptr<Collider> getCollider();
-        void setParam(const std::shared_ptr<Data> &param);
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         std::shared_ptr<Data> getParam() {
             static_pointer_cast<T>(this->param);
         }
 
+        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag = 0) override;
+        void updateMatrix();
+
     protected:
         Entity();
         
-        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag = 0) override;
         virtual void extractEvent(const std::shared_ptr<Engine> &engine, float delta);
         virtual void bindVertex() override;
         virtual void bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform);
@@ -61,7 +64,6 @@ namespace mog {
         virtual std::shared_ptr<OBB> getOBB();
         virtual std::shared_ptr<AABB> getAABB();
 
-        std::shared_ptr<Data> param;
         std::weak_ptr<Group> group;
         std::string name;
         std::string tag;

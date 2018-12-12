@@ -14,6 +14,7 @@ add_library(
     native-lib SHARED
 
 ### SOURCE_LIST >> ###
+    ${PROJ_DIR}/sources/app/SampleScene.cpp
     ${PROJ_DIR}/sources/app/App.cpp
     ${PROJ_DIR}/sources/mog/core/Tween.cpp
     ${PROJ_DIR}/sources/mog/core/PubSub.cpp

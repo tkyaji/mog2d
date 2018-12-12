@@ -101,7 +101,7 @@ std::shared_ptr<ByteArray> Texture2D::readBytesAsset(string filename, Density *d
     }
     for (int i = 0; i < Density::allDensities.size(); i++) {
         den = Density::allDensities[i];
-        if (den.idx <= current.idx) continue;
+        if (den <= current) continue;
         data = FileUtils::readBytesAsset(den.directory + "/" + filename);
         length = 0;
         data->getValue(nullptr, &length);
@@ -112,7 +112,7 @@ std::shared_ptr<ByteArray> Texture2D::readBytesAsset(string filename, Density *d
     }
     for (int i = (int)Density::allDensities.size() - 1; i >= 0; i--) {
         den = Density::allDensities[i];
-        if (den.idx >= current.idx) continue;
+        if (den >= current) continue;
         data = FileUtils::readBytesAsset(den.directory + "/" + filename);
         length = 0;
         data->getValue(nullptr, &length);

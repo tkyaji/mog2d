@@ -1,4 +1,5 @@
 #include "mog/base/Circle.h"
+#include "mog/base/Group.h"
 #include "mog/core/Engine.h"
 #include "mog/core/Device.h"
 #include <math.h>
@@ -18,18 +19,80 @@ void Circle::init(float radius) {
     this->radius = radius;
     this->transform->size = Size(radius * 2, radius * 2);
     
-    vector<Point> vertexPoints;
-    int n = max((int)(radius * 1.5f), 30);
-    if (n % 2 == 1) n++;
-    for (int i = 0; i < n/2; i++) {
-        float x1 = radius * cos(2.0 * M_PI * (float)i/n);
-        float y1 = radius * sin(2.0 * M_PI * (float)i/n);
-        vertexPoints.emplace_back(Point(x1 + radius, y1 + radius));
-        float x2 = radius * cos(2.0 * M_PI * (float)(n-i-1)/n);
-        float y2 = radius * sin(2.0 * M_PI * (float)(n-i-1)/n);
-        vertexPoints.emplace_back(Point(x2 + radius, y2 + radius));
+    float density = Device::getDeviceDensity();
+    int texWidth = (int)(radius * density + 0.5f);
+    int texHeight = texWidth;
+    unsigned char *data = (unsigned char *)rpmalloc(sizeof(char) * texWidth * texHeight * 4);
+    for (int y = 0; y < texHeight; y++) {
+        for (int x = 0; x < texWidth; x++) {
+            float l = Point::length(Point(x, y));
+            float a = (radius * density) - l;
+            if (a > 1.0f) a = 1.0f;
+            if (a < 0) a = 0;
+            data[(y * texWidth + x) * 4 + 0] = 255;
+            data[(y * texWidth + x) * 4 + 1] = 255;
+            data[(y * texWidth + x) * 4 + 2] = 255;
+            data[(y * texWidth + x) * 4 + 3] = (unsigned char)(a * 255.0f + 0.5f);
+        }
     }
-    Polygon::init(vertexPoints);
+    this->initWithRGBA(data, texWidth, texHeight);
+    this->initRendererVertices(9, 12);
+}
+
+void Circle::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) {
+    float xx[3] = {
+        0,
+        this->transform->size.width * 0.5f,
+        this->transform->size.width,
+    };
+    float yy[3] = {
+        0,
+        this->transform->size.height * 0.5f,
+        this->transform->size.height,
+    };
+
+    int startN = *verticesIdx / 2;
+    auto offset = Point(this->renderer->matrix[12], this->renderer->matrix[13]);
+    for (int yi = 0; yi < 3; yi++) {
+        for (int xi = 0; xi < 3; xi++) {
+            float x = xx[xi];
+            float y = yy[yi];
+            if (!this->visible) {
+                x = 0;  y = 0;
+            } else if (bakeTransform) {
+                x += offset.x;
+                y += offset.y;
+            }
+            renderer->vertices[(*verticesIdx)++] = x;  renderer->vertices[(*verticesIdx)++] = y;
+        }
+    }
+
+    if (indicesIdx) {
+        int startI = *indicesIdx;
+        if (startI > 0) {
+            renderer->indices[*indicesIdx] = renderer->indices[(*indicesIdx) - 1];
+            (*indicesIdx)++;
+            renderer->indices[(*indicesIdx)++] = startN;
+        }
+        int ii[12] = {0, 3, 1, 4, 2, 5, 5, 8, 4, 7, 3, 6};
+        for (int i = 0; i < 12; i++) {
+            renderer->indices[(*indicesIdx)++] = ii[i] + startN;
+        }
+    }
+}
+
+void Circle::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
+    renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y + h;
+    renderer->vertexTexCoords[(*idx)++] = x;        renderer->vertexTexCoords[(*idx)++] = y + h;
+    renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y + h;
+
+    renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y;
+    renderer->vertexTexCoords[(*idx)++] = x;        renderer->vertexTexCoords[(*idx)++] = y;
+    renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y;
+
+    renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y + h;
+    renderer->vertexTexCoords[(*idx)++] = x;        renderer->vertexTexCoords[(*idx)++] = y + h;
+    renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y + h;
 }
 
 float Circle::getRadius() {
@@ -39,6 +102,15 @@ float Circle::getRadius() {
 void Circle::setRadius(float radius) {
     this->init(radius);
     this->reRenderFlag |= RERENDER_ALL;
+}
+
+float Circle::getAbsoluteRadius() {
+    std::shared_ptr<Entity> e = std::static_pointer_cast<Entity>(shared_from_this());
+    float radius = this->radius;
+    while (auto g = e->getGroup()) {
+        radius = radius * g->getScaleX();
+    }
+    return radius;
 }
 
 shared_ptr<CIRCLE> Circle::getCIRCLE() {

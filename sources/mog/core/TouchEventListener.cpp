@@ -39,8 +39,8 @@ void TouchEventListener::touchMove(const Touch &touch, const shared_ptr<Entity> 
     unsigned long long tid = ((unsigned long long)entity.get() << 32) + touch.touchId;
     
     if (this->isTouchBegan(tid)) {
-        if (this->onTouchDragEvent) {
-            this->onTouchDragEvent(touch, entity);
+        if (this->onTouchMoveEvent) {
+            this->onTouchMoveEvent(touch, entity);
         }
     }
     
@@ -98,8 +98,8 @@ void TouchEventListener::setOnTouchBeginEvent(function<bool(const Touch &t, cons
     this->onTouchBeginEvent = onTouchBeginEvent;
 }
 
-void TouchEventListener::setOnTouchDragEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchDragEvent) {
-    this->onTouchDragEvent = onTouchDragEvent;
+void TouchEventListener::setOnTouchMoveEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchMoveEvent) {
+    this->onTouchMoveEvent = onTouchMoveEvent;
 }
 
 void TouchEventListener::setOnTouchEndEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchEndEvent) {

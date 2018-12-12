@@ -1,6 +1,5 @@
 #include "mog/base/Entity.h"
 #include "mog/base/Group.h"
-#include "mog/base/Scene.h"
 #include "mog/core/TouchEventListener.h"
 
 using namespace mog;
@@ -14,7 +13,6 @@ shared_ptr<Texture2D> Entity::getTexture() {
 
 void Entity::updateFrame(const shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
     Drawable::updateFrame(engine, delta, parentMatrix, parentReRenderFlag);
-    this->onUpdate(delta);
     this->extractEvent(engine, delta);
     if (((this->reRenderFlag | parentReRenderFlag) & RERENDER_VERTEX) == RERENDER_VERTEX) {
         this->collider = nullptr;
@@ -128,6 +126,45 @@ void Entity::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int 
     }
 }
 
+void Entity::updateMatrix() {
+    std::vector<shared_ptr<Entity>> entities;
+    shared_ptr<Entity> e = static_pointer_cast<Entity>(shared_from_this());
+    while (auto g = e->getGroup()) {
+        entities.emplace_back(g);
+        e = g;
+    }
+    
+    float *tmpMatrix = nullptr;
+    float *parentMatrix = nullptr;
+    
+    for (int _i = 0; _i < (int)entities.size(); _i++) {
+        if (_i == 0) {
+            tmpMatrix = &this->transform->tmpMatrix[0];
+            parentMatrix = &this->transform->tmpMatrix[16];
+        }
+        int i = (int)entities.size() - _i - 1;
+        e = entities[i];
+        if ((e->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
+            e->transform->updateMatrix();
+        }
+        if (_i == 0) {
+            memcpy(parentMatrix, e->transform->matrix, sizeof(float) * 16);
+        } else {
+            Transform::multiplyMatrix(e->transform->matrix, parentMatrix, tmpMatrix);
+            memcpy(parentMatrix, tmpMatrix, sizeof(float) * 16);
+        }
+    }
+    
+    if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
+        this->transform->updateMatrix();
+    }
+    if (parentMatrix != nullptr) {
+        Transform::multiplyMatrix(this->transform->matrix, parentMatrix, this->matrix);
+    } else {
+        memcpy(this->matrix, this->transform->matrix, sizeof(float) * 16);
+    }
+}
+
 std::string Entity::getName() {
     return this->name;
 }
@@ -154,22 +191,26 @@ std::shared_ptr<Group> Entity::getGroup() {
 }
 
 Point Entity::getAbsolutePosition() {
-    std::vector<shared_ptr<Entity>> entities;
-    shared_ptr<Entity> e = static_pointer_cast<Entity>(shared_from_this());
-    entities.emplace_back(e);
-    while (auto g = e->getGroup()) {
-        entities.emplace_back(g);
-        e = g;
-    }
-    Point p = Point::zero;
-    Point scale = Point::one;
-    for (int i = (int)entities.size() - 1; i >= 0; i--) {
-        e = entities[i];
-        p = p + e->transform->position * scale -
-            e->transform->size * scale * e->transform->scale * e->transform->anchor;
-        scale = scale * e->transform->scale;
-    }
-    return p;
+    this->updateMatrix();
+    return Point(this->matrix[12], this->matrix[13]);
+}
+
+Size Entity::getAbsoluteSize() {
+    this->updateMatrix();
+    float scaleX = sqrt(this->matrix[0] * this->matrix[0] +
+                        this->matrix[1] * this->matrix[1]);
+    float scaleY = sqrt(this->matrix[4] * this->matrix[4] +
+                        this->matrix[5] * this->matrix[5]);
+    return this->transform->size * Point(scaleX, scaleY);
+}
+
+Point Entity::getAbsoluteScale() {
+    this->updateMatrix();
+    float scaleX = sqrt(this->matrix[0] * this->matrix[0] +
+                        this->matrix[1] * this->matrix[1]);
+    float scaleY = sqrt(this->matrix[4] * this->matrix[4] +
+                        this->matrix[5] * this->matrix[5]);
+    return Point(scaleX, scaleY);
 }
 
 bool Entity::contains(const Point &position) {
@@ -283,8 +324,4 @@ shared_ptr<AABB> Entity::getAABB() {
     Point maxP = Point(max(max(p1.x, p2.x), max(p3.x, p4.x)), max(max(p1.y, p2.y), max(p3.y, p4.y)));
     
     return shared_ptr<AABB>(new AABB(offset.x + minP.x, offset.y + minP.y, offset.x + maxP.x, offset.y + maxP.y));
-}
-
-void Entity::setParam(const std::shared_ptr<Data> &param) {
-    this->param = param;
 }

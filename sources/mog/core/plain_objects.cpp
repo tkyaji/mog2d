@@ -1,4 +1,5 @@
 #include "mog/core/plain_objects.h"
+#include <math.h>
 
 using namespace mog;
 
@@ -58,6 +59,54 @@ Point Point::operator/(float value) const {
     return Point(this->x / value, this->y / value);
 }
 
+Point &Point::operator+=(const Point &p) {
+    this->x += p.x;
+    this->y += p.y;
+    return *this;
+}
+
+Point &Point::operator-=(const Point &p) {
+    this->x -= p.x;
+    this->y -= p.y;
+    return *this;
+}
+
+Point &Point::operator*=(const Point &p) {
+    this->x *= p.x;
+    this->y *= p.y;
+    return *this;
+}
+
+Point &Point::operator/=(const Point &p) {
+    this->x /= p.x;
+    this->y /= p.y;
+    return *this;
+}
+
+Point &Point::operator+=(float value) {
+    this->x += value;
+    this->y += value;
+    return *this;
+}
+
+Point &Point::operator-=(float value) {
+    this->x -= value;
+    this->y -= value;
+    return *this;
+}
+
+Point &Point::operator*=(float value) {
+    this->x *= value;
+    this->y *= value;
+    return *this;
+}
+
+Point &Point::operator/=(float value) {
+    this->x /= value;
+    this->y /= value;
+    return *this;
+}
+
 bool Point::operator==(const Point &p) const {
     return this->x == p.x && this->y == p.y;
 }
@@ -66,12 +115,27 @@ bool Point::operator!=(const Point &p) const {
     return !(*this == p);
 }
 
+float Point::dot(const Point &p1, const Point &p2) {
+    return p1.x * p2.x + p1.y * p2.y;
+}
+
+float Point::cross(const Point &p1, const Point &p2) {
+    return p1.x * p2.y - p2.x * p1.y;
+}
+
+float Point::length(const Point &p) {
+    return sqrt(p.x * p.x + p.y * p.y);
+}
+
+Point Point::normalize(const Point &p) {
+    float len = Point::length(p);
+    return p / len;
+}
+
 
 #pragma - Size
 
 Size Size::zero(0, 0);
-Size Size::half(0.5f, 0.5f);
-Size Size::one(1, 1);
 
 Size::Size() {
 }
@@ -121,6 +185,54 @@ Size Size::operator*(float value) const {
 
 Size Size::operator/(float value) const {
     return Size(this->width / value, this->height / value);
+}
+
+Size &Size::operator+=(const Size &p) {
+    this->width += p.width;
+    this->height += p.height;
+    return *this;
+}
+
+Size &Size::operator-=(const Size &p) {
+    this->width -= p.width;
+    this->height -= p.height;
+    return *this;
+}
+
+Size &Size::operator*=(const Size &p) {
+    this->width *= p.width;
+    this->height *= p.height;
+    return *this;
+}
+
+Size &Size::operator/=(const Size &p) {
+    this->width /= p.width;
+    this->height /= p.height;
+    return *this;
+}
+
+Size &Size::operator+=(float value) {
+    this->width += value;
+    this->height += value;
+    return *this;
+}
+
+Size &Size::operator-=(float value) {
+    this->width -= value;
+    this->height -= value;
+    return *this;
+}
+
+Size &Size::operator*=(float value) {
+    this->width *= value;
+    this->height *= value;
+    return *this;
+}
+
+Size &Size::operator/=(float value) {
+    this->width /= value;
+    this->height /= value;
+    return *this;
 }
 
 bool Size::operator==(const Size &size) const {

@@ -1,5 +1,5 @@
-#ifndef App_h
-#define App_h
+#ifndef app_App_h
+#define app_App_h
 
 #include "mog/mog.h"
 
@@ -10,4 +10,4 @@ namespace mog {
     };
 }
 
-#endif /* App_h */
+#endif /* app_App_h */

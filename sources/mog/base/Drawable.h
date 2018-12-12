@@ -13,55 +13,60 @@ namespace mog {
         friend class DrawableGroup;
     public:
         ~Drawable();
-
-        void setAnchor(const Point &anchor);
-        void setAnchor(float x, float y);
-        void setAnchorX(float x);
-        void setAnchorY(float y);
-        Point getAnchor();
-        float getAnchorX();
-        float getAnchorY();
-        void setPosition(const Point &position);
-        void setPosition(float x, float y);
-        void setPositionX(float x);
-        void setPositionY(float y);
-        Point getPosition();
-        Point getPosition(const Point &anchor);
-        float getPositionX();
-        float getPositionY();
-        void setScale(float scale);
-        void setScale(float scaleX, float scaleY);
-        void setScale(const Point &scale);
-        void setScaleX(float scaleX);
-        void setScaleY(float scaleY);
-        Point getScale();
-        float getScaleX();
-        float getScaleY();
-        void setRotation(float angle);
-        float getRotation();
-        void setColor(const Color &color);
-        void setColor(float r, float g, float b, float a = 1.0f);
-        void setColorR(float r);
-        void setColorG(float g);
-        void setColorB(float b);
-        void setColorA(float a);
-        Color getColor();
-        void setSize(const Size &size);
-        void setSize(float width, float height);
-        Size getSize();
-        void setWidth(float width);
-        float getWidth();
-        void setHeight(float height);
-        float getHeight();
-        void setZIndex(int zIndex);
-        int getZIndex();
-        void setVisible(bool visible);
-        bool isVisible();
+        
+        virtual void setAnchor(const Point &anchor);
+        virtual void setAnchor(float x, float y);
+        virtual void setAnchorX(float x);
+        virtual void setAnchorY(float y);
+        virtual Point getAnchor();
+        virtual float getAnchorX();
+        virtual float getAnchorY();
+        virtual void setPosition(const Point &position);
+        virtual void setPosition(float x, float y);
+        virtual void setPositionX(float x);
+        virtual void setPositionY(float y);
+        virtual Point getPosition();
+        virtual Point getPosition(const Point &anchor);
+        virtual float getPositionX();
+        virtual float getPositionY();
+        virtual void setScale(float scale);
+        virtual void setScale(float scaleX, float scaleY);
+        virtual void setScale(const Point &scale);
+        virtual void setScaleX(float scaleX);
+        virtual void setScaleY(float scaleY);
+        virtual Point getScale();
+        virtual float getScaleX();
+        virtual float getScaleY();
+        virtual void setRotation(float angle);
+        virtual float getRotation();
+        virtual void setColor(const Color &color);
+        virtual void setColor(float r, float g, float b, float a = 1.0f);
+        virtual void setColorR(float r);
+        virtual void setColorG(float g);
+        virtual void setColorB(float b);
+        virtual void setColorA(float a);
+        virtual Color getColor();
+        virtual void setSize(const Size &size);
+        virtual void setSize(float width, float height);
+        virtual Size getSize();
+        virtual void setWidth(float width);
+        virtual float getWidth();
+        virtual void setHeight(float height);
+        virtual float getHeight();
+        virtual void setZIndex(int zIndex);
+        virtual int getZIndex();
+        virtual void setVisible(bool visible);
+        virtual bool isVisible();
         void runTween(const std::shared_ptr<Tween> &tween);
         void cancelTween(unsigned int tweenId);
         void cancelAllTweens();
         void removeFromParent();
-
+        
+        virtual std::shared_ptr<Renderer> getRenderer();
+        virtual std::shared_ptr<Transform> getTransform();
+        virtual unsigned char getReRenderFlag();
+        virtual float *getMatrix();
+        
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         void setParam(T param) {
             this->param = shared_ptr<T>(new T(param));
@@ -70,25 +75,24 @@ namespace mog {
         T getParam() {
             return *(static_pointer_cast<T>(this->param).get());
         }
-
+        
         virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag = 0);
         virtual void drawFrame(float delta);
         virtual void updateTween(float delta);
-
-        std::shared_ptr<Renderer> renderer;
-
+        
     protected:
         Drawable();
-        virtual void onUpdate(float delta) {};
         virtual void bindVertex();
-
+        
+        std::shared_ptr<Renderer> renderer;
+        std::shared_ptr<Transform> transform;
+        unsigned char reRenderFlag = RERENDER_ALL;
+        
         std::weak_ptr<DrawableGroup> drawableGroup;
         int zIndex = 0;
         
         std::shared_ptr<Data> param;
         bool visible = true;
-        unsigned char reRenderFlag = RERENDER_ALL;
-        std::shared_ptr<Transform> transform;
         float matrix[16] = {
             1, 0, 0, 0,
             0, 1, 0, 0,
@@ -97,7 +101,7 @@ namespace mog {
         };
         std::unordered_map<unsigned int, std::shared_ptr<Tween>> tweens;
         std::vector<unsigned int> tweenIdsToRemove;
-
+        
         void init();
     };
 }

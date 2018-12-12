@@ -77,3 +77,11 @@ shared_ptr<AABB> Polygon::getAABB() {
     
     return shared_ptr<AABB>(new AABB(offset.x + minP.x, offset.y + minP.y, offset.x + maxP.x, offset.y + maxP.y));
 }
+
+Point Polygon::getMaxPosition() {
+    return this->maxPosition;
+}
+
+Point Polygon::getMinPosition() {
+    return this->minPosition;
+}
