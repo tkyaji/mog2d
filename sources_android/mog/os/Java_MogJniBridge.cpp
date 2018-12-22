@@ -6,7 +6,7 @@
 #include "mog/core/NativeClass.h"
 #include "mog/core/Device.h"
 #include "mog/os/AndroidHelper.h"
-#include "mog/libs/rpmalloc.h"
+#include "mog/core/mogmalloc.h"
 
 using namespace mog;
 
@@ -68,7 +68,7 @@ public:
     }
     
     void onSurfaceCreated(JNIEnv* env, jobject obj) {
-        rpmalloc_initialize();
+        mogmalloc_initialize();
         this->surfaceCreated = true;
     }
     

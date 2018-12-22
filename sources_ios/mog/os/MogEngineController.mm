@@ -3,7 +3,7 @@
 #import "app/App.h"
 #import "mog/Constants.h"
 #import "mog/core/NativeClass.h"
-#import "mog/libs/rpmalloc.h"
+#import "mog/core/mogmalloc.h"
 #ifdef SCRIPT_BINDNG_ENGINE_HEADER
 #import SCRIPT_BINDNG_ENGINE_HEADER
 #endif
@@ -22,7 +22,7 @@
     self = [super init];
     if (!self) return self;
     
-    rpmalloc_initialize();
+    mogmalloc_initialize();
 #ifdef ENABLE_SCRIPT_BINDNG
     _engine = SCRIPT_BINDNG_ENGINE_CLASS::create();
 #else
@@ -76,7 +76,7 @@
 - (void)terminateEngine {
     [self stopEngine];
     _engine = nullptr;
-    rpmalloc_finalize();
+    mogmalloc_finalize();
 }
 
 - (void)didReceiveMemoryWarning {

@@ -64,7 +64,7 @@ POLYGON::POLYGON(Point *points, int length) {
 }
 
 POLYGON::~POLYGON() {
-    rpfree(this->points);
+    mogfree(this->points);
 }
 
 Point POLYGON::getCentroid() {
@@ -94,7 +94,7 @@ POLYGONS::POLYGONS(POLYGON *polygons, int length) {
 }
 
 POLYGONS::~POLYGONS() {
-    rpfree(this->polygons);
+    mogfree(this->polygons);
 }
 
 Collider::Collider(ColliderShape shape) {
@@ -232,7 +232,7 @@ static POLYGON obb_to_polygon(const OBB &obb) {
     float y3 = y2 + obb.vec2.y * obb.vec2.vLen * 2.0f;
     float x4 = x3 + obb.vec1.x * obb.vec1.vLen * -2.0f;
     float y4 = y3 + obb.vec1.y * obb.vec1.vLen * -2.0f;
-    Point *points = (Point *)rpmalloc(sizeof(Point) * 3);
+    Point *points = (Point *)mogmalloc(sizeof(Point) * 3);
     points[0] = Point(x1, y1);
     points[1] = Point(x2, y2);
     points[2] = Point(x3, y3);

@@ -94,11 +94,11 @@ bool AudioData::loadFromAssetNative(ALuint buffer, const char *filename) {
     
     ALenum error = alGetError();
     if (error != AL_NO_ERROR) {
-        rpfree(audioData);
+        mogfree(audioData);
         LOGE("alBufferData failed. error=%d", (int)error);
         return false;
     }
-    rpfree(audioData);
+    mogfree(audioData);
     
     return true;
 }
@@ -156,7 +156,7 @@ void *AudioData::getOpenALAudioData(CFURLRef fileURL, ALsizei* dataSize,
     UInt32 bufferSize;
     AudioBufferList dataBuffer;
     bufferSize = (UInt32)(fileLengthFrames * outputFormat.mBytesPerFrame);
-    data = rpmalloc(bufferSize);
+    data = mogmalloc(bufferSize);
     dataBuffer.mNumberBuffers = 1;
     dataBuffer.mBuffers[0].mDataByteSize = bufferSize;
     dataBuffer.mBuffers[0].mNumberChannels = outputFormat.mChannelsPerFrame;
@@ -165,7 +165,7 @@ void *AudioData::getOpenALAudioData(CFURLRef fileURL, ALsizei* dataSize,
     err = ExtAudioFileRead(audioFile, (UInt32*)&fileLengthFrames, &dataBuffer);
     if (err) {
         LOGE("getOpenALAudioData: failed to read audioFile");
-        rpfree(data);
+        mogfree(data);
         if (audioFile) ExtAudioFileDispose(audioFile);
         return data;
     }

@@ -43,7 +43,7 @@ void Polygon::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verti
         if (bakeTransform) {
             p = v1 * p.x + v2 * p.y + offset;
         }
-        if (!this->visible) {
+        if (!this->active) {
             p.x = 0;
             p.y = 0;
         }

@@ -1,5 +1,6 @@
 #include "mog/core/Shader.h"
 #include "mog/core/opengl.h"
+#include "mog/core/FileUtils.h"
 #include "mog/Constants.h"
 
 using namespace mog;
@@ -22,10 +23,10 @@ inline static GLuint compileShader(ShaderType shaderType, const GLchar *source) 
         GLsizei bufsize = 0;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &bufsize);
         GLsizei length = 0;
-        GLchar *infolog = (GLchar *)rpmalloc(sizeof(GLchar) * bufsize);
+        GLchar *infolog = (GLchar *)mogmalloc(sizeof(GLchar) * bufsize);
         glGetShaderInfoLog(shader, bufsize, &length, infolog);
         LOGE("Shader compile error: %s", (const char *)infolog);
-        rpfree(infolog);
+        mogfree(infolog);
     }
 #endif
     
@@ -35,6 +36,13 @@ inline static GLuint compileShader(ShaderType shaderType, const GLchar *source) 
 std::shared_ptr<Shader> Shader::create(const GLchar *shaderSource, ShaderType shaderType) {
     auto shader = std::shared_ptr<Shader>(new Shader());
     shader->init(shaderSource, shaderType);
+    return shader;
+}
+
+std::shared_ptr<Shader> Shader::createWithAsset(std::string filename, ShaderType shaderType) {
+    std::string shaderSource = FileUtils::readTextAsset(filename);
+    auto shader = std::shared_ptr<Shader>(new Shader());
+    shader->init(shaderSource.c_str(), shaderType);
     return shader;
 }
 

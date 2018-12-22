@@ -51,7 +51,7 @@
 #endif
 #endif
 
-#include "mog/libs/rpmalloc.h"
+#include "mog/core/mogmalloc.h"
 #include "mog/ConstantsNative.h"
 #include "mog/core/mog_functions.h"
 

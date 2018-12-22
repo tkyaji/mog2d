@@ -20,7 +20,7 @@ string FileUtilsNative::readTextAsset(string filename) {
     unsigned int len = 0;
     FileUtilsNative::readBytesAsset(filename, &bytes, &len);
     auto str = string((char *)bytes, len);
-    rpfree(bytes);
+    mogfree(bytes);
     return str;
 }
 
@@ -33,7 +33,7 @@ bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, unsi
         return false;
     }
     unsigned int size = (unsigned int)AAsset_getLength(aAsset);
-    *data = (unsigned char *)rpmalloc(size);
+    *data = (unsigned char *)mogmalloc(size);
     AAsset_read(aAsset, *data, size);
     if (len) *len = size;
 

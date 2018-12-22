@@ -58,12 +58,12 @@ std::shared_ptr<ByteArray> FileUtils::readDataFromFile(string filepath) {
     ifs.seekg(0, ios_base::beg);
     
     bool ret = true;
-    char *dt = (char *)rpmalloc(sizeof(char) * size);
+    char *dt = (char *)mogmalloc(sizeof(char) * size);
     ifs.read(dt, size);
     std::shared_ptr<ByteArray> data = nullptr;
     if (ifs.bad()) {
         ret = false;
-        rpfree(dt);
+        mogfree(dt);
         LOGE("file read failed: %s", filepath.c_str());
     } else {
         data = ByteArray::create((unsigned char *)dt, (unsigned int)size);

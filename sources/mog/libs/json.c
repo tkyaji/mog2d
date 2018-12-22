@@ -26,8 +26,8 @@
 //
 // For more information, please refer to <http://unlicense.org/>
 
-#include "json.h"
-#include "rpmalloc.h"
+#include "mog/libs/json.h"
+#include "mog/core/mogmalloc.h"
 
 #include <stdlib.h>
 
@@ -1407,7 +1407,7 @@ json_parse_ex(const void *src, size_t src_size, size_t flags_bitset,
   total_size = state.dom_size + state.data_size;
 
   if (0 == alloc_func_ptr) {
-    allocation = rpmalloc(total_size);
+    allocation = mogmalloc(total_size);
   } else {
     allocation = alloc_func_ptr(user_data, total_size);
   }
@@ -1749,7 +1749,7 @@ void *json_write_minified(const struct json_value_s *value, size_t *out_size) {
 
   size += 1; // for the '\0' null terminating character
 
-  data = (char *)rpmalloc(size);
+  data = (char *)mogmalloc(size);
 
   if (0 == data) {
     // malloc failed!
@@ -1760,7 +1760,7 @@ void *json_write_minified(const struct json_value_s *value, size_t *out_size) {
 
   if (0 == data_end) {
     // bad chi occurred!
-    rpfree(data);
+    mogfree(data);
     return 0;
   }
 
@@ -2119,7 +2119,7 @@ void *json_write_pretty(const struct json_value_s *value, const char *indent,
 
   size += 1; // for the '\0' null terminating character
 
-  data = (char *)rpmalloc(size);
+  data = (char *)mogmalloc(size);
 
   if (0 == data) {
     // malloc failed!
@@ -2130,7 +2130,7 @@ void *json_write_pretty(const struct json_value_s *value, const char *indent,
 
   if (0 == data_end) {
     // bad chi occurred!
-    rpfree(data);
+    mogfree(data);
     return 0;
   }
 

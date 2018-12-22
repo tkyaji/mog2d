@@ -37,7 +37,7 @@ shared_ptr<POLYGON> Triangle::getPOLYGON() {
     auto p1 = this->points[0];
     auto p2 = this->points[1];
     auto p3 = this->points[2];
-    Point *points = (Point *)rpmalloc(sizeof(Point) * 3);
+    Point *points = (Point *)mogmalloc(sizeof(Point) * 3);
     points[0] = v1 * p1.x + v2 * p1.y + offset;
     points[1] = v1 * p2.x + v2 * p2.y + offset;
     points[2] = v1 * p3.x + v2 * p3.y + offset;

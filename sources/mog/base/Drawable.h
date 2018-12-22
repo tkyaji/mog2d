@@ -55,8 +55,8 @@ namespace mog {
         virtual float getHeight();
         virtual void setZIndex(int zIndex);
         virtual int getZIndex();
-        virtual void setVisible(bool visible);
-        virtual bool isVisible();
+        virtual void setActive(bool active);
+        virtual bool isActive();
         void runTween(const std::shared_ptr<Tween> &tween);
         void cancelTween(unsigned int tweenId);
         void cancelAllTweens();
@@ -92,7 +92,7 @@ namespace mog {
         int zIndex = 0;
         
         std::shared_ptr<Data> param;
-        bool visible = true;
+        bool active = true;
         float matrix[16] = {
             1, 0, 0, 0,
             0, 1, 0, 0,

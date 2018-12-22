@@ -302,9 +302,9 @@ RECENT REVISION HISTORY:
 //     want the zlib decoder to be available, #define STBI_SUPPORT_ZLIB
 //
 
-#define STBI_MALLOC(sz)           rpmalloc(sz)
-#define STBI_REALLOC(p,newsz)     rprealloc(p,newsz)
-#define STBI_FREE(p)              rpfree(p)
+#define STBI_MALLOC(sz)           mogmalloc(sz)
+#define STBI_REALLOC(p,newsz)     mogrealloc(p,newsz)
+#define STBI_FREE(p)              mogfree(p)
 
 #ifndef STBI_NO_STDIO
 #include <stdio.h>

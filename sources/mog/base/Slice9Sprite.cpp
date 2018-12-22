@@ -41,7 +41,7 @@ void Slice9Sprite::getVerticesNum(int *verticesNum, int *indiciesNum) {
 */
 
 void Slice9Sprite::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) {
-    if (!this->visible) return;
+    if (!this->active) return;
     
     Point offset, v1, v2;
     if (bakeTransform) {
@@ -92,7 +92,7 @@ void Slice9Sprite::bindVertices(const std::shared_ptr<Renderer> &renderer, int *
 }
 
 void Slice9Sprite::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
-    if (!this->visible) return;
+    if (!this->active) return;
     
     Size texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
     x += (this->rect.position.x / texSize.width) * w;

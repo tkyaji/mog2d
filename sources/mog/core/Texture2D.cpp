@@ -58,7 +58,7 @@ Texture2D::Texture2D() {
 }
 
 Texture2D::~Texture2D() {
-    if (this->data) rpfree(this->data);
+    if (this->data) mogfree(this->data);
     if (this->textureId > 0) {
         glDeleteTextures(1, &this->textureId);
     }
@@ -91,7 +91,7 @@ void Texture2D::loadTextureFile(string filepath, Density density) {
 
 std::shared_ptr<ByteArray> Texture2D::readBytesAsset(string filename, Density *density) {
     Density current = Density::getCurrent();
-    Density den = current;
+    Density den = Density::x1_0;
     auto data = FileUtils::readBytesAsset(den.directory + "/" + filename);
     unsigned int length = 0;
     data->getValue(nullptr, &length);
@@ -188,7 +188,7 @@ void Texture2D::loadColorTexture(TextureType textureType, const Color &color, in
     if (textureType == TextureType::RGB) {
         this->bitsPerPixel = 3;
         this->dataLength = width * height * 3;
-        this->data = (GLubyte *)rpcalloc(width * height * 3, sizeof(GLubyte));
+        this->data = (GLubyte *)mogcalloc(width * height * 3, sizeof(GLubyte));
         for (int i = 0; i < width * height; i++) {
             this->data[i * 3 + 0] = (int)(color.r * 255.0f);
             this->data[i * 3 + 1] = (int)(color.g * 255.0f);
@@ -198,7 +198,7 @@ void Texture2D::loadColorTexture(TextureType textureType, const Color &color, in
     } else {
         this->bitsPerPixel = 4;
         this->dataLength = width * height * 4;
-        this->data = (GLubyte *)rpcalloc(width * height * 4, sizeof(GLubyte));
+        this->data = (GLubyte *)mogcalloc(width * height * 4, sizeof(GLubyte));
         for (int i = 0; i < width * height; i++) {
             this->data[i * 4 + 0] = (int)(color.r * 255.0f);
             this->data[i * 4 + 1] = (int)(color.g * 255.0f);

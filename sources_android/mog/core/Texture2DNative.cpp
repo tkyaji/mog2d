@@ -37,7 +37,7 @@ void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float 
     jbyte *bytes = env->GetByteArrayElements(byteArr, NULL);
     int length = (int)env->GetArrayLength(byteArr);
 
-    tex2d->data = (unsigned char *)rpmalloc(length * sizeof(unsigned char));
+    tex2d->data = (unsigned char *)mogmalloc(length * sizeof(unsigned char));
     memcpy(tex2d->data, (unsigned char *)bytes, length * sizeof(unsigned char));
 
     tex2d->width = textWidth;

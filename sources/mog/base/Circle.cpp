@@ -22,7 +22,7 @@ void Circle::init(float radius) {
     float density = Device::getDeviceDensity();
     int texWidth = (int)(radius * density + 0.5f);
     int texHeight = texWidth;
-    unsigned char *data = (unsigned char *)rpmalloc(sizeof(char) * texWidth * texHeight * 4);
+    unsigned char *data = (unsigned char *)mogmalloc(sizeof(char) * texWidth * texHeight * 4);
     for (int y = 0; y < texHeight; y++) {
         for (int x = 0; x < texWidth; x++) {
             float l = Point::length(Point(x, y));
@@ -57,7 +57,7 @@ void Circle::bindVertices(const std::shared_ptr<Renderer> &renderer, int *vertic
         for (int xi = 0; xi < 3; xi++) {
             float x = xx[xi];
             float y = yy[yi];
-            if (!this->visible) {
+            if (!this->active) {
                 x = 0;  y = 0;
             } else if (bakeTransform) {
                 x += offset.x;

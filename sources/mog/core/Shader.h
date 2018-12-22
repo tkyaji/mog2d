@@ -15,6 +15,7 @@ namespace mog {
     class Shader {
     public:
         static std::shared_ptr<Shader> create(const GLchar *shaderSource, ShaderType shaderType);
+        static std::shared_ptr<Shader> createWithAsset(std::string filename, ShaderType shaderType);
         ~Shader();
         
         GLuint glShader;

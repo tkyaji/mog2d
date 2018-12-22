@@ -31,7 +31,7 @@ void Drawable::updateFrame(const shared_ptr<Engine> &engine, float delta, float 
 }
 
 void Drawable::drawFrame(float delta) {
-    if (!this->visible) return;
+    if (!this->active) return;
     if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
         this->renderer->setUniformMatrix(this->renderer->matrix);
     }
@@ -261,13 +261,13 @@ int Drawable::getZIndex() {
     return this->zIndex;
 }
 
-void Drawable::setVisible(bool visible) {
-    this->visible = visible;
+void Drawable::setActive(bool active) {
+    this->active = active;
     this->reRenderFlag |= RERENDER_VERTEX;
 }
 
-bool Drawable::isVisible() {
-    return this->visible;
+bool Drawable::isActive() {
+    return this->active;
 }
 
 void Drawable::runTween(const std::shared_ptr<Tween> &tween) {

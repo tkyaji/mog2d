@@ -98,7 +98,7 @@ void Sprite::init(string filename, const Rect &rect) {
     Rect _rect = rect;
     if (rect.size == Size::zero) {
         _rect.size = Size(this->texture->width / this->texture->density.value,
-                         this->texture->height / this->texture->density.value);
+                          this->texture->height / this->texture->density.value);
     }
     this->rect = _rect;
     this->transform->size = this->rect.size;

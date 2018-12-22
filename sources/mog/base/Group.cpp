@@ -78,7 +78,7 @@ void Group::updateFrame(const shared_ptr<Engine> &engine, float delta, float *pa
 }
 
 void Group::drawFrame(float delta) {
-    if (!this->visible) return;
+    if (!this->active) return;
     
     if (this->enableBatching) {
         if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {

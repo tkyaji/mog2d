@@ -52,7 +52,7 @@ bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, unsi
     
     NSData *nsData = [NSData dataWithContentsOfFile:path];
     unsigned int l = (unsigned int)nsData.length;
-    *data = (unsigned char *)rpmalloc(sizeof(unsigned char) * l);
+    *data = (unsigned char *)mogmalloc(sizeof(unsigned char) * l);
     memcpy(*data, (unsigned char *)nsData.bytes, sizeof(unsigned char) * l);
     if (len) *len = l;
     

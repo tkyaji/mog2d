@@ -40,10 +40,10 @@ Renderer::~Renderer() {
         glDeleteProgram(this->glShaderProgram);
     }
     
-    rpfree(this->vertices);
-    rpfree(this->indices);
-    rpfree(this->vertexColors);
-    rpfree(this->vertexTexCoords);
+    mogfree(this->vertices);
+    mogfree(this->indices);
+    mogfree(this->vertexColors);
+    mogfree(this->vertexTexCoords);
 }
 
 void Renderer::setDrawType(DrawType drawType) {
@@ -275,20 +275,20 @@ bool Renderer::setIndicesNum(int indicesNum) {
 }
 
 void Renderer::newVerticesArr() {
-    this->vertices = (float *)rprealloc(this->vertices, sizeof(float) * this->verticesNum * 2);
+    this->vertices = (float *)mogrealloc(this->vertices, sizeof(float) * this->verticesNum * 2);
 }
 
 void Renderer::newIndicesArr() {
-    this->indices = (short *)rprealloc(this->indices, sizeof(short) * this->indicesNum);
+    this->indices = (short *)mogrealloc(this->indices, sizeof(short) * this->indicesNum);
 }
 
 void Renderer::newVertexColorsArr() {
-    this->vertexColors = (float *)rprealloc(this->vertexColors, sizeof(float) * this->verticesNum * 4);
+    this->vertexColors = (float *)mogrealloc(this->vertexColors, sizeof(float) * this->verticesNum * 4);
     
 }
 
 void Renderer::newVertexTexCoordsArr() {
-    this->vertexTexCoords = (float *)rprealloc(this->vertexTexCoords, sizeof(float) * this->verticesNum * 2);
+    this->vertexTexCoords = (float *)mogrealloc(this->vertexTexCoords, sizeof(float) * this->verticesNum * 2);
 }
 
 void Renderer::drawFrame() {
@@ -350,7 +350,11 @@ void Renderer::initShaderProgram() {
     GLint status = GL_FALSE;
     glGetProgramiv(this->glShaderProgram, GL_LINK_STATUS, &status);
     if (status != GL_TRUE) {
-        LOGD("Shader link error.");
+        LOGE("Shader link error.");
+        GLchar infolog[512];
+        GLsizei length = 0;
+        glGetProgramInfoLog(this->glShaderProgram, 512, &length, infolog);
+        LOGE(infolog);
     }
 #endif
 

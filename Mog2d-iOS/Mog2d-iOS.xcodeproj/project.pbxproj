@@ -33,7 +33,6 @@
 		B268130F20FDF94300AC7AAB /* mog_functions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812A620FDF94300AC7AAB /* mog_functions.cpp */; };
 		B268131020FDF94300AC7AAB /* json.c in Sources */ = {isa = PBXBuildFile; fileRef = B26812AB20FDF94300AC7AAB /* json.c */; };
 		B268131120FDF94300AC7AAB /* aes.c in Sources */ = {isa = PBXBuildFile; fileRef = B26812AC20FDF94300AC7AAB /* aes.c */; };
-		B268131220FDF94300AC7AAB /* rpmalloc.c in Sources */ = {isa = PBXBuildFile; fileRef = B26812AD20FDF94300AC7AAB /* rpmalloc.c */; };
 		B268131320FDF94300AC7AAB /* sha256.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812B220FDF94300AC7AAB /* sha256.cpp */; };
 		B268131420FDF94300AC7AAB /* Line.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812B820FDF94300AC7AAB /* Line.cpp */; };
 		B268131520FDF94300AC7AAB /* SpriteSheet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812BB20FDF94300AC7AAB /* SpriteSheet.cpp */; };
@@ -74,6 +73,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B226B3A421CB75C800A3CFCF /* mogmalloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mogmalloc.h; sourceTree = "<group>"; };
 		B2506FB11FFD073700237ECA /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		B25501F71F6D809E00D1353A /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		B26615671EF4FC9F004D1A1A /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
@@ -128,13 +128,11 @@
 		B26812A920FDF94300AC7AAB /* plugins.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plugins.h; sourceTree = "<group>"; };
 		B26812AB20FDF94300AC7AAB /* json.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = json.c; sourceTree = "<group>"; };
 		B26812AC20FDF94300AC7AAB /* aes.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = aes.c; sourceTree = "<group>"; };
-		B26812AD20FDF94300AC7AAB /* rpmalloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rpmalloc.c; sourceTree = "<group>"; };
 		B26812AE20FDF94300AC7AAB /* sha256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sha256.h; sourceTree = "<group>"; };
 		B26812AF20FDF94300AC7AAB /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
 		B26812B020FDF94300AC7AAB /* aes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aes.h; sourceTree = "<group>"; };
 		B26812B120FDF94300AC7AAB /* json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = json.h; sourceTree = "<group>"; };
 		B26812B220FDF94300AC7AAB /* sha256.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sha256.cpp; sourceTree = "<group>"; };
-		B26812B320FDF94300AC7AAB /* rpmalloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rpmalloc.h; sourceTree = "<group>"; };
 		B26812B420FDF94300AC7AAB /* Constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
 		B26812B520FDF94300AC7AAB /* mog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mog.h; sourceTree = "<group>"; };
 		B26812B720FDF94300AC7AAB /* RoundedRectangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RoundedRectangle.h; sourceTree = "<group>"; };
@@ -267,6 +265,7 @@
 		B268127920FDF94300AC7AAB /* core */ = {
 			isa = PBXGroup;
 			children = (
+				B226B3A421CB75C800A3CFCF /* mogmalloc.h */,
 				B26812A020FDF94300AC7AAB /* AudioPlayer.cpp */,
 				B268128F20FDF94300AC7AAB /* AudioPlayer.h */,
 				B26812A120FDF94300AC7AAB /* Collision.cpp */,
@@ -332,8 +331,6 @@
 				B26812B020FDF94300AC7AAB /* aes.h */,
 				B26812AB20FDF94300AC7AAB /* json.c */,
 				B26812B120FDF94300AC7AAB /* json.h */,
-				B26812AD20FDF94300AC7AAB /* rpmalloc.c */,
-				B26812B320FDF94300AC7AAB /* rpmalloc.h */,
 				B26812B220FDF94300AC7AAB /* sha256.cpp */,
 				B26812AE20FDF94300AC7AAB /* sha256.h */,
 				B26812AF20FDF94300AC7AAB /* stb_image.h */,
@@ -599,7 +596,6 @@
 				B268131F20FDF94300AC7AAB /* Rectangle.cpp in Sources */,
 				B268130E20FDF94300AC7AAB /* Renderer.cpp in Sources */,
 				B268132D20FDF94400AC7AAB /* MogAppDelegate.m in Sources */,
-				B268131220FDF94300AC7AAB /* rpmalloc.c in Sources */,
 				B268132F20FDF94400AC7AAB /* MogView.m in Sources */,
 				B26812FC20FDF94300AC7AAB /* PubSub.cpp in Sources */,
 				B268132520FDF94400AC7AAB /* PreferenceNative.mm in Sources */,

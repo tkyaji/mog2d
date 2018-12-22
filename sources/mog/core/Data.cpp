@@ -167,7 +167,7 @@ std::shared_ptr<ByteArray> ByteArray::create(unsigned char *value, unsigned int 
 ByteArray::ByteArray(unsigned char *value, unsigned int length, bool copy) {
     this->type = DataType::ByteArray;
     if (copy) {
-        this->value = (unsigned char *)rpmalloc(sizeof(unsigned char) * length);
+        this->value = (unsigned char *)mogmalloc(sizeof(unsigned char) * length);
         memcpy(this->value, value, length);
     } else {
         this->value = value;
@@ -177,7 +177,7 @@ ByteArray::ByteArray(unsigned char *value, unsigned int length, bool copy) {
 
 ByteArray::~ByteArray() {
     if (this->value != nullptr) {
-        rpfree(this->value);
+        mogfree(this->value);
     }
 }
 
@@ -259,10 +259,10 @@ void String::read(istream &in) {
     }
     unsigned int size;
     in.read((char *)&size, sizeof(unsigned int));
-    char *str = (char *)rpmalloc(sizeof(char) * size);
+    char *str = (char *)mogmalloc(sizeof(char) * size);
     in.read((char *)str, size * sizeof(char));
     this->value = string(str, size);
-    rpfree(str);
+    mogfree(str);
 }
 
 
