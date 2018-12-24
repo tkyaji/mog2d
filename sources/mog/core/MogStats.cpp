@@ -167,7 +167,7 @@ void MogStats::init(const shared_ptr<Engine> &engine) {
     for (int i = 0; i < this->width * this->height; i++) {
         this->data[i * 4 + 3] = ALPHA;
     }
-    this->texture = Texture2D::createWithRGBA(this->data, this->width, this->height);
+    this->texture = Texture2D::createWithRGBA(this->data, this->width, this->height, Density::getCurrent());
 
     this->setTextToData(fps, x, y);
     this->positions[FPS] = pair<int, int>(x, y);

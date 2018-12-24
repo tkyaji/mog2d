@@ -132,7 +132,7 @@ void Sprite::initWithImage(const std::shared_ptr<ByteArray> &bytes) {
 }
 
 void Sprite::initWithRGBA(unsigned char *data, int width, int height) {
-    this->texture = Texture2D::createWithRGBA(data, width, height);
+    this->texture = Texture2D::createWithRGBA(data, width, height, Density::getCurrent());
     
     this->transform->size.width = this->texture->width / this->texture->density.value;
     this->transform->size.height = this->texture->height / this->texture->density.value;

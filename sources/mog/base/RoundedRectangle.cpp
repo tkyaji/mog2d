@@ -35,7 +35,6 @@ void RoundedRectangle::init(const Size &size, float cornerRadius) {
             float a;
             if (x == 0 || y == 0) {
                 a = 1.0f;
-            } else {
             }
             
             int _x = x - 1;
@@ -55,7 +54,7 @@ void RoundedRectangle::init(const Size &size, float cornerRadius) {
         }
     }
     
-    this->texture = Texture2D::createWithRGBA(data, texWidth, texHeight);
+    this->texture = Texture2D::createWithRGBA(data, texWidth, texHeight, Density::getCurrent());
     this->rect = Rect(Point::zero, this->transform->size);
     this->initRendererVertices(25, 40);
 }

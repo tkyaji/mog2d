@@ -12,9 +12,6 @@ shared_ptr<Circle> Circle::create(float radius) {
     return circle;
 }
 
-Circle::Circle() {
-}
-
 void Circle::init(float radius) {
     this->radius = radius;
     this->transform->size = Size(radius * 2, radius * 2);
@@ -35,7 +32,8 @@ void Circle::init(float radius) {
             data[(y * texWidth + x) * 4 + 3] = (unsigned char)(a * 255.0f + 0.5f);
         }
     }
-    this->initWithRGBA(data, texWidth, texHeight);
+    this->texture = Texture2D::createWithRGBA(data, texWidth, texHeight, Density::getCurrent());
+    this->rect = Rect(Point::zero, this->transform->size);
     this->initRendererVertices(9, 12);
 }
 
@@ -102,15 +100,6 @@ float Circle::getRadius() {
 void Circle::setRadius(float radius) {
     this->init(radius);
     this->reRenderFlag |= RERENDER_ALL;
-}
-
-float Circle::getAbsoluteRadius() {
-    std::shared_ptr<Entity> e = std::static_pointer_cast<Entity>(shared_from_this());
-    float radius = this->radius;
-    while (auto g = e->getGroup()) {
-        radius = radius * g->getScaleX();
-    }
-    return radius;
 }
 
 shared_ptr<CIRCLE> Circle::getCIRCLE() {

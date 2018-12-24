@@ -35,8 +35,8 @@ namespace mog {
         static std::shared_ptr<Texture2D> createWithFile(std::string filepath, Density density = Density::x1_0);
         static std::shared_ptr<Texture2D> createWithImage(const std::shared_ptr<ByteArray> &bytes);
         static std::shared_ptr<Texture2D> createWithText(std::string text, float fontSize, std::string fontFilename = "", float height = 0);
-        static std::shared_ptr<Texture2D> createWithColor(TextureType textureType, const Color &color, int width, int height, Density density = Density::x1_0);
-        static std::shared_ptr<Texture2D> createWithRGBA(unsigned char *data, int width, int height, Density density = Density::x1_0);
+        static std::shared_ptr<Texture2D> createWithColor(TextureType textureType, const Color &color, int width, int height, Density density);
+        static std::shared_ptr<Texture2D> createWithRGBA(unsigned char *data, int width, int height, Density density);
         
         Texture2D();
         ~Texture2D();
