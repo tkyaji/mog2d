@@ -91,7 +91,7 @@ void Texture2D::loadTextureFile(string filepath, Density density) {
 
 std::shared_ptr<ByteArray> Texture2D::readBytesAsset(string filename, Density *density) {
     Density current = Density::getCurrent();
-    Density den = Density::x1_0;
+    Density den = current;
     auto data = FileUtils::readBytesAsset(den.directory + "/" + filename);
     unsigned int length = 0;
     data->getValue(nullptr, &length);
@@ -170,7 +170,7 @@ void Texture2D::bindTexture() {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Texture2D::bindTextureSub(GLubyte* data, int x, int y, int width, int height) {
+void Texture2D::bindTextureSub(GLubyte *data, int x, int y, int width, int height) {
     glBindTexture(GL_TEXTURE_2D, this->textureId);
     
     GLenum format = toGLFormat(this->textureType);

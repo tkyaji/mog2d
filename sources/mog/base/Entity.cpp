@@ -182,7 +182,7 @@ void Entity::setTag(std::string tag) {
 }
 
 std::shared_ptr<Group> Entity::getGroup() {
-    if (auto dg = this->drawableGroup.lock()) {
+    if (auto dg = this->parentDrawableGroup.lock()) {
         if (auto g = this->group.lock()) {
             return g;
         }

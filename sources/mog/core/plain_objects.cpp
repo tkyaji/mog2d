@@ -280,6 +280,13 @@ Color Color::blue(0, 0, 1, 1);
 Color Color::yellow(1, 1, 0, 1);
 Color Color::transparent(1, 1, 1, 0);
 
+Color::Color() {
+    this->r = 1.0f;
+    this->g = 1.0f;
+    this->b = 1.0f;
+    this->a = 1.0f;
+}
+
 Color::Color(float r, float g, float b, float a) {
     this->r = r;
     this->g = g;

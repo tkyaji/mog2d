@@ -27,7 +27,7 @@ void RoundedRectangle::init(const Size &size, float cornerRadius) {
     this->transform->size = size;
     
     float density = Device::getDeviceDensity();
-    int texWidth = (int)(cornerRadius * density + 0.5f);
+    int texWidth = (int)(cornerRadius * density + 0.5f) + 1.0f;
     int texHeight = texWidth;
     unsigned char *data = (unsigned char *)mogmalloc(sizeof(char) * texWidth * texHeight * 4);
     for (int y = 0; y < texHeight; y++) {
@@ -35,22 +35,23 @@ void RoundedRectangle::init(const Size &size, float cornerRadius) {
             float a;
             if (x == 0 || y == 0) {
                 a = 1.0f;
+                
+            } else {
+                int _x = x - 1;
+                int _y = y - 1;
+                if (_x < 0) _x = 0;
+                if (_y < 0) _y = 0;
+                
+                float l = Point::length(Point(_x, _y));
+                a = (cornerRadius * density) - l;
             }
             
-            int _x = x - 1;
-            int _y = y - 1;
-            if (_x < 0) _x = 0;
-            if (_y < 0) _y = 0;
-            
-            float l = Point::length(Point(_x, _y));
-            a = (cornerRadius * density) - l;
-
             if (a > 1.0f) a = 1.0f;
             if (a < 0) a = 0;
-            data[(_y * texWidth + _x) * 4 + 0] = 255;
-            data[(_y * texWidth + _x) * 4 + 1] = 255;
-            data[(_y * texWidth + _x) * 4 + 2] = 255;
-            data[(_y * texWidth + _x) * 4 + 3] = (unsigned char)(a * 255.0f + 0.5f);
+            data[(y * texWidth + x) * 4 + 0] = 255;
+            data[(y * texWidth + x) * 4 + 1] = 255;
+            data[(y * texWidth + x) * 4 + 2] = 255;
+            data[(y * texWidth + x) * 4 + 3] = (unsigned char)(a * 255.0f + 0.5f);
         }
     }
     
@@ -111,32 +112,33 @@ void RoundedRectangle::bindVertices(const std::shared_ptr<Renderer> &renderer, i
 }
 
 void RoundedRectangle::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
-    float p = 1.0f / (this->cornerRadius + 1.0f);
-
+    float density = Device::getDeviceDensity();
+    float p = 1.0f / (this->cornerRadius * density + 1.0f);
+    
     renderer->vertexTexCoords[(*idx)++] = x + w;        renderer->vertexTexCoords[(*idx)++] = y + h;
     renderer->vertexTexCoords[(*idx)++] = x + p * w;    renderer->vertexTexCoords[(*idx)++] = y + h;
     renderer->vertexTexCoords[(*idx)++] = x;            renderer->vertexTexCoords[(*idx)++] = y + h;
     renderer->vertexTexCoords[(*idx)++] = x + p * w;    renderer->vertexTexCoords[(*idx)++] = y + h;
     renderer->vertexTexCoords[(*idx)++] = x + w;        renderer->vertexTexCoords[(*idx)++] = y + h;
-
+    
     renderer->vertexTexCoords[(*idx)++] = x + w;        renderer->vertexTexCoords[(*idx)++] = y + p * h;
     renderer->vertexTexCoords[(*idx)++] = x + p * w;    renderer->vertexTexCoords[(*idx)++] = y + p * h;
     renderer->vertexTexCoords[(*idx)++] = x;            renderer->vertexTexCoords[(*idx)++] = y + p * h;
     renderer->vertexTexCoords[(*idx)++] = x + p * w;    renderer->vertexTexCoords[(*idx)++] = y + p * h;
     renderer->vertexTexCoords[(*idx)++] = x + w;        renderer->vertexTexCoords[(*idx)++] = y + p * h;
-
+    
     renderer->vertexTexCoords[(*idx)++] = x + w;        renderer->vertexTexCoords[(*idx)++] = y;
     renderer->vertexTexCoords[(*idx)++] = x + p * w;    renderer->vertexTexCoords[(*idx)++] = y;
     renderer->vertexTexCoords[(*idx)++] = x;            renderer->vertexTexCoords[(*idx)++] = y;
     renderer->vertexTexCoords[(*idx)++] = x + p * w;    renderer->vertexTexCoords[(*idx)++] = y;
     renderer->vertexTexCoords[(*idx)++] = x + w;        renderer->vertexTexCoords[(*idx)++] = y;
-
+    
     renderer->vertexTexCoords[(*idx)++] = x + w;        renderer->vertexTexCoords[(*idx)++] = y + p * h;
     renderer->vertexTexCoords[(*idx)++] = x + p * w;    renderer->vertexTexCoords[(*idx)++] = y + p * h;
     renderer->vertexTexCoords[(*idx)++] = x;            renderer->vertexTexCoords[(*idx)++] = y + p * h;
     renderer->vertexTexCoords[(*idx)++] = x + p * w;    renderer->vertexTexCoords[(*idx)++] = y + p * h;
     renderer->vertexTexCoords[(*idx)++] = x + w;        renderer->vertexTexCoords[(*idx)++] = y + p * h;
-
+    
     renderer->vertexTexCoords[(*idx)++] = x + w;        renderer->vertexTexCoords[(*idx)++] = y + h;
     renderer->vertexTexCoords[(*idx)++] = x + p * w;    renderer->vertexTexCoords[(*idx)++] = y + h;
     renderer->vertexTexCoords[(*idx)++] = x;            renderer->vertexTexCoords[(*idx)++] = y + h;

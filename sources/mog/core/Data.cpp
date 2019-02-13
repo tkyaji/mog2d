@@ -194,6 +194,16 @@ unsigned char ByteArray::getByte(int idx) {
     return this->value[idx];
 }
 
+unsigned char *ByteArray::getBytes(bool copy) {
+    if (copy) {
+        unsigned char *value = (unsigned char *)mogmalloc(sizeof(unsigned char) * this->length);
+        memcpy(value, this->value, this->length);
+        return value;
+    } else {
+        return this->value;
+    }
+}
+
 void ByteArray::write(ostream &out) {
     out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->length, sizeof(unsigned int));

@@ -231,7 +231,7 @@ public class MogActivity extends Activity {
         final int pId = event.getPointerId(i);
         final float x = event.getX(i) / this.density;
         final float y = event.getY(i) / this.density;
-        this.runOnUiThread(new Runnable() {
+        this.glSurfaceView.queueEvent(new Runnable() {
             @Override
             public void run() {
                 MogJniBridge.onTouchEvent(pId, touchAction, x, y);

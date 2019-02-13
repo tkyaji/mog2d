@@ -129,7 +129,8 @@ namespace mog {
         void getValue(unsigned char **value, unsigned int *length);
         unsigned int getLength();
         unsigned char getByte(int idx);
-        
+        unsigned char *getBytes(bool copy = false);
+
     private:
         ByteArray() {}
         ByteArray(unsigned char *value, unsigned int length, bool copy = false);

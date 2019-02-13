@@ -1,4 +1,3 @@
-#include <mutex>
 #include <android/asset_manager_jni.h>
 #include "mog/core/Engine.h"
 #include "app/App.h"
@@ -55,8 +54,6 @@ public:
     }
     
     void onDrawFrame(JNIEnv* env, jobject obj) {
-        std::lock_guard<std::mutex> lock(this->mtx);
-        
         this->engine->onDrawFrame(this->touches);
         
         if (this->removeTouchIds.size() > 0) {
@@ -81,7 +78,6 @@ public:
     void onTouchEvent(JNIEnv* env, jobject obj, jint pointerId, jint touchAction, jfloat x, jfloat y) {
         NativeTouchAction action = (NativeTouchAction)touchAction;
         
-        std::lock_guard<std::mutex> lock(this->mtx);
         switch (action) {
             case NativeTouchAction::Down:
             case NativeTouchAction::Move:
@@ -114,7 +110,6 @@ private:
     shared_ptr<mog::Engine> engine;
     map<unsigned int, TouchInput> touches;
     vector<unsigned int> removeTouchIds;
-    std::mutex mtx;
     bool surfaceCreated = false;
 };
 MogRenderer *MogRenderer::instance;

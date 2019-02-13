@@ -137,4 +137,3 @@ void TextureAtlas::readTexturePixels(unsigned char *dst, const shared_ptr<Textur
 shared_ptr<TextureAtlasCell> TextureAtlas::getCell(const shared_ptr<Texture2D> &tex2d) {
     return this->cellMap[tex2d];
 }
-

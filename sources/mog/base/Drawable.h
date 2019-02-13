@@ -45,6 +45,7 @@ namespace mog {
         virtual void setColorG(float g);
         virtual void setColorB(float b);
         virtual void setColorA(float a);
+        virtual void setColor(std::string hexString);
         virtual Color getColor();
         virtual void setSize(const Size &size);
         virtual void setSize(float width, float height);
@@ -68,14 +69,14 @@ namespace mog {
         virtual float *getMatrix();
         
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
-        void setParam(T param) {
-            this->param = shared_ptr<T>(new T(param));
+        void setParam(const std::shared_ptr<T> &param) {
+            this->param = param;
         }
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
-        T getParam() {
-            return *(static_pointer_cast<T>(this->param).get());
+        std::shared_ptr<T> getParam() {
+            return static_pointer_cast<T>(this->param);
         }
-        
+
         virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag = 0);
         virtual void drawFrame(float delta);
         virtual void updateTween(float delta);
@@ -88,7 +89,7 @@ namespace mog {
         std::shared_ptr<Transform> transform;
         unsigned char reRenderFlag = RERENDER_ALL;
         
-        std::weak_ptr<DrawableGroup> drawableGroup;
+        std::weak_ptr<DrawableGroup> parentDrawableGroup;
         int zIndex = 0;
         
         std::shared_ptr<Data> param;

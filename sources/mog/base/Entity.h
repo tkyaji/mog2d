@@ -43,10 +43,6 @@ namespace mog {
         void setTouchEnable(bool enable);
         bool isTouchEnable();
         virtual std::shared_ptr<Collider> getCollider();
-        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
-        std::shared_ptr<Data> getParam() {
-            static_pointer_cast<T>(this->param);
-        }
 
         virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag = 0) override;
         void updateMatrix();

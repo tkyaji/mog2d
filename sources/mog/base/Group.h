@@ -52,9 +52,6 @@ namespace mog {
         void bindVertexSubRecursive(const std::shared_ptr<Renderer> &renderer, std::shared_ptr<TextureAtlas> &textureAtlas, int *vertexIndices, float *parentMatrix);
 
         virtual void addTextureTo(const std::shared_ptr<TextureAtlas> &textureAtlas);
-
-    private:
-        Color getParentColor();
     };
 }
 

@@ -75,6 +75,7 @@ void Engine::stopEngine() {
     this->stopTimer();
     DataStore::save();
 
+    glFinish();
     this->running = false;
 }
 

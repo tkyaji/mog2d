@@ -190,7 +190,7 @@ void Group::bindVertexSubRecursive(const std::shared_ptr<Renderer> &renderer, st
         } else {
             if ((entity->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
                 int index = vertexIndices[VERTICES_IDX];
-                entity->bindVertices(renderer, &vertexIndices[VERTICES_IDX], nullptr, true);
+                entity->bindVertices(renderer, &vertexIndices[VERTICES_IDX], &vertexIndices[INDICES_IDX], true);
                 renderer->bindVertexSub(index, entity->renderer->verticesNum);
             } else {
                 vertexIndices[VERTICES_IDX] += entity->renderer->verticesNum * 2;
@@ -253,7 +253,8 @@ shared_ptr<Entity> Group::findChildByName(string name, bool recursive) {
     for (const auto &drawable : this->drawableGroup->childDrawables) {
         auto entity = static_pointer_cast<Entity>(drawable);
         if (entity->getName() == name) return entity;
-        if (!recursive) break;
+        if (!recursive) continue;
+        
         if (auto g = dynamic_pointer_cast<Group>(entity)) {
             if (auto e = g->findChildByName(name, recursive)) {
                 return e;
@@ -267,7 +268,8 @@ shared_ptr<Entity> Group::findFirstChildByTag(string tag, bool recursive) {
     for (const auto &drawable : this->drawableGroup->childDrawables) {
         auto entity = static_pointer_cast<Entity>(drawable);
         if (entity->getTag() == tag) return entity;
-        if (!recursive) break;
+        if (!recursive) continue;
+        
         if (auto g = dynamic_pointer_cast<Group>(entity)) {
             if (auto e = g->findFirstChildByTag(tag, recursive)) {
                 return e;
@@ -284,7 +286,8 @@ vector<shared_ptr<Entity>> Group::findChildrenByTag(string tag, bool recursive) 
         if (entity->getTag() == tag) {
             vec.emplace_back(entity);
         };
-        if (!recursive) break;
+        if (!recursive) continue;
+        
         if (auto g = dynamic_pointer_cast<Group>(entity)) {
             auto entities = g->findChildrenByTag(tag, recursive);
             if (entities.size() > 0) {
@@ -304,15 +307,6 @@ void Group::addTextureTo(const shared_ptr<TextureAtlas> &textureAtlas) {
             textureAtlas->addTexture(entity->getTexture());
         }
     }
-}
-
-Color Group::getParentColor() {
-    Color parentColor = Color::white;
-    shared_ptr<Entity> g = static_pointer_cast<Entity>(shared_from_this());
-    while ((g = g->getGroup())) {
-        parentColor = parentColor * g->getColor();
-    }
-    return parentColor;
 }
 
 shared_ptr<Sprite> Group::createTextureSprite() {

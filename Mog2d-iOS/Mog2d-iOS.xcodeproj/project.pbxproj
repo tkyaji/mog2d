@@ -43,7 +43,6 @@
 		B268131A20FDF94300AC7AAB /* Slice9Sprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812C420FDF94300AC7AAB /* Slice9Sprite.cpp */; };
 		B268131B20FDF94300AC7AAB /* Graphics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812C520FDF94300AC7AAB /* Graphics.cpp */; };
 		B268131C20FDF94300AC7AAB /* Label.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812C620FDF94300AC7AAB /* Label.cpp */; };
-		B268131D20FDF94300AC7AAB /* Triangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812C920FDF94300AC7AAB /* Triangle.cpp */; };
 		B268131E20FDF94300AC7AAB /* Polygon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812CB20FDF94300AC7AAB /* Polygon.cpp */; };
 		B268131F20FDF94300AC7AAB /* Rectangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812CC20FDF94300AC7AAB /* Rectangle.cpp */; };
 		B268132020FDF94300AC7AAB /* Circle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812CD20FDF94300AC7AAB /* Circle.cpp */; };
@@ -153,12 +152,10 @@
 		B26812C620FDF94300AC7AAB /* Label.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Label.cpp; sourceTree = "<group>"; };
 		B26812C720FDF94300AC7AAB /* Sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Sprite.h; sourceTree = "<group>"; };
 		B26812C820FDF94300AC7AAB /* Group.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Group.h; sourceTree = "<group>"; };
-		B26812C920FDF94300AC7AAB /* Triangle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Triangle.cpp; sourceTree = "<group>"; };
 		B26812CA20FDF94300AC7AAB /* Entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Entity.h; sourceTree = "<group>"; };
 		B26812CB20FDF94300AC7AAB /* Polygon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Polygon.cpp; sourceTree = "<group>"; };
 		B26812CC20FDF94300AC7AAB /* Rectangle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Rectangle.cpp; sourceTree = "<group>"; };
 		B26812CD20FDF94300AC7AAB /* Circle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Circle.cpp; sourceTree = "<group>"; };
-		B26812CE20FDF94300AC7AAB /* Triangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Triangle.h; sourceTree = "<group>"; };
 		B26812CF20FDF94300AC7AAB /* Line.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Line.h; sourceTree = "<group>"; };
 		B26812D020FDF94300AC7AAB /* SpriteSheet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpriteSheet.h; sourceTree = "<group>"; };
 		B26812D120FDF94300AC7AAB /* DrawableGroup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawableGroup.cpp; sourceTree = "<group>"; };
@@ -373,8 +370,6 @@
 				B26812C720FDF94300AC7AAB /* Sprite.h */,
 				B26812BB20FDF94300AC7AAB /* SpriteSheet.cpp */,
 				B26812D020FDF94300AC7AAB /* SpriteSheet.h */,
-				B26812C920FDF94300AC7AAB /* Triangle.cpp */,
-				B26812CE20FDF94300AC7AAB /* Triangle.h */,
 			);
 			path = base;
 			sourceTree = "<group>";
@@ -607,7 +602,6 @@
 				B268131A20FDF94300AC7AAB /* Slice9Sprite.cpp in Sources */,
 				B26812FD20FDF94300AC7AAB /* MogStats.cpp in Sources */,
 				B2E421882100D93A006F18A2 /* SampleScene.cpp in Sources */,
-				B268131D20FDF94300AC7AAB /* Triangle.cpp in Sources */,
 				B268130B20FDF94300AC7AAB /* AudioPlayer.cpp in Sources */,
 				B268130820FDF94300AC7AAB /* TextureAtlas.cpp in Sources */,
 				B268130020FDF94300AC7AAB /* Data.cpp in Sources */,

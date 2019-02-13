@@ -8,7 +8,7 @@ void DrawableGroup::addChild(const std::shared_ptr<Drawable> &drawable) {
     this->childDrawables.emplace_back(drawable);
     this->drawableIdSet.insert((uintptr_t)drawable.get());
     this->sortOrderDirty = true;
-    drawable->drawableGroup = shared_from_this();
+    drawable->parentDrawableGroup = shared_from_this();
     if (this->addChildListener) {
         this->addChildListener(drawable);
     }
@@ -18,7 +18,7 @@ void DrawableGroup::removeChild(const std::shared_ptr<Drawable> &drawable) {
     this->childDrawables.erase(std::remove(this->childDrawables.begin(), this->childDrawables.end(), drawable), this->childDrawables.end());
     this->drawableIdSet.erase((uintptr_t)drawable.get());
     this->sortOrderDirty = true;
-    drawable->drawableGroup.reset();
+    drawable->parentDrawableGroup.reset();
     if (this->removeChildListener) {
         this->removeChildListener(drawable);
     }
@@ -30,7 +30,7 @@ void DrawableGroup::removeAllChildren() {
     this->drawableIdSet.clear();
     this->sortOrderDirty = true;
     for (auto d : this->childDrawables) {
-        d->drawableGroup.reset();
+        d->parentDrawableGroup.reset();
         if (this->removeChildListener) {
             this->removeChildListener(d);
         }

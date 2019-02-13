@@ -142,8 +142,6 @@ void SpriteSheet::stopAnimation() {
 }
 
 void SpriteSheet::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
-    if (!this->active) return;
-
     Size texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
     x += this->rect.position.x / texSize.width;
     y += this->rect.position.y / texSize.height;

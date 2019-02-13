@@ -3,7 +3,10 @@
 
 using namespace mog;
 
-Polygon::Polygon() {
+std::shared_ptr<Polygon> Polygon::create(const std::vector<Point> &vertexPoints) {
+    auto polygon = std::shared_ptr<Polygon>(new Polygon());
+    polygon->init(vertexPoints);
+    return polygon;
 }
 
 void Polygon::init(const std::vector<Point> &vertexPoints) {
@@ -22,6 +25,10 @@ void Polygon::init(const std::vector<Point> &vertexPoints) {
 }
 
 void Polygon::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) {
+    float width = this->maxPosition.x - this->minPosition.x;
+    float height = this->maxPosition.y - this->minPosition.y;
+    Point scale = Point(this->transform->size.width / width, this->transform->size.height / height);
+
     int startI = -1;
     int startN = *verticesIdx / 2;
     if (indicesIdx) {
@@ -47,8 +54,8 @@ void Polygon::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verti
             p.x = 0;
             p.y = 0;
         }
-        renderer->vertices[(*verticesIdx)++] = p.x;
-        renderer->vertices[(*verticesIdx)++] = p.y;
+        renderer->vertices[(*verticesIdx)++] = p.x * scale.x;
+        renderer->vertices[(*verticesIdx)++] = p.y * scale.y;
         if (startI > -1) {
             renderer->indices[(*indicesIdx)++] = startN + i;
         }
@@ -61,6 +68,10 @@ void Polygon::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int
         renderer->vertexTexCoords[(*idx)++] = -1.0f;
         renderer->vertexTexCoords[(*idx)++] = -1.0f;
     }
+}
+
+std::vector<Point> Polygon::getPoints() {
+    return this->vertexPoints;
 }
 
 shared_ptr<AABB> Polygon::getAABB() {
@@ -78,10 +89,22 @@ shared_ptr<AABB> Polygon::getAABB() {
     return shared_ptr<AABB>(new AABB(offset.x + minP.x, offset.y + minP.y, offset.x + maxP.x, offset.y + maxP.y));
 }
 
-Point Polygon::getMaxPosition() {
-    return this->maxPosition;
+shared_ptr<POLYGON> Polygon::getPOLYGON() {
+    auto offset = Point(this->matrix[12], this->matrix[13]);
+    auto v1 = Point(this->matrix[0], this->matrix[1]);
+    auto v2 = Point(this->matrix[4], this->matrix[5]);
+    int size = (int)this->vertexPoints.size();
+    Point *points = (Point *)mogmalloc(sizeof(Point) * size);
+    for (int i = 0; i < size; i++) {
+        auto p = this->vertexPoints[i];
+        points[i] = v1 * p.x + v2 * p.y + offset;
+    }
+    return shared_ptr<POLYGON>(new POLYGON(points, size));
 }
 
-Point Polygon::getMinPosition() {
-    return this->minPosition;
+shared_ptr<Collider> Polygon::getCollider() {
+    auto collider = shared_ptr<Collider>(new Collider(ColliderShape::Polygon));
+    collider->aabb = this->getAABB();
+    collider->polygon = this->getPOLYGON();
+    return collider;
 }

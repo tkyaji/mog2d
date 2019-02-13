@@ -8,19 +8,38 @@
 namespace mog {
     class Polygon : public Entity {
     public:
-        Point getMaxPosition();
-        Point getMinPosition();
+        static std::shared_ptr<Polygon> create(const std::vector<Point> &vertexPoints);
+        
+        template<class First, class... Rest>
+        static std::shared_ptr<Polygon> create(const First& first, const Rest&... rest) {
+            auto polygon = std::shared_ptr<Polygon>(new Polygon());
+            std::vector<Point> vertexPoints;
+            addPoint(vertexPoints, first, rest...);
+            polygon->init(vertexPoints);
+            return polygon;
+        }
+
+        std::vector<Point> getPoints();
+        virtual shared_ptr<Collider> getCollider() override;
 
     protected:
-        Polygon();
         void init(const std::vector<Point> &vertexPoints);
         virtual void bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform = false) override;
         virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) override;
         virtual std::shared_ptr<AABB> getAABB() override;
+        virtual shared_ptr<POLYGON> getPOLYGON();
 
         std::vector<Point> vertexPoints;
         Point minPosition = Point::zero;
         Point maxPosition = Point::zero;
+        
+    private:
+        template<class First, class... Rest>
+        static void addPoint(std::vector<Point> &vertexPoints, const First& first, const Rest&... rest) {
+            vertexPoints.emplace_back(first);
+            addPoint(vertexPoints, rest...);
+        }
+        static void addPoint(std::vector<Point> &vertexPoints) {}
     };
 }
 

@@ -89,6 +89,7 @@ namespace mog {
     
     class Color {
     public:
+        Color();
         Color(float r, float g, float b, float a = 1.0f);
         float r = 0;
         float g = 0;

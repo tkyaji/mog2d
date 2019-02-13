@@ -18,7 +18,6 @@
 #include "mog/base/Sprite.h"
 #include "mog/base/Rectangle.h"
 #include "mog/base/RoundedRectangle.h"
-#include "mog/base/Triangle.h"
 #include "mog/base/Line.h"
 #include "mog/base/Circle.h"
 #include "mog/base/Slice9Sprite.h"

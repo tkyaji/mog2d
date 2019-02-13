@@ -211,6 +211,19 @@ void Drawable::setColorA(float a) {
     this->reRenderFlag |= RERENDER_COLOR;
 }
 
+void Drawable::setColor(std::string hexString) {
+    if (hexString.length() == 0) return;
+    if (hexString.c_str()[0] == '#') {
+        hexString = hexString.substr(1, hexString.length() - 1);
+    }
+    if (hexString.length() < 6) return;
+    
+    long r = strtol(hexString.substr(0, 2).c_str(), NULL, 16);
+    long g = strtol(hexString.substr(2, 2).c_str(), NULL, 16);
+    long b = strtol(hexString.substr(4, 2).c_str(), NULL, 16);
+    this->setColor((r/255.0f), (g/255.0f), (b/255.0f));
+}
+
 Color Drawable::getColor() {
     return this->transform->color;
 }
@@ -250,7 +263,7 @@ float Drawable::getHeight() {
 
 void Drawable::setZIndex(int zIndex) {
     if (this->zIndex != zIndex) {
-        if (auto dg = this->drawableGroup.lock()) {
+        if (auto dg = this->parentDrawableGroup.lock()) {
             dg->sortOrderDirty = true;
         }
     }
@@ -288,7 +301,7 @@ void Drawable::cancelAllTweens() {
 }
 
 void Drawable::removeFromParent() {
-    if (auto dg = this->drawableGroup.lock()) {
+    if (auto dg = this->parentDrawableGroup.lock()) {
         dg->removeChild(shared_from_this());
     }
 }
