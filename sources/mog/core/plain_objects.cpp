@@ -294,6 +294,19 @@ Color::Color(float r, float g, float b, float a) {
     this->a = a;
 }
 
+Color::Color(std::string hexString) {
+    if (hexString.length() == 0) return;
+    if (hexString.c_str()[0] == '#') {
+        hexString = hexString.substr(1, hexString.length() - 1);
+    }
+    if (hexString.length() < 6) return;
+    
+    this->r = strtol(hexString.substr(0, 2).c_str(), NULL, 16) / 255.0f;
+    this->g = strtol(hexString.substr(2, 2).c_str(), NULL, 16) / 255.0f;
+    this->b = strtol(hexString.substr(4, 2).c_str(), NULL, 16) / 255.0f;
+    this->a = 1.0f;
+}
+
 Color Color::operator*(const Color &c) const {
     return Color(this->r * c.r, this->g * c.g, this->b * c.b, this->a * c.a);
 }

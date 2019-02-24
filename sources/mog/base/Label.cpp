@@ -16,9 +16,9 @@ LocalizedText::LocalizedText(string textKey, ...) {
 
 #pragma - Label
 
-shared_ptr<Label> Label::create(string textKey, float fontSize, string fontFilename, float height) {
+shared_ptr<Label> Label::create(string text, float fontSize, string fontFilename, float height) {
     auto label = shared_ptr<Label>(new Label());
-    label->init(textKey, fontSize, fontFilename, height);
+    label->init(text, fontSize, fontFilename, height);
     return label;
 }
 

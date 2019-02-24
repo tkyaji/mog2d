@@ -127,39 +127,12 @@ void Entity::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int 
 }
 
 void Entity::updateMatrix() {
-    std::vector<shared_ptr<Entity>> entities;
-    shared_ptr<Entity> e = static_pointer_cast<Entity>(shared_from_this());
-    while (auto g = e->getGroup()) {
-        entities.emplace_back(g);
-        e = g;
-    }
-    
-    float *tmpMatrix = nullptr;
-    float *parentMatrix = nullptr;
-    
-    for (int _i = 0; _i < (int)entities.size(); _i++) {
-        if (_i == 0) {
-            tmpMatrix = &this->transform->tmpMatrix[0];
-            parentMatrix = &this->transform->tmpMatrix[16];
-        }
-        int i = (int)entities.size() - _i - 1;
-        e = entities[i];
-        if ((e->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
-            e->transform->updateMatrix();
-        }
-        if (_i == 0) {
-            memcpy(parentMatrix, e->transform->matrix, sizeof(float) * 16);
-        } else {
-            Transform::multiplyMatrix(e->transform->matrix, parentMatrix, tmpMatrix);
-            memcpy(parentMatrix, tmpMatrix, sizeof(float) * 16);
-        }
-    }
-    
     if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
         this->transform->updateMatrix();
     }
-    if (parentMatrix != nullptr) {
-        Transform::multiplyMatrix(this->transform->matrix, parentMatrix, this->matrix);
+    if (auto parent = this->group.lock()) {
+        parent->updateMatrix();
+        Transform::multiplyMatrix(this->transform->matrix, parent->matrix, this->matrix);
     } else {
         memcpy(this->matrix, this->transform->matrix, sizeof(float) * 16);
     }

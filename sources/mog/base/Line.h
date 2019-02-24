@@ -22,7 +22,7 @@ namespace mog {
 
     protected:
         Line();
-        void init(const std::vector<Point> &points, float lineWidth, LineType lineType = LineType::LineStrip);
+        void init(const std::vector<Point> &points, float lineWidth, LineType lineType);
         std::vector<Point> createLinesVertexPoints(const std::vector<Point> &points, float lineWidth);
         std::vector<Point> createLineStripVertexPoints(const std::vector<Point> &points, float lineWidth);
         std::vector<Point> createLineLoopVertexPoints(const std::vector<Point> &points, float lineWidth);

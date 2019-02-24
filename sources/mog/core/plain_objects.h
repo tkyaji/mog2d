@@ -1,6 +1,8 @@
 #ifndef plain_objects_h
 #define plain_objects_h
 
+#include <string>
+
 namespace mog {
     class Size;
     
@@ -91,10 +93,11 @@ namespace mog {
     public:
         Color();
         Color(float r, float g, float b, float a = 1.0f);
-        float r = 0;
-        float g = 0;
-        float b = 0;
-        float a = 0;
+        Color(std::string hexString);
+        float r = 1.0f;
+        float g = 1.0f;
+        float b = 1.0f;
+        float a = 1.0f;
         
         Color operator*(const Color &c) const;
         Color operator*(float c) const;

@@ -3,18 +3,6 @@
 
 using namespace mog;
 
-static inline float dot(const Point &p1, const Point &p2) {
-    float l1 = sqrt(p1.x * p1.x + p1.y * p1.y);
-    float l2 = sqrt(p2.x * p2.x + p2.y * p2.y);
-    return p1.x * l1 * p2.x * l2 + p1.y * l1 * p2.y * l2;
-}
-
-static inline Point normalize(const Point &p) {
-    if (p.x == 0 && p.y == 0) return p;
-    float l = sqrt(p.x * p.x + p.y * p.y);
-    return p / l;
-}
-
 static inline Point alignDirection(Point v, const Point &directionV) {
     if (v.x == 0 && v.y == 0) {
         v = directionV * Point(1.0f, -1.0f);
@@ -45,7 +33,7 @@ void Line::init(const std::vector<Point> &points, float lineWidth, LineType line
     this->lineType = lineType;
     
     if (points.size() < 2) return;
-    if (points.size() == 2) lineType =  LineType::Lines;
+    if (points.size() == 2) lineType = LineType::Lines;
 
     std::vector<Point> vertexPoints;
     switch (lineType) {
@@ -76,7 +64,7 @@ std::vector<Point> Line::createLinesVertexPoints(const std::vector<Point> &point
         Point p1 = _points[i + 1];
         
         Point l = p1 - p0;
-        Point n = normalize(Point(-l.y, l.x));
+        Point n = Point::normalize(Point(-l.y, l.x));
         Point pp0a = p0 + n * lineWidth * 0.5f;
         Point pp0b = p0 - n * lineWidth * 0.5f;
 
@@ -107,14 +95,14 @@ std::vector<Point> Line::createLineStripVertexPoints(const std::vector<Point> &p
         Point p2 = _points[i + 2];
         
         Point l0 = p1 - p0;
-        Point n0 = normalize(Point(-l0.y, l0.x));
-        Point t = normalize(normalize(p2 - p1) + normalize(p1 - p0));
+        Point n0 = Point::normalize(Point(-l0.y, l0.x));
+        Point t = Point::normalize(Point::normalize(p2 - p1) + Point::normalize(p1 - p0));
         Point m = Point(-t.y, t.x);
-        float d = lineWidth * 0.5f / dot(m, n0);
+        float d = lineWidth * 0.5f / Point::dot(m, n0);
         
-        Point v1 = normalize(p1 - p0);
-        Point v2 = normalize(p1 - p2);
-        Point v = normalize(v1 + v2);
+        Point v1 = Point::normalize(p1 - p0);
+        Point v2 = Point::normalize(p1 - p2);
+        Point v = Point::normalize(v1 + v2);
         v = alignDirection(v, v1);
 
         Point pp1a = p1 + v * d;
@@ -133,7 +121,7 @@ std::vector<Point> Line::createLineStripVertexPoints(const std::vector<Point> &p
         
         if (i == _points.size() -3) {
             Point l2 = p2 - p1;
-            Point n2 = normalize(Point(-l2.y, l2.x));
+            Point n2 = Point::normalize(Point(-l2.y, l2.x));
             n2 = alignDirection(n2, v2 * -1.0f);
             Point pp2a = p2 + n2 * lineWidth * 0.5f;
             Point pp2b = p2 - n2 * lineWidth * 0.5f;
@@ -160,16 +148,16 @@ std::vector<Point> Line::createLineLoopVertexPoints(const std::vector<Point> &po
         Point p2 = _points[i + 2];
         
         Point l0 = p1 - p0;
-        Point n0 = normalize(Point(-l0.y, l0.x));
-        Point t = normalize(normalize(p2 - p1) + normalize(p1 - p0));
+        Point n0 = Point::normalize(Point(-l0.y, l0.x));
+        Point t = Point::normalize(Point::normalize(p2 - p1) + Point::normalize(p1 - p0));
         float d = lineWidth * 0.5f;
         if (t.x != 0 || t.y != 0) {
             Point m = Point(-t.y, t.x);
-            d = lineWidth * 0.5f / dot(m, n0);
+            d = lineWidth * 0.5f / Point::dot(m, n0);
         }
-        Point v1 = normalize(p1 - p0);
-        Point v2 = normalize(p1 - p2);
-        Point v = normalize(v1 + v2);
+        Point v1 = Point::normalize(p1 - p0);
+        Point v2 = Point::normalize(p1 - p2);
+        Point v = Point::normalize(v1 + v2);
         v = alignDirection(v, v1);
         
         Point pp1a = p1 + v * d;
