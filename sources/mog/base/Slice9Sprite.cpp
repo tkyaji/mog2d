@@ -15,7 +15,7 @@ void Slice9Sprite::init(const shared_ptr<Sprite> sprite, const Rect &centerRect)
     this->texture = sprite->getTexture();
     this->transform->size = sprite->getSize();
     this->rect = sprite->getRect();
-    this->centerRect = centerRect;    
+    this->centerRect = centerRect;
     this->initRendererVertices(16, 28);
 }
 
@@ -26,9 +26,9 @@ Rect Slice9Sprite::getCenterRect() {
 void Slice9Sprite::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) {
     Point offset, v1, v2;
     if (bakeTransform) {
-        offset = Point(this->transform->matrix[12], this->transform->matrix[13]);
-        v1 = Point(this->transform->matrix[0], this->transform->matrix[1]);
-        v2 = Point(this->transform->matrix[4], this->transform->matrix[5]);
+        offset = Point(this->renderer->matrix[12], this->renderer->matrix[13]);
+        v1 = Point(this->renderer->matrix[0], this->renderer->matrix[1]);
+        v2 = Point(this->renderer->matrix[4], this->renderer->matrix[5]);
     }
     
     float xx[4];
@@ -44,7 +44,6 @@ void Slice9Sprite::bindVertices(const std::shared_ptr<Renderer> &renderer, int *
     yy[3] = this->transform->size.height;
     
     if (!this->active) {
-        xx[0] = 0;  yy[0] = 0;
         xx[1] = 0;  yy[1] = 0;
         xx[2] = 0;  yy[2] = 0;
         xx[3] = 0;  yy[3] = 0;
@@ -83,7 +82,8 @@ void Slice9Sprite::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer
     Size texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
     x += this->rect.position.x / texSize.width;
     y += this->rect.position.y / texSize.height;
-
+    w *= (this->rect.size.width / texSize.width);
+    h *= (this->rect.size.height / texSize.height);
     float xx[4] = {
         x,
         x + (this->centerRect.position.x / this->rect.size.width) * w,

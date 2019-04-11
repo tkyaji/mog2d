@@ -153,8 +153,8 @@ void Sprite::initWithTexture(const shared_ptr<Texture2D> &texture) {
 
 void Sprite::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
     Size texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
-    x += this->rect.position.x / texSize.width;
-    y += this->rect.position.y / texSize.height;
+    x += this->rect.position.x / texSize.width * w;
+    y += this->rect.position.y / texSize.height * h;
     w *= this->rect.size.width / texSize.width;
     h *= this->rect.size.height / texSize.height;
     Entity::bindVertexTexCoords(renderer, idx, x, y, w, h);

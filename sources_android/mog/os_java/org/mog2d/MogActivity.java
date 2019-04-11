@@ -251,6 +251,11 @@ public class MogActivity extends Activity {
         return super.dispatchKeyEvent(event);
     }
 
+    @Override
+    public void onBackPressed() {
+        super.moveTaskToBack(true);
+    }
+
     private int toTouchAction(int actionMasked) {
         switch (actionMasked) {
             case MotionEvent.ACTION_DOWN:

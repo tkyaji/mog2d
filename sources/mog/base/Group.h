@@ -18,12 +18,10 @@ namespace mog {
     public:
         static std::shared_ptr<Group> create(bool enableBatching = false);
         
-        void add(const std::shared_ptr<Entity> &entity);
-        void remove(const std::shared_ptr<Entity> &entity);
-        void removeAll();
+        virtual void add(const std::shared_ptr<Entity> &entity);
+        virtual void remove(const std::shared_ptr<Entity> &entity);
+        virtual void removeAll();
         std::vector<std::shared_ptr<Entity>> getChildEntities();
-        void setEnableBatching(bool enableBatching);
-        bool isEnableBatching();
         
         std::shared_ptr<Entity> findChildByName(std::string name, bool recursive = true);
         std::shared_ptr<Entity> findFirstChildByTag(std::string tag, bool recursive = true);
@@ -42,7 +40,7 @@ namespace mog {
         std::shared_ptr<TextureAtlas> textureAtlas;
 
         Group();
-        
+        void init(bool enableBatching);
         std::shared_ptr<Sprite> createTextureSprite();
 
         virtual void bindVertex() override;

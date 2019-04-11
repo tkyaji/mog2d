@@ -64,11 +64,17 @@ void Polygon::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verti
 }
 
 void Polygon::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
-    for (int i = 0; i < this->vertexPoints.size(); i++) {
-        renderer->vertexTexCoords[(*idx)++] = -1.0f;
-        renderer->vertexTexCoords[(*idx)++] = -1.0f;
-    }
-}
+    if (this->texture) {
+        for (int i = 0; i < this->vertexPoints.size(); i++) {
+            renderer->vertexTexCoords[(*idx)++] = (this->vertexPoints[i].x / this->maxPosition.x) * w;
+            renderer->vertexTexCoords[(*idx)++] = (this->vertexPoints[i].y / this->maxPosition.y) * h;
+        }
+    } else {
+        for (int i = 0; i < this->vertexPoints.size(); i++) {
+            renderer->vertexTexCoords[(*idx)++] = -1.0f;
+            renderer->vertexTexCoords[(*idx)++] = -1.0f;
+        }
+    }}
 
 std::vector<Point> Polygon::getPoints() {
     return this->vertexPoints;

@@ -14,7 +14,7 @@ using namespace mog;
 
 shared_ptr<Group> Group::create(bool enableBatching) {
     auto group = shared_ptr<Group>(new Group());
-    group->setEnableBatching(enableBatching);
+    group->init(enableBatching);
     return group;
 }
 
@@ -30,13 +30,9 @@ Group::Group() {
     };
 }
 
-void Group::setEnableBatching(bool enableBatching) {
+void Group::init(bool enableBatching) {
     this->enableBatching = enableBatching;
     this->reRenderFlag = RERENDER_ALL;
-}
-
-bool Group::isEnableBatching() {
-    return this->enableBatching;
 }
 
 void Group::updateFrame(const shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {

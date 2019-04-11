@@ -65,9 +65,10 @@ void AppBase::reserveLoadScene(const shared_ptr<Scene> &scene, Transition transi
 
 bool AppBase::doLoadScene() {
     if (this->isReservedLoadScene) {
-        this->loadSceneMain(this->loadSceneParams);
+        auto params = this->loadSceneParams;
         this->isReservedLoadScene = false;
         this->loadSceneParams.clear();
+        this->loadSceneMain(params);
         return true;
     }
     return false;

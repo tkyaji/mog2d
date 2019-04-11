@@ -84,7 +84,8 @@ namespace mog {
     protected:
         Drawable();
         virtual void bindVertex();
-        
+        virtual void onUpdate(float delta) {};
+
         std::shared_ptr<Renderer> renderer;
         std::shared_ptr<Transform> transform;
         unsigned char reRenderFlag = RERENDER_ALL;
