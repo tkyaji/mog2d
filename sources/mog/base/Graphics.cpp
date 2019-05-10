@@ -3,13 +3,7 @@
 
 using namespace mog;
 
-Graphics::Graphics() {
-}
-
-Graphics::~Graphics() {
-}
-
-std::shared_ptr<Graphics> Graphics::create(DrawType drawType, const vector<Point> &vertexPositions) {
+std::shared_ptr<Graphics> Graphics::create(DrawType drawType, const std::vector<Point> &vertexPositions) {
     auto graphics = std::shared_ptr<Graphics>(new Graphics());
     graphics->init(drawType, vertexPositions);
     return graphics;

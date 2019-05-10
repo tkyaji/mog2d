@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <sys/time.h>
+#include <random>
 
 void LOGD(const char *format, ...) {
 #if LOG_LEVEL <= LOG_DEBUG
@@ -89,4 +90,11 @@ bool approximately(float a, float b) {
     } else {
         return true;
     }
+}
+
+int getRandomRange(int min, int max) {
+    std::random_device rnd;
+    std::mt19937 mt(rnd());
+    std::uniform_int_distribution<> rand(min, max);
+    return rand(mt);
 }

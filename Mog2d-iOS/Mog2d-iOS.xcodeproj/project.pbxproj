@@ -62,13 +62,16 @@
 		B268132E20FDF94400AC7AAB /* MogEngineController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B26812F520FDF94300AC7AAB /* MogEngineController.mm */; };
 		B268132F20FDF94400AC7AAB /* MogView.m in Sources */ = {isa = PBXBuildFile; fileRef = B26812F620FDF94300AC7AAB /* MogView.m */; };
 		B268133020FDF94400AC7AAB /* MogViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B26812F920FDF94300AC7AAB /* MogViewController.m */; };
+		B27A7ECD224B6432006FFE8D /* TiledSprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B27A7ECC224B6431006FFE8D /* TiledSprite.cpp */; };
 		B2A101771ED713DD00A2EB8A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B2A101761ED713DD00A2EB8A /* main.m */; };
 		B2A101821ED713DD00A2EB8A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B2A101811ED713DD00A2EB8A /* Assets.xcassets */; };
 		B2A101851ED713DD00A2EB8A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B2A101831ED713DD00A2EB8A /* LaunchScreen.storyboard */; };
 		B2A103321ED7154000A2EB8A /* assets in Resources */ = {isa = PBXBuildFile; fileRef = B2A103311ED7154000A2EB8A /* assets */; };
 		B2A103411ED716D100A2EB8A /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2A103401ED716D100A2EB8A /* OpenAL.framework */; };
 		B2B4730B1F0E79930043D501 /* assets_ios in Resources */ = {isa = PBXBuildFile; fileRef = B2B4730A1F0E79930043D501 /* assets_ios */; };
+		B2D989B522760F4E00333277 /* IOSHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2D989B422760F4E00333277 /* IOSHelper.cpp */; };
 		B2E421882100D93A006F18A2 /* SampleScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2E421872100D93A006F18A2 /* SampleScene.cpp */; };
+		B2ED15A7225F83E7009A7C26 /* ScrollGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2ED15A5225F83E7009A7C26 /* ScrollGroup.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -193,6 +196,8 @@
 		B26812F720FDF94300AC7AAB /* MogAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogAppDelegate.h; sourceTree = "<group>"; };
 		B26812F820FDF94300AC7AAB /* MogTouchEventDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogTouchEventDelegate.h; sourceTree = "<group>"; };
 		B26812F920FDF94300AC7AAB /* MogViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MogViewController.m; sourceTree = "<group>"; };
+		B27A7ECB224B6431006FFE8D /* TiledSprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiledSprite.h; sourceTree = "<group>"; };
+		B27A7ECC224B6431006FFE8D /* TiledSprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TiledSprite.cpp; sourceTree = "<group>"; };
 		B2A101721ED713DD00A2EB8A /* Mog2d-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mog2d-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2A101761ED713DD00A2EB8A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		B2A101811ED713DD00A2EB8A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -207,8 +212,12 @@
 		B2A103441ED7170200A2EB8A /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		B2A1034A1ED725BD00A2EB8A /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		B2B4730A1F0E79930043D501 /* assets_ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets_ios; path = ../../assets_ios; sourceTree = "<group>"; };
+		B2D989B322760F4E00333277 /* IOSHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IOSHelper.h; sourceTree = "<group>"; };
+		B2D989B422760F4E00333277 /* IOSHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IOSHelper.cpp; sourceTree = "<group>"; };
 		B2E421852100D66C006F18A2 /* SampleScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SampleScene.h; sourceTree = "<group>"; };
 		B2E421872100D93A006F18A2 /* SampleScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SampleScene.cpp; sourceTree = "<group>"; };
+		B2ED15A5225F83E7009A7C26 /* ScrollGroup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ScrollGroup.cpp; sourceTree = "<group>"; };
+		B2ED15A6225F83E7009A7C26 /* ScrollGroup.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScrollGroup.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -338,6 +347,8 @@
 		B26812B620FDF94300AC7AAB /* base */ = {
 			isa = PBXGroup;
 			children = (
+				B27A7ECC224B6431006FFE8D /* TiledSprite.cpp */,
+				B27A7ECB224B6431006FFE8D /* TiledSprite.h */,
 				B26812D420FDF94300AC7AAB /* AppBase.cpp */,
 				B26812C020FDF94300AC7AAB /* AppBase.h */,
 				B26812CD20FDF94300AC7AAB /* Circle.cpp */,
@@ -370,6 +381,8 @@
 				B26812C720FDF94300AC7AAB /* Sprite.h */,
 				B26812BB20FDF94300AC7AAB /* SpriteSheet.cpp */,
 				B26812D020FDF94300AC7AAB /* SpriteSheet.h */,
+				B2ED15A5225F83E7009A7C26 /* ScrollGroup.cpp */,
+				B2ED15A6225F83E7009A7C26 /* ScrollGroup.h */,
 			);
 			path = base;
 			sourceTree = "<group>";
@@ -436,6 +449,8 @@
 		B26812F020FDF94300AC7AAB /* os */ = {
 			isa = PBXGroup;
 			children = (
+				B2D989B422760F4E00333277 /* IOSHelper.cpp */,
+				B2D989B322760F4E00333277 /* IOSHelper.h */,
 				B26812F120FDF94300AC7AAB /* MogView.h */,
 				B26812F220FDF94300AC7AAB /* MogAppDelegate.m */,
 				B26812F320FDF94300AC7AAB /* MogViewController.h */,
@@ -547,6 +562,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -588,6 +604,7 @@
 				B268130220FDF94300AC7AAB /* DataStore.cpp in Sources */,
 				B268130120FDF94300AC7AAB /* Shader.cpp in Sources */,
 				B268131320FDF94300AC7AAB /* sha256.cpp in Sources */,
+				B27A7ECD224B6432006FFE8D /* TiledSprite.cpp in Sources */,
 				B268131F20FDF94300AC7AAB /* Rectangle.cpp in Sources */,
 				B268130E20FDF94300AC7AAB /* Renderer.cpp in Sources */,
 				B268132D20FDF94400AC7AAB /* MogAppDelegate.m in Sources */,
@@ -603,6 +620,7 @@
 				B26812FD20FDF94300AC7AAB /* MogStats.cpp in Sources */,
 				B2E421882100D93A006F18A2 /* SampleScene.cpp in Sources */,
 				B268130B20FDF94300AC7AAB /* AudioPlayer.cpp in Sources */,
+				B2ED15A7225F83E7009A7C26 /* ScrollGroup.cpp in Sources */,
 				B268130820FDF94300AC7AAB /* TextureAtlas.cpp in Sources */,
 				B268130020FDF94300AC7AAB /* Data.cpp in Sources */,
 				B268131C20FDF94300AC7AAB /* Label.cpp in Sources */,
@@ -634,6 +652,7 @@
 				B268131B20FDF94300AC7AAB /* Graphics.cpp in Sources */,
 				B268130F20FDF94300AC7AAB /* mog_functions.cpp in Sources */,
 				B268132B20FDF94400AC7AAB /* Device.mm in Sources */,
+				B2D989B522760F4E00333277 /* IOSHelper.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

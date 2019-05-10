@@ -8,7 +8,7 @@ using namespace mog;
 
 #pragma - TextureAtlasCell
 
-TextureAtlasCell::TextureAtlasCell(const shared_ptr<Texture2D> &texture) {
+TextureAtlasCell::TextureAtlasCell(const std::shared_ptr<Texture2D> &texture) {
     this->texture = texture;
     this->width = texture->width;
     this->height = texture->height;
@@ -17,17 +17,17 @@ TextureAtlasCell::TextureAtlasCell(const shared_ptr<Texture2D> &texture) {
 
 #pragma - TextureAtlas
 
-void TextureAtlas::addTexture(const shared_ptr<Texture2D> &tex2d) {
+void TextureAtlas::addTexture(const std::shared_ptr<Texture2D> &tex2d) {
     if (!tex2d) return;
     if (this->cellMap.count(tex2d) > 0) return;
-    auto texCell = make_shared<TextureAtlasCell>(tex2d);
+    auto texCell = std::make_shared<TextureAtlasCell>(tex2d);
     this->cells.emplace_back(texCell);
     this->cellMap[tex2d] = texCell;
 }
 
 void TextureAtlas::mapTextureCells() {
-    vector<shared_ptr<TextureAtlasCell>> tmpCells = this->cells;
-    sort(tmpCells.begin(), tmpCells.end(), [](shared_ptr<TextureAtlasCell> cell1, shared_ptr<TextureAtlasCell> cell2) {
+    std::vector<std::shared_ptr<TextureAtlasCell>> tmpCells = this->cells;
+    sort(tmpCells.begin(), tmpCells.end(), [](std::shared_ptr<TextureAtlasCell> cell1, std::shared_ptr<TextureAtlasCell> cell2) {
         return cell1->texture->height > cell2->texture->height;
     });
     
@@ -50,21 +50,21 @@ void TextureAtlas::mapTextureCells() {
         cell->y = y;
         
         x += tex2d->width;
-        mh = max(mh, tex2d->height);
-        mw = max(mw, x);
+        mh = fmax(mh, tex2d->height);
+        mw = fmax(mw, x);
     }
     
     this->width = mw;
     this->height = y + mh;
 }
 
-shared_ptr<Texture2D> TextureAtlas::createTexture() {
+std::shared_ptr<Texture2D> TextureAtlas::createTexture() {
     this->mapTextureCells();
     
     int bitsPerPixel = 4;
     auto textureType = TextureType::RGBA;
     
-    this->texture = make_shared<Texture2D>();
+    this->texture = std::make_shared<Texture2D>();
     this->texture->textureType = textureType;
     this->texture->width = this->width;
     this->texture->height = this->height;
@@ -82,7 +82,7 @@ void TextureAtlas::bindTexture() {
     }
 }
 
-void TextureAtlas::bindTextureSub(const shared_ptr<TextureAtlasCell> &cell) {
+void TextureAtlas::bindTextureSub(const std::shared_ptr<TextureAtlasCell> &cell) {
     this->texture->bindTextureSub(cell->texture->data, cell->x, cell->y, cell->width, cell->height);
     
     if (cell->x > 0) {
@@ -95,7 +95,7 @@ void TextureAtlas::bindTextureSub(const shared_ptr<TextureAtlasCell> &cell) {
         mogfree(dt);
     }
     
-    int marginR = min(this->width - (cell->x + cell->width), TEXTURE_MARGIN);
+    int marginR = fmin(this->width - (cell->x + cell->width), TEXTURE_MARGIN);
     if (marginR > 0) {
         unsigned char *dt = (unsigned char *)mogmalloc(sizeof(unsigned char) * cell->height * 4);
         this->readTexturePixels(dt, cell->texture, cell->width - 1, 0, 1, cell->height);
@@ -115,7 +115,7 @@ void TextureAtlas::bindTextureSub(const shared_ptr<TextureAtlasCell> &cell) {
         mogfree(dt);
     }
     
-    int marginB = min(this->height - (cell->y + cell->height), TEXTURE_MARGIN);
+    int marginB = fmin(this->height - (cell->y + cell->height), TEXTURE_MARGIN);
     if (marginB > 0) {
         unsigned char *dt = (unsigned char *)mogmalloc(sizeof(unsigned char) * cell->width * 4);
         this->readTexturePixels(dt, cell->texture, 0, cell->height - 1, cell->width, 1);
@@ -126,7 +126,7 @@ void TextureAtlas::bindTextureSub(const shared_ptr<TextureAtlasCell> &cell) {
     }
 }
 
-void TextureAtlas::readTexturePixels(unsigned char *dst, const shared_ptr<Texture2D> &tex2d, int x, int y, int width, int height) {
+void TextureAtlas::readTexturePixels(unsigned char *dst, const std::shared_ptr<Texture2D> &tex2d, int x, int y, int width, int height) {
     for (int _y = 0; _y < height; _y++) {
         int di = _y * width;
         int si = (y + _y) * tex2d->width + x;
@@ -134,6 +134,6 @@ void TextureAtlas::readTexturePixels(unsigned char *dst, const shared_ptr<Textur
     }
 }
 
-shared_ptr<TextureAtlasCell> TextureAtlas::getCell(const shared_ptr<Texture2D> &tex2d) {
+std::shared_ptr<TextureAtlasCell> TextureAtlas::getCell(const std::shared_ptr<Texture2D> &tex2d) {
     return this->cellMap[tex2d];
 }

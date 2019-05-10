@@ -16,11 +16,11 @@ PubSub::~PubSub() {
     }
 }
 
-void PubSub::publish(string key) {
+void PubSub::publish(std::string key) {
     this->publish(key, nullptr);
 }
 
-void PubSub::publish(string key, const std::shared_ptr<Data> &param) {
+void PubSub::publish(std::string key, const std::shared_ptr<Data> &param) {
     if (this->subscribers.count(key) > 0) {
         for (auto &sub : this->subscribers[key]) {
             sub.second(param);
@@ -33,27 +33,27 @@ void PubSub::publish(string key, const std::shared_ptr<Data> &param) {
     }
 }
 
-unsigned int PubSub::subscribe(string key, function<void(const std::shared_ptr<Data> &p)> func) {
+unsigned int PubSub::subscribe(std::string key, std::function<void(const std::shared_ptr<Data> &p)> func) {
     unsigned int pubsubId = ++this->subscribeIdCounter;
     this->subscribers[key][pubsubId] = func;
     return pubsubId;
 }
 
-void PubSub::unsubscribe(string key, unsigned int subscribeId) {
+void PubSub::unsubscribe(std::string key, unsigned int subscribeId) {
     this->subscribers[key].erase(subscribeId);
 }
 
-void PubSub::unsubscribeAll(string key) {
+void PubSub::unsubscribeAll(std::string key) {
     this->subscribers.erase(key);
 }
 
-void PubSub::propagate(const weak_ptr<PubSub> childPubsub) {
+void PubSub::propagate(const std::weak_ptr<PubSub> childPubsub) {
     unsigned int pubsubId = childPubsub.lock()->pubsubId;
     childPubsub.lock()->parentPubsubs[this->pubsubId] = shared_from_this();
     this->childPubsubs[pubsubId] = childPubsub;
 }
 
-void PubSub::stopPropagete(const weak_ptr<PubSub> childPubsub) {
+void PubSub::stopPropagete(const std::weak_ptr<PubSub> childPubsub) {
     childPubsub.lock()->parentPubsubs.erase(this->pubsubId);
     this->childPubsubs.erase(childPubsub.lock()->pubsubId);
 }

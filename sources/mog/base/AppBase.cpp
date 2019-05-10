@@ -7,30 +7,30 @@
 
 using namespace mog;
 
-void AppBase::setEngine(const shared_ptr<Engine> &engine) {
+void AppBase::setEngine(const std::shared_ptr<Engine> &engine) {
     this->engine = engine;
 }
 
 AppBase::AppBase() {
-    this->pubsub = make_shared<PubSub>();
+    this->pubsub = std::make_shared<PubSub>();
 }
 
-void AppBase::loadScene(const shared_ptr<Scene> &scene) {
+void AppBase::loadScene(const std::shared_ptr<Scene> &scene) {
     this->reserveLoadScene(scene, Transition::None, 0, Easing::Linear, LoadMode::Load);
 }
 
-void AppBase::loadScene(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing) {
+void AppBase::loadScene(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing) {
     this->reserveLoadScene(scene, transition, duration, easing, LoadMode::Load);
 }
 
-void AppBase::pushScene(const shared_ptr<Scene> &scene) {
+void AppBase::pushScene(const std::shared_ptr<Scene> &scene) {
     if (this->currentScene) {
         this->sceneStack.emplace_back(this->currentScene);
     }
     this->reserveLoadScene(scene, Transition::None, 0, Easing::Linear, LoadMode::Push);
 }
 
-void AppBase::pushScene(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing) {
+void AppBase::pushScene(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing) {
     if (this->currentScene) {
         this->sceneStack.emplace_back(this->currentScene);
     }
@@ -53,7 +53,7 @@ void AppBase::popScene(Transition transition, float duration, Easing easing) {
     this->reserveLoadScene(scene, transition, duration, easing, LoadMode::Pop);
 }
 
-void AppBase::reserveLoadScene(const shared_ptr<Scene> &scene, Transition transition, float duration,
+void AppBase::reserveLoadScene(const std::shared_ptr<Scene> &scene, Transition transition, float duration,
                                Easing easing, LoadMode loadMode) {
     if (this->currentScene) {
         this->loadSceneParams.setParams(scene, transition, duration, easing, loadMode);
@@ -78,7 +78,7 @@ void AppBase::loadSceneMain(const LoadSceneParams &params) {
     this->loadSceneMain(params.scene, params.transition, params.duration, params.easing, params.loadMode);
 }
 
-void AppBase::loadSceneMain(const shared_ptr<Scene> &scene, LoadMode loadMode) {
+void AppBase::loadSceneMain(const std::shared_ptr<Scene> &scene, LoadMode loadMode) {
     if (this->currentScene) {
         this->currentScene->onDisable();
         if (loadMode != LoadMode::Push) {
@@ -94,7 +94,7 @@ void AppBase::loadSceneMain(const shared_ptr<Scene> &scene, LoadMode loadMode) {
     this->currentScene->onEnable();
 }
 
-void AppBase::loadSceneMain(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode) {
+void AppBase::loadSceneMain(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode) {
     switch (transition) {
         case Transition::Fade:
             this->loadSceneWithFade(scene, duration, easing, loadMode);
@@ -128,8 +128,8 @@ void AppBase::loadSceneMain(const shared_ptr<Scene> &scene, Transition transitio
     }
 }
 
-void AppBase::loadSceneWithFade(const shared_ptr<Scene> &scene, float duration, Easing easing, LoadMode loadMode) {
-    auto f = [](shared_ptr<mog::Scene> current, shared_ptr<mog::Scene> next, float value) {
+void AppBase::loadSceneWithFade(const std::shared_ptr<Scene> &scene, float duration, Easing easing, LoadMode loadMode) {
+    auto f = [](std::shared_ptr<mog::Scene> current, std::shared_ptr<mog::Scene> next, float value) {
         if (value < 0.5f) {
             float v = 1.0 - value / 0.5f;
             current->matrix[16] = v;
@@ -153,7 +153,7 @@ void AppBase::loadSceneWithCrossFade(const shared_ptr<Scene> &scene, float durat
 }
 */
 
-void AppBase::loadSceneWithMoveIn(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode) {
+void AppBase::loadSceneWithMoveIn(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode) {
     Point start = Point::zero;
     switch (transition) {
         case Transition::MoveInTop:
@@ -171,7 +171,7 @@ void AppBase::loadSceneWithMoveIn(const shared_ptr<Scene> &scene, Transition tra
             break;
     }
     
-    auto f = [start](shared_ptr<mog::Scene> current, shared_ptr<mog::Scene> next, float value) {
+    auto f = [start](std::shared_ptr<mog::Scene> current, std::shared_ptr<mog::Scene> next, float value) {
         float v = 1.0f - value;
         next->matrix[12] = start.x * v;
         next->matrix[13] = start.y * v;
@@ -181,7 +181,7 @@ void AppBase::loadSceneWithMoveIn(const shared_ptr<Scene> &scene, Transition tra
                                                     duration, easing, loadMode, 0, SceneTransition::SceneOrder::CurrentNext, f);
 }
 
-void AppBase::loadSceneWithMoveOut(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode) {
+void AppBase::loadSceneWithMoveOut(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode) {
     Point end = Point::zero;
     switch (transition) {
         case Transition::MoveOutTop:
@@ -199,7 +199,7 @@ void AppBase::loadSceneWithMoveOut(const shared_ptr<Scene> &scene, Transition tr
             break;
     }
     
-    auto f = [end](shared_ptr<mog::Scene> current, shared_ptr<mog::Scene> next, float value) {
+    auto f = [end](std::shared_ptr<mog::Scene> current, std::shared_ptr<mog::Scene> next, float value) {
         current->matrix[12] = end.x * value;
         current->matrix[13] = end.y * value;
         current->reRenderFlag |= RERENDER_VERTEX;
@@ -208,7 +208,7 @@ void AppBase::loadSceneWithMoveOut(const shared_ptr<Scene> &scene, Transition tr
                                                     duration, easing, loadMode, 0, SceneTransition::SceneOrder::NextCurrent, f);
 }
 
-void AppBase::loadSceneWithSlideIn(const shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode) {
+void AppBase::loadSceneWithSlideIn(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode) {
     Point currentEnd = Point::zero;
     Point nextStart = Point::zero;
     switch (transition) {
@@ -231,7 +231,7 @@ void AppBase::loadSceneWithSlideIn(const shared_ptr<Scene> &scene, Transition tr
             break;
     }
     
-    auto f = [currentEnd, nextStart](shared_ptr<mog::Scene> current, shared_ptr<mog::Scene> next, float value) {
+    auto f = [currentEnd, nextStart](std::shared_ptr<mog::Scene> current, std::shared_ptr<mog::Scene> next, float value) {
         float v = 1.0f - value;
         current->matrix[12] = currentEnd.x * value;
         current->matrix[13] = currentEnd.y * value;
@@ -278,7 +278,7 @@ void AppBase::setBackgroundColor(const Color &color) {
     this->engine.lock()->setClearColor(color);
 }
 
-shared_ptr<Scene> AppBase::getCurrentScene() {
+std::shared_ptr<Scene> AppBase::getCurrentScene() {
     return this->currentScene;
 }
 
@@ -326,7 +326,7 @@ void AppBase::setStatsViewAlignment(Alignment alignment) {
     this->engine.lock()->setStatsAlignment(alignment);
 }
 
-shared_ptr<PubSub> AppBase::getPubSub() {
+std::shared_ptr<PubSub> AppBase::getPubSub() {
     return this->pubsub;
 }
 
@@ -336,10 +336,10 @@ unsigned int AppBase::getSceneStackSize() {
 
 
 std::unique_ptr<AppBase::SceneTransition> AppBase::SceneTransition::create(const std::shared_ptr<Engine> &engine, const std::shared_ptr<AppBase> &app,
-                                                                           const shared_ptr<Scene> &currentScene, const shared_ptr<Scene> &nextScene,
+                                                                           const std::shared_ptr<Scene> &currentScene, const std::shared_ptr<Scene> &nextScene,
                                                                            float duration, Easing easing, AppBase::LoadMode loadMode, float loadSceneValue,
                                                                            AppBase::SceneTransition::SceneOrder sceneOrder,
-                                                                           function<void(shared_ptr<Scene> current, shared_ptr<Scene> next, float value)> onModify) {
+                                                                           std::function<void(std::shared_ptr<Scene> current, std::shared_ptr<Scene> next, float value)> onModify) {
     auto sceneTransition = std::unique_ptr<AppBase::SceneTransition>(new SceneTransition());
     sceneTransition->engine = engine;
     sceneTransition->app = app;

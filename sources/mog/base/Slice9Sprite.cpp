@@ -4,23 +4,41 @@
 
 using namespace mog;
 
-shared_ptr<Slice9Sprite> Slice9Sprite::create(const shared_ptr<Sprite> sprite, const Rect &centerRect) {
-    auto slice9sprite = shared_ptr<Slice9Sprite>(new Slice9Sprite());
-    slice9sprite->init(sprite, centerRect);
+std::shared_ptr<Slice9Sprite> Slice9Sprite::create(std::string filename, const Rect &centerRect, const Rect &rect) {
+    auto texture = Texture2D::createWithAsset(filename);
+    return Slice9Sprite::create(texture, centerRect, rect);
+}
+
+std::shared_ptr<Slice9Sprite> Slice9Sprite::create(const std::shared_ptr<Texture2D> &texture, const Rect &centerRect, const Rect &rect) {
+    auto slice9sprite = std::shared_ptr<Slice9Sprite>(new Slice9Sprite());
+    slice9sprite->init(texture, centerRect, rect);
     return slice9sprite;
 }
 
-void Slice9Sprite::init(const shared_ptr<Sprite> sprite, const Rect &centerRect) {
-    this->filename = sprite->getFilename();
-    this->texture = sprite->getTexture();
-    this->transform->size = sprite->getSize();
-    this->rect = sprite->getRect();
+std::shared_ptr<Slice9Sprite> Slice9Sprite::create(const std::shared_ptr<Sprite> &sprite, const Rect &centerRect) {
+    return Slice9Sprite::create(sprite->getTexture(), centerRect, sprite->getRect());
+}
+
+void Slice9Sprite::init(const std::shared_ptr<Texture2D> &texture, const Rect &centerRect, const Rect &rect) {
+    this->textures[0] = texture;
+    this->numOfTexture = 1;
     this->centerRect = centerRect;
+    Rect _rect = rect;
+    if (rect.size == Size::zero) {
+        _rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
+                          this->textures[0]->height / this->textures[0]->density.value);
+    }
+    this->rect = _rect;
+    this->transform->size = this->rect.size;
     this->initRendererVertices(16, 28);
 }
 
 Rect Slice9Sprite::getCenterRect() {
     return this->centerRect;
+}
+
+Rect Slice9Sprite::getRect() {
+    return this->rect;
 }
 
 void Slice9Sprite::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) {
@@ -78,8 +96,8 @@ void Slice9Sprite::bindVertices(const std::shared_ptr<Renderer> &renderer, int *
     }
 }
 
-void Slice9Sprite::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
-    Size texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
+void Slice9Sprite::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) {
+    Size texSize = Size(this->textures[texIdx]->width, this->textures[texIdx]->height) / this->textures[texIdx]->density.value;
     x += this->rect.position.x / texSize.width;
     y += this->rect.position.y / texSize.height;
     w *= (this->rect.size.width / texSize.width);
@@ -99,11 +117,15 @@ void Slice9Sprite::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer
     for (int xi = 0; xi < 4; xi++) {
         for (int _yi = 0; _yi < 4; _yi++) {
             int yi = _yi;
-            if (this->texture->isFlip) {
+            if (this->textures[0]->isFlip) {
                 yi = 3 - yi;
             }
-            renderer->vertexTexCoords[(*idx)++] = xx[xi];
-            renderer->vertexTexCoords[(*idx)++] = yy[yi];
+            renderer->vertexTexCoords[texIdx][(*idx)++] = xx[xi];
+            renderer->vertexTexCoords[texIdx][(*idx)++] = yy[yi];
         }
     }
+}
+
+std::shared_ptr<Entity> Slice9Sprite::cloneEntity() {
+    return nullptr;
 }

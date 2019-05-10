@@ -9,19 +9,22 @@
 namespace mog {
     class Circle : public Sprite {
     public:
-        static shared_ptr<Circle> create(float radius);
+        static std::shared_ptr<Circle> create(float radius);
         
         float getRadius();
         void setRadius(float radius);
-        virtual shared_ptr<Collider> getCollider() override;
+        virtual std::shared_ptr<Collider> getCollider() override;
+        std::shared_ptr<Circle> clone();
 
     protected:
         float radius = 0;
         
+        Circle() {}
         void init(float radius);
         virtual void bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) override;
-        virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) override;
-        virtual shared_ptr<CIRCLE> getCIRCLE();
+        virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) override;
+        virtual std::shared_ptr<CIRCLE> getCIRCLE();
+        virtual std::shared_ptr<Entity> cloneEntity() override;
     };
 }
 

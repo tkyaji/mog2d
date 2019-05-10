@@ -14,10 +14,10 @@ void Polygon::init(const std::vector<Point> &vertexPoints) {
     this->minPosition = vertexPoints[0];
     this->maxPosition = vertexPoints[0];
     for (int i = 1; i < vertexPoints.size(); i++) {
-        this->minPosition.x = min(this->vertexPoints[i].x, this->minPosition.x);
-        this->minPosition.y = min(this->vertexPoints[i].y, this->minPosition.y);
-        this->maxPosition.x = max(this->vertexPoints[i].x, this->maxPosition.x);
-        this->maxPosition.y = max(this->vertexPoints[i].y, this->maxPosition.y);
+        this->minPosition.x = fmin(this->vertexPoints[i].x, this->minPosition.x);
+        this->minPosition.y = fmin(this->vertexPoints[i].y, this->minPosition.y);
+        this->maxPosition.x = fmax(this->vertexPoints[i].x, this->maxPosition.x);
+        this->maxPosition.y = fmax(this->vertexPoints[i].y, this->maxPosition.y);
     }
     this->transform->size.width = this->maxPosition.x - this->minPosition.x;
     this->transform->size.height = this->maxPosition.y - this->minPosition.y;
@@ -63,16 +63,16 @@ void Polygon::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verti
     }
 }
 
-void Polygon::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
-    if (this->texture) {
+void Polygon::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) {
+    if (this->textures[0]) {
         for (int i = 0; i < this->vertexPoints.size(); i++) {
-            renderer->vertexTexCoords[(*idx)++] = (this->vertexPoints[i].x / this->maxPosition.x) * w;
-            renderer->vertexTexCoords[(*idx)++] = (this->vertexPoints[i].y / this->maxPosition.y) * h;
+            renderer->vertexTexCoords[texIdx][(*idx)++] = (this->vertexPoints[i].x / this->maxPosition.x) * w;
+            renderer->vertexTexCoords[texIdx][(*idx)++] = (this->vertexPoints[i].y / this->maxPosition.y) * h;
         }
     } else {
         for (int i = 0; i < this->vertexPoints.size(); i++) {
-            renderer->vertexTexCoords[(*idx)++] = -1.0f;
-            renderer->vertexTexCoords[(*idx)++] = -1.0f;
+            renderer->vertexTexCoords[texIdx][(*idx)++] = -1.0f;
+            renderer->vertexTexCoords[texIdx][(*idx)++] = -1.0f;
         }
     }}
 
@@ -80,7 +80,7 @@ std::vector<Point> Polygon::getPoints() {
     return this->vertexPoints;
 }
 
-shared_ptr<AABB> Polygon::getAABB() {
+std::shared_ptr<AABB> Polygon::getAABB() {
     auto v1 = Point(this->matrix[0], this->matrix[1]);
     auto v2 = Point(this->matrix[4], this->matrix[5]);
     auto offset = Point(this->matrix[12], this->matrix[13]) + this->minPosition;
@@ -89,13 +89,13 @@ shared_ptr<AABB> Polygon::getAABB() {
     auto p2 = Point(v1.x * size.width, v1.y * size.width);
     auto p3 = Point(v2.x * size.height, v2.y * size.height);
     auto p4 = p2 + p3;
-    Point minP = Point(min(min(p1.x, p2.x), min(p3.x, p4.x)), min(min(p1.y, p2.y), min(p3.y, p4.y)));
-    Point maxP = Point(max(max(p1.x, p2.x), max(p3.x, p4.x)), max(max(p1.y, p2.y), max(p3.y, p4.y)));
+    Point minP = Point(fmin(fmin(p1.x, p2.x), fmin(p3.x, p4.x)), fmin(fmin(p1.y, p2.y), fmin(p3.y, p4.y)));
+    Point maxP = Point(fmax(fmax(p1.x, p2.x), fmax(p3.x, p4.x)), fmax(fmax(p1.y, p2.y), fmax(p3.y, p4.y)));
     
-    return shared_ptr<AABB>(new AABB(offset.x + minP.x, offset.y + minP.y, offset.x + maxP.x, offset.y + maxP.y));
+    return std::shared_ptr<AABB>(new AABB(offset.x + minP.x, offset.y + minP.y, offset.x + maxP.x, offset.y + maxP.y));
 }
 
-shared_ptr<POLYGON> Polygon::getPOLYGON() {
+std::shared_ptr<POLYGON> Polygon::getPOLYGON() {
     auto offset = Point(this->matrix[12], this->matrix[13]);
     auto v1 = Point(this->matrix[0], this->matrix[1]);
     auto v2 = Point(this->matrix[4], this->matrix[5]);
@@ -105,12 +105,18 @@ shared_ptr<POLYGON> Polygon::getPOLYGON() {
         auto p = this->vertexPoints[i];
         points[i] = v1 * p.x + v2 * p.y + offset;
     }
-    return shared_ptr<POLYGON>(new POLYGON(points, size));
+    return std::shared_ptr<POLYGON>(new POLYGON(points, size));
 }
 
-shared_ptr<Collider> Polygon::getCollider() {
-    auto collider = shared_ptr<Collider>(new Collider(ColliderShape::Polygon));
+std::shared_ptr<Collider> Polygon::getCollider() {
+    auto collider = std::shared_ptr<Collider>(new Collider(ColliderShape::Polygon));
     collider->aabb = this->getAABB();
     collider->polygon = this->getPOLYGON();
     return collider;
+}
+
+std::shared_ptr<Entity> Polygon::cloneEntity() {
+    auto polygon = Polygon::create(this->vertexPoints);
+    this->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
+    return polygon;
 }

@@ -26,24 +26,34 @@ float Renderer::identityMatrix[20] = {
     1, 1, 1, 1,
 };
 
-Renderer::Renderer() {
+std::unordered_map<unsigned long long, std::weak_ptr<Renderer>> Renderer::allRenderers;
+unsigned long long Renderer::rendererIdCounter = 1;
+
+void Renderer::releaseAllBuffer() {
+    for (auto &pair : allRenderers) {
+        if (auto renderer = pair.second.lock()) {
+            renderer->releaseBuffer();
+        }
+    }
+}
+
+std::shared_ptr<Renderer> Renderer::create() {
+    auto renderer = std::shared_ptr<Renderer>(new Renderer());
+    allRenderers[Renderer::rendererIdCounter++] = renderer;
+    return renderer;
 }
 
 Renderer::~Renderer() {
-    if (this->vertexBuffer[0] > 0) {
-        glDeleteBuffers(2, this->vertexBuffer);
-    }
-    for (auto pair : this->bufferIndexMap) {
-        glDeleteBuffers(1, &pair.second);
-    }
-    if (this->glShaderProgram > 0) {
-        glDeleteProgram(this->glShaderProgram);
-    }
+    this->releaseBuffer();
     
     mogfree(this->vertices);
     mogfree(this->indices);
     mogfree(this->vertexColors);
-    mogfree(this->vertexTexCoords);
+    for (int i = 0; i < 4; i++ ) {
+        if (this->vertexTexCoords[i]) mogfree(this->vertexTexCoords[i]);
+    }
+    
+    allRenderers.erase(this->rendererId);
 }
 
 void Renderer::setDrawType(DrawType drawType) {
@@ -58,7 +68,7 @@ void Renderer::setUniformPointSize(float size) {
     this->setUniformParameter("u_pointSize", size);
 }
 
-void Renderer::initScreenParameters(const shared_ptr<Engine> &engine) {
+void Renderer::initScreenParameters(const std::shared_ptr<Engine> &engine) {
     if (this->screenParameterInitialized) return;
     this->setUniformParameter("u_screenSize", engine->getScreenSize().width, engine->getScreenSize().height);
     this->setUniformParameter("u_displaySize", engine->getDisplaySize().width, engine->getDisplaySize().height);
@@ -221,10 +231,15 @@ void Renderer::bindVertex(bool dynamicDraw) {
     checkGLError("bindVertex");
 }
 
-void Renderer::bindVertexTexCoords(int textureId, bool dynamicDraw) {
-    unsigned int location = this->bindAttributeLocation("a_uv");
-    this->setVertexAttributeParameter(location, this->vertexTexCoords, this->verticesNum * 2, 2, dynamicDraw);
-    this->setUniformParameter("u_texture", 0);
+void Renderer::bindVertexTexCoords(int textureId, int textureIdx, bool dynamicDraw) {
+    char texStr[16];
+    sprintf(texStr, "u_texture%d", textureIdx);
+    char uvStr[8];
+    sprintf(uvStr, "a_uv%d", textureIdx);
+    
+    unsigned int location = this->bindAttributeLocation(uvStr);
+    this->setVertexAttributeParameter(location, this->vertexTexCoords[textureIdx], this->verticesNum * 2, 2, dynamicDraw);
+    this->setUniformParameter(texStr, textureIdx);
 
     this->textureId = textureId;
     
@@ -248,9 +263,9 @@ void Renderer::bindVertexSub(int index, int size) {
     checkGLError("bindVertexSub");
 }
 
-void Renderer::bindVertexTexCoordsSub(int index, int size) {
+void Renderer::bindVertexTexCoordsSub(int index, int size, int textureIdx) {
     unsigned int location = this->bindAttributeLocation("a_uv");
-    this->bindVertexAttributePointerSub(location, &this->vertexTexCoords[index], size * 2, index);
+    this->bindVertexAttributePointerSub(location, &this->vertexTexCoords[textureIdx][index], size * 2, index);
 
     checkGLError("bindTextureVertexSub");
 }
@@ -287,8 +302,8 @@ void Renderer::newVertexColorsArr() {
     
 }
 
-void Renderer::newVertexTexCoordsArr() {
-    this->vertexTexCoords = (float *)mogrealloc(this->vertexTexCoords, sizeof(float) * this->verticesNum * 2);
+void Renderer::newVertexTexCoordsArr(int textureIdx) {
+    this->vertexTexCoords[textureIdx] = (float *)mogrealloc(this->vertexTexCoords[textureIdx], sizeof(float) * this->verticesNum * 2);
 }
 
 void Renderer::drawFrame() {
@@ -384,6 +399,28 @@ std::shared_ptr<Shader> Renderer::getDefaultShader(ShaderType shaderType) {
     }
 }
 
+void Renderer::releaseBuffer() {
+    if (this->vertexBuffer[0] > 0) {
+        glDeleteBuffers(2, this->vertexBuffer);
+        this->vertexBuffer[0] = 0;
+        this->vertexBuffer[1] = 0;
+    }
+    for (auto pair : this->bufferIndexMap) {
+        glDeleteBuffers(1, &pair.second);
+    }
+    this->bufferIndexMap.clear();
+    if (this->glShaderProgram > 0) {
+        glDeleteProgram(this->glShaderProgram);
+        this->glShaderProgram = 0;
+        this->vertexShader = nullptr;
+        this->fragmentShader = nullptr;
+    }
+    for (auto &pair : this->uniformParamsMap) {
+        this->dirtyUniformParamsMap[pair.first] = true;
+    }
+}
+
+
 Renderer::UniformParameter::UniformParameter() {
 }
 
@@ -454,7 +491,7 @@ Renderer::UniformParameter::UniformParameter(const float *matrix, int size) {
             memcpy(this->matrix, matrix, sizeof(float) * 16);
             break;
         default:
-            throw invalid_argument("size must be between 2 and 4.");
+            throw std::invalid_argument("size must be between 2 and 4.");
     }
 }
 
@@ -556,4 +593,3 @@ void Renderer::VertexAttributeParameter::setVertexAttribute(unsigned int locatio
             break;
     }
 }
-

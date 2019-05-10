@@ -1,22 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
-    sourceSets {
-        main {
-            manifest.srcFile '../../sources_android/mog/os_java/AndroidManifest.xml'
-            assets.srcDirs = ['../../assets', '../../assets_android']
-            res.srcDirs = ['../../sources_android/mog/os_java/res']
-            java.srcDirs = ['../../sources_android/mog/os_java']
-        }
-    }
+    compileSdkVersion 28
     defaultConfig {
-        applicationId "org.mog2d.mog2d"
-        minSdkVersion 17
-        targetSdkVersion 27
+        applicationId "org.mog2d.android"
+        minSdkVersion 16
+        targetSdkVersion 28
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_STL=c++_shared'
@@ -25,11 +16,22 @@ android {
                 abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
             }
         }
+        lintOptions {
+            disable 'GoogleAppIndexingWarning'
+        }
     }
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    sourceSets {
+        main {
+            manifest.srcFile '../../sources_android/mog/os_java/AndroidManifest.xml'
+            assets.srcDirs = ['../../assets', '../../assets_android']
+            res.srcDirs = ['../../sources_android/mog/os_java/res']
+            java.srcDirs = ['../../sources_android/mog/os_java']
         }
     }
     externalNativeBuild {
@@ -41,8 +43,8 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.0.2'
 }
-
 
 
 def String[] getSourceFiles(File dir, String basePath) {
@@ -59,7 +61,7 @@ def String[] getSourceFiles(File dir, String basePath) {
     return fileList.toArray();
 }
 
-task refreshCmakeList << {
+task refreshCmakeList {
     String basePath = new File(project.projectDir.absolutePath + "/../../").getCanonicalPath()
     String[] sourcesFiles = getSourceFiles(new File(basePath + "/sources/"), basePath)
     String[] sourcesAndroidFiles = getSourceFiles(new File(basePath + "/sources_android/"), basePath)

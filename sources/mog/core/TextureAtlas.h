@@ -6,18 +6,16 @@
 #include <unordered_map>
 #include "mog/core/Texture2D.h"
 
-using namespace std;
-
 namespace mog {
     class TextureAtlasCell {
     public:
-        shared_ptr<Texture2D> texture;
+        std::shared_ptr<Texture2D> texture;
         int x = 0;
         int y = 0;
         int width = 0;
         int height = 0;
         
-        TextureAtlasCell(const shared_ptr<Texture2D> &texture);
+        TextureAtlasCell(const std::shared_ptr<Texture2D> &texture);
     };
     
     
@@ -25,9 +23,9 @@ namespace mog {
     public:
         int width = 0;
         int height = 0;
-        shared_ptr<Texture2D> texture;
+        std::shared_ptr<Texture2D> texture;
         
-        void addTexture(const shared_ptr<Texture2D> &tex2d);
+        void addTexture(const std::shared_ptr<Texture2D> &tex2d);
 //        shared_ptr<TextureAtlasCell> addTexture(const shared_ptr<Texture2D> &tex2d);
 //        void apply();
         
@@ -36,18 +34,17 @@ namespace mog {
         TextureAtlas() {};
 //        TextureAtlas(const vector<shared_ptr<Texture2D>> &textures);
 //        TextureAtlas(const vector<shared_ptr<TextureAtlasCell>> &cells, int width, int height);
-        shared_ptr<Texture2D> createTexture();
-        shared_ptr<TextureAtlasCell> getCell(const shared_ptr<Texture2D> &tex2d);
+        std::shared_ptr<Texture2D> createTexture();
+        std::shared_ptr<TextureAtlasCell> getCell(const std::shared_ptr<Texture2D> &tex2d);
         
         void bindTexture();
-        void bindTextureSub(const shared_ptr<TextureAtlasCell> &cell);
+        void bindTextureSub(const std::shared_ptr<TextureAtlasCell> &cell);
 //        void bindTextureSub(shared_ptr<Texture2D> tex2d);
 
         
     private:
-//        vector<shared_ptr<Texture2D>> textures;
-        vector<shared_ptr<TextureAtlasCell>> cells;
-        unordered_map<shared_ptr<Texture2D>, shared_ptr<TextureAtlasCell>> cellMap;
+        std::vector<std::shared_ptr<TextureAtlasCell>> cells;
+        std::unordered_map<std::shared_ptr<Texture2D>, std::shared_ptr<TextureAtlasCell>> cellMap;
         
         /*
         int _x = 0;
@@ -58,7 +55,7 @@ namespace mog {
          */
         
         void mapTextureCells();
-        void readTexturePixels(unsigned char *dst, const shared_ptr<Texture2D> &tex2d, int x, int y, int width, int height);
+        void readTexturePixels(unsigned char *dst, const std::shared_ptr<Texture2D> &tex2d, int x, int y, int width, int height);
     };
 }
 

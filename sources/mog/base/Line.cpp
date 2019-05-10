@@ -24,9 +24,6 @@ std::shared_ptr<Line> Line::create(const std::vector<Point> &points, float lineW
     return line;
 }
 
-Line::Line() {
-}
-
 void Line::init(const std::vector<Point> &points, float lineWidth, LineType lineType) {
     this->points = points;
     this->lineWidth = lineWidth;
@@ -176,4 +173,15 @@ std::vector<Point> Line::getPoints() {
 
 float Line::getLineWidth() {
     return this->lineWidth;
+}
+
+std::shared_ptr<Line> Line::clone() {
+    auto e = this->cloneEntity();
+    return std::static_pointer_cast<Line>(e);
+}
+
+std::shared_ptr<Entity> Line::cloneEntity() {
+    auto line = Line::create(this->points);
+    line->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
+    return line;
 }

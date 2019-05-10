@@ -33,12 +33,12 @@ double PreferenceNative::getDouble(const char *key, double defaultVal) {
     }
 }
 
-void PreferenceNative::setString(const char *key, string strVal) {
+void PreferenceNative::setString(const char *key, std::string strVal) {
     [[NSUserDefaults standardUserDefaults] setValue:[NSString stringWithUTF8String:strVal.c_str()]
                                              forKey:[NSString stringWithUTF8String:key]];
 }
 
-string PreferenceNative::getString(const char *key, string defaultVal) {
+std::string PreferenceNative::getString(const char *key, std::string defaultVal) {
     NSString *keyStr = [NSString stringWithUTF8String:key];
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     if ([ud objectForKey:keyStr]) {

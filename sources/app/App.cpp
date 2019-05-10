@@ -4,5 +4,5 @@
 using namespace mog;
 
 void App::onLoad() {
-    this->loadScene(make_shared<SampleScene>());
+    this->loadScene(std::make_shared<SampleScene>());
 }

@@ -38,6 +38,7 @@ namespace mog {
         };
         
         static std::shared_ptr<Shader> getShader(Type type, ShaderType shaderType);
+        static void clearShaderCache();
         
     private:
         static std::unordered_map<unsigned int, std::shared_ptr<Shader>> shaderCache;

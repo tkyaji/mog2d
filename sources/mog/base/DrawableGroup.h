@@ -10,7 +10,7 @@
 namespace mog {
     class Drawable;
     
-    class DrawableGroup : public enable_shared_from_this<DrawableGroup> {
+    class DrawableGroup : public std::enable_shared_from_this<DrawableGroup> {
         friend class Drawable;
         
     public:

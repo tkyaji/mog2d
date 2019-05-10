@@ -2,8 +2,8 @@
 #import "mog/core/Engine.h"
 #import "app/App.h"
 #import "mog/Constants.h"
-#import "mog/core/NativeClass.h"
 #import "mog/core/mogmalloc.h"
+#import "mog/os/IOSHelper.h"
 #ifdef SCRIPT_BINDNG_ENGINE_HEADER
 #import SCRIPT_BINDNG_ENGINE_HEADER
 #endif
@@ -13,9 +13,9 @@
     MogView *_mogView;
     UIView *_launchScreenView;
     CADisplayLink *_displayLink;
-    shared_ptr<mog::Engine> _engine;
+    std::shared_ptr<mog::Engine> _engine;
     float _fps;
-    map<unsigned int, mog::TouchInput> _touches;
+    std::map<unsigned int, mog::TouchInput> _touches;
 }
 
 - (instancetype)initWithMog:(MogViewController *)viewController view:(MogView *)view {
@@ -26,16 +26,16 @@
 #ifdef ENABLE_SCRIPT_BINDNG
     _engine = SCRIPT_BINDNG_ENGINE_CLASS::create();
 #else
-    _engine = mog::Engine::create(make_shared<mog::App>());
+    _engine = mog::Engine::create(std::make_shared<mog::App>());
 #endif
     _engine->setDisplaySize(mog::Size(view.glWidth, view.glHeight), mog::Size(view.frame.size.width, view.frame.size.height));
     _engine->resetScreenSize();
     _mogViewController = viewController;
     _mogView = view;
     
-    _engine->setNativeObject(MOG_VIEW_CONTROLLER, mog::NativeObject::create((__bridge void *)viewController));
-    _engine->setNativeObject(MOG_VIEW, mog::NativeObject::create((__bridge void *)view));
-    _engine->setNativeObject(MOG_ENGINE_CONTROLLER, mog::NativeObject::create((__bridge void *)self));
+    mog::IOSHelper::mogViewController = (__bridge void *)viewController;
+    mog::IOSHelper::mogView = (__bridge void *)view;
+    mog::IOSHelper::mogEngineController = (__bridge void *)self;
     
     _fps = DEFAULT_FPS;
     

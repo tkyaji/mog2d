@@ -4,7 +4,6 @@
 #include <vector>
 #include <unordered_map>
 #include "mog/base/Drawable.h"
-#include "mog/core/Texture2D.h"
 #include "mog/core/Collision.h"
 
 extern void *enabler;
@@ -18,8 +17,6 @@ namespace mog {
     class Entity : public Drawable {
         friend class Group;
     public:
-        std::shared_ptr<Texture2D> getTexture();
-        
         std::string getName();
         void setName(std::string name);
         std::string getTag();
@@ -48,13 +45,15 @@ namespace mog {
         void updateMatrix();
 
     protected:
-        Entity();
+        Entity() {}
         
         virtual void extractEvent(const std::shared_ptr<Engine> &engine, float delta);
         virtual void bindVertex() override;
         virtual void bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform);
         virtual void bindVertexColors(const std::shared_ptr<Renderer> &renderer, int *idx);
-        virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h);
+        virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h);
+        virtual void copyProperties(const std::shared_ptr<Entity> &entity);
+        virtual std::shared_ptr<Entity> cloneEntity() = 0;
         void initRendererVertices(int verticesNum, int indicesNum);
 
         virtual std::shared_ptr<OBB> getOBB();
@@ -63,7 +62,6 @@ namespace mog {
         std::weak_ptr<Group> group;
         std::string name;
         std::string tag;
-        std::shared_ptr<Texture2D> texture = nullptr;
         std::shared_ptr<Collider> collider = nullptr;
         unsigned int eventIdCounter = 0;
         bool touchEnable = true;

@@ -7,15 +7,15 @@ using namespace mog;
 
 Drawable::Drawable() {
     MogStats::instanceCount++;
-    this->renderer = make_shared<Renderer>();
-    this->transform = make_shared<Transform>();
+    this->renderer = Renderer::create();
+    this->transform = std::make_shared<Transform>();
 }
 
 Drawable::~Drawable() {
     MogStats::instanceCount--;
 }
 
-void Drawable::updateFrame(const shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
+void Drawable::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
     this->onUpdate(delta);
     this->updateTween(delta);
     this->renderer->initScreenParameters(engine);
@@ -286,7 +286,7 @@ bool Drawable::isActive() {
 
 void Drawable::runTween(const std::shared_ptr<Tween> &tween) {
     this->tweens[tween->getTweenId()] = tween;
-    tween->addOnFinishEventForParent([this](const shared_ptr<Tween> &t) {
+    tween->addOnFinishEventForParent([this](const std::shared_ptr<Tween> &t) {
         this->tweenIdsToRemove.emplace_back(t->getTweenId());
     });
     tween->init();
@@ -323,3 +323,7 @@ float *Drawable::getMatrix() {
     return this->matrix;
 }
 
+std::shared_ptr<Texture2D> Drawable::getTexture(int textureIdx) {
+    if (textureIdx >= this->textures.size()) return nullptr;
+    return this->textures[textureIdx];
+}

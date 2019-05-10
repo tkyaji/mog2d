@@ -7,10 +7,10 @@
 
 using namespace mog;
 
-unordered_map<string, string> Texture2DNative::registeredFontNames;
+std::unordered_map<std::string, std::string> Texture2DNative::registeredFontNames;
 
-string Texture2DNative::registerCustomFont(const char *fontFilename) {
-    string fontFilenameStr = fontFilename;
+std::string Texture2DNative::registerCustomFont(const char *fontFilename) {
+    std::string fontFilenameStr = fontFilename;
     if (registeredFontNames.count(fontFilenameStr) > 0) {
         return registeredFontNames[fontFilenameStr];
     }
@@ -38,18 +38,18 @@ string Texture2DNative::registerCustomFont(const char *fontFilename) {
     CFRelease(font);
     CFRelease(provider);
     
-    string fontNameStr = fontName.UTF8String;
+    std::string fontNameStr = fontName.UTF8String;
     registeredFontNames[fontFilenameStr] = fontNameStr;
     
     return fontNameStr;
 }
 
-void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFilename, float height) {
+void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
     UIFont* font = nil;
     
     NSString *textStr = [NSString stringWithUTF8String:text];
     if (fontFilename != nullptr && strlen(fontFilename) > 0) {
-        string fontFace = registerCustomFont(fontFilename);
+        std::string fontFace = registerCustomFont(fontFilename);
         if (fontFace.length() == 0) {
             fontFace = fontFilename;
         }
@@ -81,10 +81,17 @@ void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float 
     
     UIGraphicsPushContext(context);
     
-    CGContextSetTextDrawingMode(context, kCGTextFill);
-    
-    [textStr drawAtPoint:CGPointZero withAttributes:@{NSFontAttributeName:font,
-                                                      NSForegroundColorAttributeName:[UIColor whiteColor]}];
+    NSMutableDictionary<NSAttributedStringKey, id> *attrs = [NSMutableDictionary<NSAttributedStringKey, id> new];
+    [attrs setObject:font forKey:NSFontAttributeName];
+    if (textMode == TextDrawingMode::Fill) {
+        CGContextSetTextDrawingMode(context, kCGTextFill);
+        [attrs setObject:[UIColor whiteColor] forKey:NSForegroundColorAttributeName];
+    } else {
+        CGContextSetTextDrawingMode(context, kCGTextStroke);
+        [attrs setObject:[UIColor whiteColor] forKey:NSStrokeColorAttributeName];
+        [attrs setObject:@(strokeWidth) forKey:NSStrokeWidthAttributeName];
+    }
+    [textStr drawAtPoint:CGPointZero withAttributes:attrs];
     
     UIGraphicsPopContext();
     
@@ -107,7 +114,7 @@ void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float 
     tex2d->isFlip = true;
 }
 
-string Texture2DNative::getLocalizedTextNative(const char *textKey, va_list args) {
+std::string Texture2DNative::getLocalizedTextNative(const char *textKey, va_list args) {
     NSString *localizedStr = NSLocalizedString([NSString stringWithUTF8String:textKey], nil);
     if (!localizedStr) {
         return "";
@@ -117,7 +124,7 @@ string Texture2DNative::getLocalizedTextNative(const char *textKey, va_list args
     char *str = (char *)mogmalloc(sizeof(char) * strlen(utf8Str) + 4096);
     
     vsprintf(str, utf8Str, args);
-    string ret = string(str);
+    std::string ret = std::string(str);
     
     mogfree(str);
     

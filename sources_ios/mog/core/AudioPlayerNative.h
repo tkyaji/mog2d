@@ -5,25 +5,23 @@
 #include <AudioToolbox/AudioToolbox.h>
 #include "AudioPlayer.h"
 
-using namespace std;
-
 namespace mog {
     
     class AudioPlayerNative;
     
     class AudioData {
     public:
-        AudioData(ALuint buffer, string filename);
+        AudioData(ALuint buffer, std::string filename);
         ~AudioData();
         
-        static shared_ptr<AudioData> loadAudioData(const char *filename, bool cache = true);
+        static std::shared_ptr<AudioData> loadAudioData(const char *filename, bool cache = true);
         static void clearCache();
         
         ALuint buffer;
-        string filename;
+        std::string filename;
         
     private:
-        static unordered_map<string, shared_ptr<AudioData>> cachedAudioData;
+        static std::unordered_map<std::string, std::shared_ptr<AudioData>> cachedAudioData;
         
         static bool loadFromAssetNative(ALuint buffer, const char *filename);
         static void *getOpenALAudioData(CFURLRef fileURL, ALsizei* dataSize,
@@ -55,7 +53,7 @@ namespace mog {
         bool enabled;
         bool loaded;
         ALuint  source;
-        shared_ptr<AudioData> audioData;
+        std::shared_ptr<AudioData> audioData;
     };
     
     

@@ -5,17 +5,14 @@
 
 using namespace mog;
 
-shared_ptr<RoundedRectangle> RoundedRectangle::create(const Size &size, float cornerRadius, unsigned char cornerFlag) {
-    auto rectangle = shared_ptr<RoundedRectangle>(new RoundedRectangle());
+std::shared_ptr<RoundedRectangle> RoundedRectangle::create(const Size &size, float cornerRadius, unsigned char cornerFlag) {
+    auto rectangle = std::shared_ptr<RoundedRectangle>(new RoundedRectangle());
     rectangle->init(size, cornerRadius, cornerFlag);
     return rectangle;
 }
 
-shared_ptr<RoundedRectangle> RoundedRectangle::create(float width, float height, float cornerRadius, unsigned char cornerFlag) {
+std::shared_ptr<RoundedRectangle> RoundedRectangle::create(float width, float height, float cornerRadius, unsigned char cornerFlag) {
     return RoundedRectangle::create(Size(width, height), cornerRadius, cornerFlag);
-}
-
-RoundedRectangle::RoundedRectangle() {
 }
 
 float RoundedRectangle::getCornerRadius() {
@@ -56,7 +53,8 @@ void RoundedRectangle::init(const Size &size, float cornerRadius, unsigned char 
         }
     }
     
-    this->texture = Texture2D::createWithRGBA(data, texWidth, texHeight, Density::getCurrent());
+    this->textures[0] = Texture2D::createWithRGBA(data, texWidth, texHeight, Density::getCurrent());
+    this->numOfTexture = 1;
     this->rect = Rect(Point::zero, this->transform->size);
     this->initRendererVertices(25, 40);
 }
@@ -112,7 +110,7 @@ void RoundedRectangle::bindVertices(const std::shared_ptr<Renderer> &renderer, i
     }
 }
 
-void RoundedRectangle::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
+void RoundedRectangle::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) {
     float density = Device::getDeviceDensity();
     float p1 = 1.0f / (this->cornerRadius * density + 2.0f);
     float p2 = 2.0f / (this->cornerRadius * density + 2.0f);
@@ -139,27 +137,27 @@ void RoundedRectangle::bindVertexTexCoords(const std::shared_ptr<Renderer> &rend
         x3 = x1b;
         x4 = x0b;
     }
-    renderer->vertexTexCoords[(*idx)++] = x0;   renderer->vertexTexCoords[(*idx)++] = y0;
-    renderer->vertexTexCoords[(*idx)++] = x1;   renderer->vertexTexCoords[(*idx)++] = y0;
-    renderer->vertexTexCoords[(*idx)++] = x2;   renderer->vertexTexCoords[(*idx)++] = y0;
-    renderer->vertexTexCoords[(*idx)++] = x3;   renderer->vertexTexCoords[(*idx)++] = y0;
-    renderer->vertexTexCoords[(*idx)++] = x4;   renderer->vertexTexCoords[(*idx)++] = y0;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x0;   renderer->vertexTexCoords[texIdx][(*idx)++] = y0;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x1;   renderer->vertexTexCoords[texIdx][(*idx)++] = y0;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x2;   renderer->vertexTexCoords[texIdx][(*idx)++] = y0;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x3;   renderer->vertexTexCoords[texIdx][(*idx)++] = y0;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x4;   renderer->vertexTexCoords[texIdx][(*idx)++] = y0;
     
-    renderer->vertexTexCoords[(*idx)++] = x0;   renderer->vertexTexCoords[(*idx)++] = y1;
-    renderer->vertexTexCoords[(*idx)++] = x1;   renderer->vertexTexCoords[(*idx)++] = y1;
-    renderer->vertexTexCoords[(*idx)++] = x2;   renderer->vertexTexCoords[(*idx)++] = y1;
-    renderer->vertexTexCoords[(*idx)++] = x3;   renderer->vertexTexCoords[(*idx)++] = y1;
-    renderer->vertexTexCoords[(*idx)++] = x4;   renderer->vertexTexCoords[(*idx)++] = y1;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x0;   renderer->vertexTexCoords[texIdx][(*idx)++] = y1;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x1;   renderer->vertexTexCoords[texIdx][(*idx)++] = y1;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x2;   renderer->vertexTexCoords[texIdx][(*idx)++] = y1;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x3;   renderer->vertexTexCoords[texIdx][(*idx)++] = y1;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x4;   renderer->vertexTexCoords[texIdx][(*idx)++] = y1;
     
     x0 = x0a;
     x1 = x1a;
     x3 = x1a;
     x4 = x0a;
-    renderer->vertexTexCoords[(*idx)++] = x0;   renderer->vertexTexCoords[(*idx)++] = y2;
-    renderer->vertexTexCoords[(*idx)++] = x1;   renderer->vertexTexCoords[(*idx)++] = y2;
-    renderer->vertexTexCoords[(*idx)++] = x2;   renderer->vertexTexCoords[(*idx)++] = y2;
-    renderer->vertexTexCoords[(*idx)++] = x3;   renderer->vertexTexCoords[(*idx)++] = y2;
-    renderer->vertexTexCoords[(*idx)++] = x4;   renderer->vertexTexCoords[(*idx)++] = y2;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x0;   renderer->vertexTexCoords[texIdx][(*idx)++] = y2;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x1;   renderer->vertexTexCoords[texIdx][(*idx)++] = y2;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x2;   renderer->vertexTexCoords[texIdx][(*idx)++] = y2;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x3;   renderer->vertexTexCoords[texIdx][(*idx)++] = y2;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x4;   renderer->vertexTexCoords[texIdx][(*idx)++] = y2;
     
     if ((this->cornerFlag & CORNER_BOTTOM_LEFT) == 0) {
         x0 = x0b;
@@ -169,15 +167,26 @@ void RoundedRectangle::bindVertexTexCoords(const std::shared_ptr<Renderer> &rend
         x3 = x1b;
         x4 = x0b;
     }
-    renderer->vertexTexCoords[(*idx)++] = x0;   renderer->vertexTexCoords[(*idx)++] = y1;
-    renderer->vertexTexCoords[(*idx)++] = x1;   renderer->vertexTexCoords[(*idx)++] = y1;
-    renderer->vertexTexCoords[(*idx)++] = x2;   renderer->vertexTexCoords[(*idx)++] = y1;
-    renderer->vertexTexCoords[(*idx)++] = x3;   renderer->vertexTexCoords[(*idx)++] = y1;
-    renderer->vertexTexCoords[(*idx)++] = x4;   renderer->vertexTexCoords[(*idx)++] = y1;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x0;   renderer->vertexTexCoords[texIdx][(*idx)++] = y1;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x1;   renderer->vertexTexCoords[texIdx][(*idx)++] = y1;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x2;   renderer->vertexTexCoords[texIdx][(*idx)++] = y1;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x3;   renderer->vertexTexCoords[texIdx][(*idx)++] = y1;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x4;   renderer->vertexTexCoords[texIdx][(*idx)++] = y1;
     
-    renderer->vertexTexCoords[(*idx)++] = x0;   renderer->vertexTexCoords[(*idx)++] = y0;
-    renderer->vertexTexCoords[(*idx)++] = x1;   renderer->vertexTexCoords[(*idx)++] = y0;
-    renderer->vertexTexCoords[(*idx)++] = x2;   renderer->vertexTexCoords[(*idx)++] = y0;
-    renderer->vertexTexCoords[(*idx)++] = x3;   renderer->vertexTexCoords[(*idx)++] = y0;
-    renderer->vertexTexCoords[(*idx)++] = x4;   renderer->vertexTexCoords[(*idx)++] = y0;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x0;   renderer->vertexTexCoords[texIdx][(*idx)++] = y0;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x1;   renderer->vertexTexCoords[texIdx][(*idx)++] = y0;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x2;   renderer->vertexTexCoords[texIdx][(*idx)++] = y0;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x3;   renderer->vertexTexCoords[texIdx][(*idx)++] = y0;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x4;   renderer->vertexTexCoords[texIdx][(*idx)++] = y0;
+}
+
+std::shared_ptr<RoundedRectangle> RoundedRectangle::clone() {
+    auto e = this->cloneEntity();
+    return std::static_pointer_cast<RoundedRectangle>(e);
+}
+
+std::shared_ptr<Entity> RoundedRectangle::cloneEntity() {
+    auto rectangle = RoundedRectangle::create(this->getSize(), this->getCornerRadius());
+    rectangle->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
+    return rectangle;
 }

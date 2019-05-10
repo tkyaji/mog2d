@@ -9,44 +9,42 @@
 #include "mog/core/plain_objects.h"
 #include "mog/core/Density.h"
 
-using namespace std;
-
 namespace mog {
     class Sprite : public Entity {
     public:
-        static shared_ptr<Sprite> create(string filename);
-        static shared_ptr<Sprite> create(string filename, const Rect &rect);
-        static shared_ptr<Sprite> createWithFilePath(string filepath, Density density = Density::x1_0);
-        static shared_ptr<Sprite> createWithFilePath(string filepath, const Rect &rect, Density density = Density::x1_0);
-        static shared_ptr<Sprite> createWithImage(const std::shared_ptr<ByteArray> &bytes);
-        static shared_ptr<Sprite> createWithRGBA(unsigned char *data, int width, int height);
-        static shared_ptr<Sprite> createWithTexture(const shared_ptr<Texture2D> &texture);
-        
-        static void registerCache(string filename);
-        static void removeCache(string filename);
+        static std::shared_ptr<Sprite> create(std::string filename, const Rect &rect = Rect::zero);
+        static std::shared_ptr<Sprite> createWithFilePath(std::string filepath, Density density = Density::x1_0);
+        static std::shared_ptr<Sprite> createWithFilePath(std::string filepath, const Rect &rect, Density density = Density::x1_0);
+        static std::shared_ptr<Sprite> createWithImage(const std::shared_ptr<ByteArray> &bytes);
+        static std::shared_ptr<Sprite> createWithRGBA(unsigned char *data, int width, int height);
+        static std::shared_ptr<Sprite> createWithTexture(const std::shared_ptr<Texture2D> &texture, const Rect &rect = Rect::zero);
+
+        static void registerCache(std::string filename);
+        static void removeCache(std::string filename);
         static void clearCache();
         
-        string getFilename();
+        std::string getFilename();
         Rect getRect();
-        shared_ptr<Sprite> clone();
+        std::shared_ptr<Sprite> clone();
 
         ~Sprite();
         
     protected:
-        Sprite();
+        Sprite() {}
         
-        static unordered_map<string, weak_ptr<Texture2D>> cachedTexture2d;
-        static unordered_map<string, weak_ptr<Texture2D>> globalCachedTexture2d;
-        string filename;
+        static std::unordered_map<std::string, std::weak_ptr<Texture2D>> cachedTexture2d;
+        static std::unordered_map<std::string, std::weak_ptr<Texture2D>> globalCachedTexture2d;
+        std::string filename;
         Rect rect = Rect::zero;
         
-        void init(string filename, const Rect &rect);
-        void initWithFilePath(string filepath, const Rect &rect, Density density);
+        void init(std::string filename, const Rect &rect);
+        void initWithFilePath(std::string filepath, const Rect &rect, Density density);
         void initWithImage(const std::shared_ptr<ByteArray> &bytes);
         void initWithRGBA(unsigned char *data, int width, int height);
-        void initWithTexture(const shared_ptr<Texture2D> &texture);
+        void initWithTexture(const std::shared_ptr<Texture2D> &texture, const Rect &rect);
 
-        virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) override;
+        virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) override;
+        virtual std::shared_ptr<Entity> cloneEntity() override;
     };
 }
 

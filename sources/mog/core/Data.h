@@ -35,6 +35,14 @@ namespace mog {
         virtual void read(std::istream &in) = 0;
     };
     
+
+    class Null : public Data {
+    public:
+        static std::shared_ptr<Null> create();
+        virtual void write(std::ostream &out) override;
+        virtual void read(std::istream &in) override;
+    };
+    
     
     class Int : public Data {
         friend class DataStore;

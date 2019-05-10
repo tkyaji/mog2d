@@ -2,7 +2,6 @@
 #include "mog/core/FileUtils.h"
 #include "mog/core/DataStore.h"
 
-using namespace std;
 using namespace mog;
 
 const std::string MogUILoader::PropertyNames::EntityType = "entity_type";

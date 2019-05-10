@@ -6,8 +6,8 @@
 
 using namespace mog;
 
-shared_ptr<Circle> Circle::create(float radius) {
-    auto circle = shared_ptr<Circle>(new Circle());
+std::shared_ptr<Circle> Circle::create(float radius) {
+    auto circle = std::shared_ptr<Circle>(new Circle());
     circle->init(radius);
     return circle;
 }
@@ -32,7 +32,8 @@ void Circle::init(float radius) {
             data[(y * texWidth + x) * 4 + 3] = (unsigned char)(a * 255.0f + 0.5f);
         }
     }
-    this->texture = Texture2D::createWithRGBA(data, texWidth, texHeight, Density::getCurrent());
+    this->textures[0] = Texture2D::createWithRGBA(data, texWidth, texHeight, Density::getCurrent());
+    this->numOfTexture = 1;
     this->rect = Rect(Point::zero, this->transform->size);
     this->initRendererVertices(9, 12);
 }
@@ -79,18 +80,18 @@ void Circle::bindVertices(const std::shared_ptr<Renderer> &renderer, int *vertic
     }
 }
 
-void Circle::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
-    renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y + h;
-    renderer->vertexTexCoords[(*idx)++] = x;        renderer->vertexTexCoords[(*idx)++] = y + h;
-    renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y + h;
+void Circle::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) {
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;    renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x;        renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;    renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
 
-    renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y;
-    renderer->vertexTexCoords[(*idx)++] = x;        renderer->vertexTexCoords[(*idx)++] = y;
-    renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;    renderer->vertexTexCoords[texIdx][(*idx)++] = y;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x;        renderer->vertexTexCoords[texIdx][(*idx)++] = y;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;    renderer->vertexTexCoords[texIdx][(*idx)++] = y;
 
-    renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y + h;
-    renderer->vertexTexCoords[(*idx)++] = x;        renderer->vertexTexCoords[(*idx)++] = y + h;
-    renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y + h;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;    renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x;        renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
+    renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;    renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
 }
 
 float Circle::getRadius() {
@@ -102,7 +103,7 @@ void Circle::setRadius(float radius) {
     this->reRenderFlag |= RERENDER_ALL;
 }
 
-shared_ptr<CIRCLE> Circle::getCIRCLE() {
+std::shared_ptr<CIRCLE> Circle::getCIRCLE() {
     float scaleX = sqrt(this->matrix[0] * this->matrix[0] +
                         this->matrix[1] * this->matrix[1]);
     float scaleY = sqrt(this->matrix[4] * this->matrix[4] +
@@ -111,12 +112,23 @@ shared_ptr<CIRCLE> Circle::getCIRCLE() {
     auto size = this->transform->size * Point(scaleX, scaleY);
     float centerX = position.x + size.width * 0.5f;
     float centerY = position.y + size.height * 0.5f;
-    return shared_ptr<CIRCLE>(new CIRCLE(centerX, centerY, this->getRadius() * fmin(this->getScaleX(), this->getScaleY())));
+    return std::shared_ptr<CIRCLE>(new CIRCLE(centerX, centerY, this->getRadius() * fmin(this->getScaleX(), this->getScaleY())));
 }
 
-shared_ptr<Collider> Circle::getCollider() {
-    auto collider = shared_ptr<Collider>(new Collider(ColliderShape::Circle));
+std::shared_ptr<Collider> Circle::getCollider() {
+    auto collider = std::shared_ptr<Collider>(new Collider(ColliderShape::Circle));
     collider->aabb = this->getAABB();
     collider->circle = this->getCIRCLE();
     return collider;
+}
+
+std::shared_ptr<Circle> Circle::clone() {
+    auto e = this->cloneEntity();
+    return std::static_pointer_cast<Circle>(e);
+}
+
+std::shared_ptr<Entity> Circle::cloneEntity() {
+    auto circle = Circle::create(this->radius);
+    circle->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
+    return circle;
 }

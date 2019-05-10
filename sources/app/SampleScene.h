@@ -1,11 +1,11 @@
-#ifndef SampleScene_h
-#define SampleScene_h
+#ifndef app_SampleScene_h
+#define app_SampleScene_h
 
-#include "mog.h"
+#include "mog/mog.h"
 
 class SampleScene : public mog::Scene {
 public:
     virtual void onLoad() override;
 };
 
-#endif /* SampleScene_h */
+#endif /* app_SampleScene_h */

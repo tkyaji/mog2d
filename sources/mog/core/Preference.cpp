@@ -19,11 +19,11 @@ double Preference::getDouble(const char *key, double defaultVal) {
     return PreferenceNative::getDouble(key, defaultVal);
 }
 
-void Preference::setString(const char *key, string strVal) {
+void Preference::setString(const char *key, std::string strVal) {
     PreferenceNative::setString(key, strVal);
 }
 
-string Preference::getString(const char *key, string defaultVal) {
+std::string Preference::getString(const char *key, std::string defaultVal) {
     return PreferenceNative::getString(key, defaultVal);
 }
 

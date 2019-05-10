@@ -4,8 +4,8 @@
 using namespace mog;
 
 Scene::Scene() {
-    this->pubsub = make_shared<PubSub>();
-    this->drawableGroup = make_shared<DrawableGroup>();
+    this->pubsub = std::make_shared<PubSub>();
+    this->drawableGroup = std::make_shared<DrawableGroup>();
 }
 
 void Scene::add(const std::shared_ptr<Drawable> &drawable) {
@@ -20,7 +20,7 @@ void Scene::removeAll() {
     this->drawableGroup->removeAllChildren();
 }
 
-void Scene::updateFrame(const shared_ptr<Engine> &engine, float delta) {
+void Scene::updateFrame(const std::shared_ptr<Engine> &engine, float delta) {
     this->onUpdate(delta);
     this->drawableGroup->sortChildDrawablesToDraw();
     for (auto drawable : this->drawableGroup->sortedChildDrawables) {
@@ -53,3 +53,4 @@ void Scene::setApp(const std::shared_ptr<AppBase> &app) {
 std::shared_ptr<PubSub> Scene::getPubSub() {
     return this->pubsub;
 }
+

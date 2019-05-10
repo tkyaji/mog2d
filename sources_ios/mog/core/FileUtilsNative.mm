@@ -5,7 +5,7 @@
 
 using namespace mog;
 
-bool FileUtilsNative::existAsset(string filename) {
+bool FileUtilsNative::existAsset(std::string filename) {
     NSString *filenameStr = [NSString stringWithFormat:@"assets_ios/%s", filename.c_str()];
     NSString *path = [[NSBundle mainBundle] pathForResource:filenameStr ofType:nil];
     if (path != nil) return true;
@@ -15,7 +15,7 @@ bool FileUtilsNative::existAsset(string filename) {
     return (path != nil);
 }
 
-string FileUtilsNative::readTextAsset(string filename) {
+std::string FileUtilsNative::readTextAsset(std::string filename) {
     NSString *filenameStr = [NSString stringWithFormat:@"assets_ios/%s", filename.c_str()];
     NSString *path = [[NSBundle mainBundle] pathForResource:filenameStr ofType:nil];
     if (path == nil) {
@@ -34,10 +34,10 @@ string FileUtilsNative::readTextAsset(string filename) {
         return "";
     }
     
-    return string([content UTF8String]);
+    return std::string([content UTF8String]);
 }
 
-bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, unsigned int *len) {
+bool FileUtilsNative::readBytesAsset(std::string filename, unsigned char **data, unsigned int *len) {
     NSString *filenameStr = [NSString stringWithFormat:@"assets_ios/%s", filename.c_str()];
     NSString *path = [[NSBundle mainBundle] pathForResource:filenameStr ofType:nil];
     if (path == nil) {
@@ -59,12 +59,12 @@ bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, unsi
     return true;
 }
 
-string FileUtilsNative::getDocumentsDirectory() {
+std::string FileUtilsNative::getDocumentsDirectory() {
     NSString *path = [NSHomeDirectory() stringByAppendingString:@"/Documents"];
     return [path UTF8String];
 }
 
-string FileUtilsNative::getCachesDirectory() {
+std::string FileUtilsNative::getCachesDirectory() {
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     return [[paths objectAtIndex:0] UTF8String];
 }

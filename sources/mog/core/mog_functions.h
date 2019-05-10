@@ -17,5 +17,6 @@ long long getTimestamp();
 double getTimestampSec();
 float smoothstep(float edge0, float edge1, float x);
 bool approximately(float a, float b);
+int getRandomRange(int min, int max);
 
 #endif /* mog_functions_h */

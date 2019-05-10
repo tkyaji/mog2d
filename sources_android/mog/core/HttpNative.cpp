@@ -1,12 +1,12 @@
 #include "mog/core/HttpNative.h"
 #include "mog/core/NativeClass.h"
+#include "mog/core/Engine.h"
 #include "mog/os/AndroidHelper.h"
 
 using namespace mog;
 
 void HttpNative::request(const Http::Request &req, std::function<void(const Http::Response &res)> callback) {
     auto engine = Engine::getInstance();
-    engine->getNativeObject(MOG_ACTIVITY);
     auto paramDict = Dictionary::create();
     for (auto &pair : req.params) {
         paramDict->put(pair.first, String::create(pair.second));
@@ -19,7 +19,7 @@ void HttpNative::request(const Http::Request &req, std::function<void(const Http
         callback(response);
     };
     NativeClass::create("org.mog2d.Http")->execute("request",
-                                                   AndroidHelper::getActivity(),
+                                                   AndroidHelper::mogActivity,
                                                    String::create(req.url),
                                                    Int::create((int)req.method),
                                                    Int::create(req.timeout),

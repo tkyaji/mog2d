@@ -2,8 +2,10 @@
 #define Drawable_h
 
 #include <memory>
+#include <array>
 #include "mog/core/Engine.h"
 #include "mog/core/plain_objects.h"
+#include "mog/core/Texture2D.h"
 
 namespace mog {
     class DrawableGroup;
@@ -74,20 +76,23 @@ namespace mog {
         }
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         std::shared_ptr<T> getParam() {
-            return static_pointer_cast<T>(this->param);
+            return std::static_pointer_cast<T>(this->param);
         }
 
         virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag = 0);
         virtual void drawFrame(float delta);
         virtual void updateTween(float delta);
+        std::shared_ptr<Texture2D> getTexture(int textureIdx = 0);
         
     protected:
         Drawable();
         virtual void bindVertex();
         virtual void onUpdate(float delta) {};
 
-        std::shared_ptr<Renderer> renderer;
-        std::shared_ptr<Transform> transform;
+        std::shared_ptr<Renderer> renderer = nullptr;
+        std::shared_ptr<Transform> transform = nullptr;
+        std::array<std::shared_ptr<Texture2D>, 4> textures;
+        int numOfTexture = 0;
         unsigned char reRenderFlag = RERENDER_ALL;
         
         std::weak_ptr<DrawableGroup> parentDrawableGroup;

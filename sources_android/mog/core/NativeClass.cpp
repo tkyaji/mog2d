@@ -3,6 +3,7 @@
 #include <string.h>
 #include "mog/core/NativeClass.h"
 #include "mog/core/Engine.h"
+#include "mog/os/JNILocalFrame.h"
 #include "mog/os/AndroidHelper.h"
 
 using namespace mog;
@@ -42,9 +43,9 @@ protected:
     bool isStatic = false;
     JNIEnv *env = nullptr;
     jobject jobj = nullptr;
-    string methodName = "";
+    std::string methodName = "";
     jvalue *values = nullptr;
-    string signature = "";
+    std::string signature = "";
     bool valid = false;
     DataType retType;
     MethodType methodType;
@@ -67,7 +68,7 @@ protected:
             jclass jparamCls = (jclass)this->env->GetObjectArrayElement(jclasses, j);
             jstring jparamClsName = (jstring)this->env->CallObjectMethod(jparamCls, clsGetNameId);
             const char *jparamClsNameCStr = this->env->GetStringUTFChars(jparamClsName, NULL);
-            string jParamClsNameStr = string(jparamClsNameCStr);
+            std::string jParamClsNameStr = std::string(jparamClsNameCStr);
             this->env->ReleaseStringUTFChars(jparamClsName, jparamClsNameCStr);
 
             if (!this->buildArg(arg, jparamCls, jParamClsNameStr, j)) {
@@ -80,7 +81,7 @@ protected:
     }
 
 
-    bool buildArg(const std::shared_ptr<Data> &arg, jclass jcls, string jClsName, int idx) {
+    bool buildArg(const std::shared_ptr<Data> &arg, jclass jcls, std::string jClsName, int idx) {
         if (arg->type == DataType::Int && jClsName == "int") {
             this->values[idx].i = (jint)std::static_pointer_cast<mog::Int>(arg)->getValue();
             this->signature += "I";
@@ -107,7 +108,7 @@ protected:
             this->signature += "C";
         } else if (arg->type == DataType::NativeObject && this->env->IsInstanceOf((jobject)std::static_pointer_cast<NativeObject>(arg)->getValue(), jcls)) {
             this->values[idx].l = (jobject)std::static_pointer_cast<NativeObject>(arg)->getValue();
-            replace(jClsName.begin(), jClsName.end(), '.', '/');
+            std::replace(jClsName.begin(), jClsName.end(), '.', '/');
             this->signature += "L" + jClsName + ";";
         } else {
             return false;
@@ -123,7 +124,7 @@ protected:
         jclass retCls = (jclass)this->env->CallObjectMethod(jmethod, getReturnTypeId);
         jstring retJcName = (jstring)this->env->CallObjectMethod(retCls, clsGetNameId);
         const char *retJcNameCStr = this->env->GetStringUTFChars(retJcName, NULL);
-        string retJcNameStr = string(retJcNameCStr);
+        std::string retJcNameStr = std::string(retJcNameCStr);
         this->env->ReleaseStringUTFChars(retJcName, retJcNameCStr);
 
         if (retJcNameStr == "int") {
@@ -155,7 +156,7 @@ protected:
             this->methodType = MethodType::Void;
         } else {
             replace(retJcNameStr.begin(), retJcNameStr.end(), '.', '/');
-            string typeStr = "L" + retJcNameStr + ";";
+            std::string typeStr = "L" + retJcNameStr + ";";
             this->signature += typeStr.c_str();
             this->methodType = MethodType::Object;
         }
@@ -168,7 +169,7 @@ protected:
 
 class JavaMethod : public JavaMethodInterface {
 public:
-    JavaMethod(jobject jobj, string methodName, DataType retType) {
+    JavaMethod(jobject jobj, std::string methodName, DataType retType) {
         this->env = AndroidHelper::getEnv();
         this->jobj = jobj;
         this->methodName = methodName;
@@ -176,7 +177,7 @@ public:
         this->build(methodName, List::create(), retType);
     }
 
-    JavaMethod(jobject jobj, string methodName, const std::shared_ptr<List> &args, DataType retType) {
+    JavaMethod(jobject jobj, std::string methodName, const std::shared_ptr<List> &args, DataType retType) {
         this->env = AndroidHelper::getEnv();
         this->jobj = jobj;
         this->methodName = methodName;
@@ -184,7 +185,7 @@ public:
         this->build(methodName, args, retType);
     }
 
-    JavaMethod(jclass jcls, string methodName, DataType retType) {
+    JavaMethod(jclass jcls, std::string methodName, DataType retType) {
         this->env = AndroidHelper::getEnv();
         this->jobj = jcls;
         this->isStatic = true;
@@ -193,7 +194,7 @@ public:
         this->build(methodName, List::create(), retType);
     }
 
-    JavaMethod(jclass jcls, string methodName, const std::shared_ptr<List> &args, DataType retType) {
+    JavaMethod(jclass jcls, std::string methodName, const std::shared_ptr<List> &args, DataType retType) {
         this->env = AndroidHelper::getEnv();
         this->jobj = jcls;
         this->isStatic = true;
@@ -213,8 +214,8 @@ public:
     }
 
 protected:
-    void build(string methodName, const std::shared_ptr<List> &args, DataType retType) {
-        this->env->PushLocalFrame(32);
+    void build(std::string methodName, const std::shared_ptr<List> &args, DataType retType) {
+        auto lf0 = JNILocalFrame::create(this->env, 32);
 
         jclass jcls;
         if (this->isStatic) {
@@ -233,34 +234,28 @@ protected:
         this->values = new jvalue[args->size()];
         int methodsLength = this->env->GetArrayLength(methods);
         for (int i = 0; i < methodsLength; i++) {
-            this->env->PushLocalFrame(16);
+            auto lf1 = JNILocalFrame::create(this->env, 16);
 
             jobject jmethod = this->env->GetObjectArrayElement(methods, i);
 
             jstring jmethodName = (jstring)this->env->CallObjectMethod(jmethod, getNameId);
             const char *methodNameCStr = this->env->GetStringUTFChars(jmethodName, NULL);
-            string methodNameStr = string(methodNameCStr);
+            std::string methodNameStr = std::string(methodNameCStr);
             this->env->ReleaseStringUTFChars(jmethodName, methodNameCStr);
             if (methodName != methodNameStr) {
-                this->env->PopLocalFrame(NULL);
                 continue;
             }
 
             if (!this->buildParams(jmethod, args)) {
-                this->env->PopLocalFrame(NULL);
                 continue;
             }
             if (!this->buildReturnType(jmethod, jmethodCls)) {
-                this->env->PopLocalFrame(NULL);
                 continue;
             }
 
             this->valid = true;
-            this->env->PopLocalFrame(NULL);
             break;
         }
-
-        this->env->PopLocalFrame(NULL);
     }
 
     std::shared_ptr<Data> invokeMethod() {
@@ -385,7 +380,7 @@ public:
         this->build(args, this->retType);
     }
 
-    shared_ptr<NativeObject> newInstance() {
+    std::shared_ptr<NativeObject> newInstance() {
         assert(this->valid);
 
         jmethodID init = this->env->GetMethodID((jclass)this->jobj, "<init>", this->signature.c_str());
@@ -398,7 +393,7 @@ public:
 
 protected:
     void build(const std::shared_ptr<List> &args, DataType retType) {
-        this->env->PushLocalFrame(32);
+        auto lf0 = JNILocalFrame::create(this->env, 32);
 
         jclass jcls = (jclass)this->jobj;
         jclass jclsCls = this->env->GetObjectClass(jcls);
@@ -412,20 +407,17 @@ protected:
         this->values = new jvalue[args->size()];
         int methodsLength = this->env->GetArrayLength(constructors);
         for (int i = 0; i < methodsLength; i++) {
-            this->env->PushLocalFrame(16);
+            auto lf0 = JNILocalFrame::create(this->env, 16);
+
             jobject jmethod = this->env->GetObjectArrayElement(constructors, i);
             if (!this->buildParams(jmethod, args)) {
-                this->env->PopLocalFrame(NULL);
                 continue;
             }
             this->signature += "V";
 
             this->valid = true;
-            this->env->PopLocalFrame(NULL);
             break;
         }
-
-        this->env->PopLocalFrame(NULL);
     }
 };
 
@@ -440,7 +432,7 @@ public:
     std::string fieldName;
     DataType type;
 
-    JavaField(jobject jobj, string fieldName, DataType type) {
+    JavaField(jobject jobj, std::string fieldName, DataType type) {
         this->env = AndroidHelper::getEnv();
         this->jobj = jobj;
         this->jcls = this->env->GetObjectClass(jobj);
@@ -448,7 +440,7 @@ public:
         this->type = type;
     }
 
-    JavaField(jclass jcls, string fieldName, DataType type) {
+    JavaField(jclass jcls, std::string fieldName, DataType type) {
         this->env = AndroidHelper::getEnv();
         this->jcls = jcls;
         this->fieldName = fieldName;
@@ -456,7 +448,7 @@ public:
     }
 
     std::shared_ptr<Data> getValue() {
-        this->env->PushLocalFrame(16);
+        auto lf0 = JNILocalFrame::create(this->env, 16);
 
         jstring jFieldName = this->env->NewStringUTF(this->fieldName.c_str());
         jclass jclscls = this->env->GetObjectClass(this->jcls);
@@ -504,6 +496,7 @@ public:
                 jobject s = env->CallObjectMethod(jField, getStringId, this->jobj);
                 const char *str = env->GetStringUTFChars((jstring)s, NULL);
                 data = String::create(str);
+                this->env->ReleaseStringUTFChars((jstring)s, str);
                 break;
             }
             case DataType::List: {
@@ -541,13 +534,11 @@ public:
             }
         }
 
-        this->env->PopLocalFrame(NULL);
-
         return data;
     }
 
     void setValue(std::shared_ptr<Data> value) {
-        this->env->PushLocalFrame(16);
+        auto lf0 = JNILocalFrame::create(this->env, 16);
 
         jstring jFieldName = this->env->NewStringUTF(this->fieldName.c_str());
         jclass jclscls = this->env->GetObjectClass(this->jcls);
@@ -592,7 +583,7 @@ public:
             }
             case DataType::String: {
                 jmethodID setId = this->env->GetMethodID(jFieldCls, "set", "(Ljava/lang/Object;Ljava/lang/Object;)V");
-                string s = std::static_pointer_cast<String>(value)->getValue();
+                std::string s = std::static_pointer_cast<String>(value)->getValue();
                 jstring str = this->env->NewStringUTF(s.c_str());
                 env->CallVoidMethod(jField, setId, this->jobj, (jobject)str);
                 break;
@@ -640,16 +631,14 @@ public:
                 break;
             }
         }
-
-        this->env->PopLocalFrame(NULL);
     }
 };
 
 
 #pragma - NativeClass
 
-shared_ptr<NativeClass> NativeClass::create(std::string className) {
-    return shared_ptr<NativeClass>(new NativeClass(className));
+std::shared_ptr<NativeClass> NativeClass::create(std::string className) {
+    return std::shared_ptr<NativeClass>(new NativeClass(className));
 }
 
 NativeClass::NativeClass(std::string className) {
@@ -714,30 +703,28 @@ NativeObject::~NativeObject() {
 }
 
 std::shared_ptr<NativeObject> NativeObject::create(void *value) {
-    return shared_ptr<NativeObject>(new NativeObject(value));
+    return std::shared_ptr<NativeObject>(new NativeObject(value));
 }
 
 std::shared_ptr<NativeObject> NativeObject::create(const std::shared_ptr<Dictionary> &dict) {
     JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(16);
+    auto lf0 = JNILocalFrame::create(env, 16);
     jclass mapClass = env->FindClass("java/util/HashMap");
     jmethodID mapInit = env->GetMethodID(mapClass, "<init>", "()V");
     jobject jMap = env->NewObject(mapClass, mapInit);
     toNativeDictionary(dict, jMap);
     auto no = create((void *)jMap);
-    env->PopLocalFrame(NULL);
     return no;
 }
 
 std::shared_ptr<NativeObject> NativeObject::create(const std::shared_ptr<List> &list) {
     JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(16);
+    auto lf0 = JNILocalFrame::create(env, 16);
     jclass listClass = env->FindClass("java/util/ArrayList");
     jmethodID listInit = env->GetMethodID(listClass, "<init>", "()V");
     jobject jList = env->NewObject(listClass, listInit);
     toNativeList(list, jList);
     auto no = create((void *)jList);
-    env->PopLocalFrame(NULL);
     return no;
 }
 
@@ -760,12 +747,11 @@ std::shared_ptr<NativeObject> NativeObject::create(const std::shared_ptr<ByteArr
 std::shared_ptr<NativeObject> NativeObject::create(std::function<void(const std::shared_ptr<mog::List> &args)> func) {
     auto nativeFunc = new NativeFunction(func);
     JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(16);
+    auto lf0 = JNILocalFrame::create(env, 16);
     jclass mogFuncClass = env->FindClass("org/mog/MogFunction");
     jmethodID mogFuncInit = env->GetMethodID(mogFuncClass, "<init>", "(J)V");
     jobject mogFuncObj = env->NewObject(mogFuncClass, mogFuncInit, (long long)nativeFunc);
     auto mogFunc = create((void *)mogFuncObj);
-    env->PopLocalFrame(NULL);
     return mogFunc;
 }
 
@@ -806,7 +792,7 @@ void NativeFunction::invoke(const std::shared_ptr<mog::List> &args) {
 
 static void toNativeDictionary(const std::shared_ptr<Dictionary> &dictionary, jobject jMap) {
     JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(16);
+    auto lf0 = JNILocalFrame::create(env, 16);
 
     jclass mapClass = env->FindClass("java/util/HashMap");
     jmethodID mapInit = env->GetMethodID(mapClass, "<init>", "()V");
@@ -828,7 +814,7 @@ static void toNativeDictionary(const std::shared_ptr<Dictionary> &dictionary, jo
 
     auto keys = dictionary->getKeys();
     for (auto &key : keys) {
-        env->PushLocalFrame(16);
+        auto lf1 = JNILocalFrame::create(env, 16);
 
         jvalue v;
         jstring keyStr = env->NewStringUTF(key.c_str());
@@ -899,14 +885,12 @@ static void toNativeDictionary(const std::shared_ptr<Dictionary> &dictionary, jo
                 break;
             }
         }
-        env->PopLocalFrame(NULL);
     }
-    env->PopLocalFrame(NULL);
 }
 
 static void toNativeList(const std::shared_ptr<List> &list, jobject jList) {
     JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(16);
+    auto lf0 = JNILocalFrame::create(env, 16);
 
     jclass mapClass = env->FindClass("java/util/HashMap");
     jmethodID mapInit = env->GetMethodID(mapClass, "<init>", "()V");
@@ -927,7 +911,7 @@ static void toNativeList(const std::shared_ptr<List> &list, jobject jList) {
     jmethodID booleanInit = env->GetMethodID(booleanClass, "<init>", "(Z)V");
 
     for (int i = 0; i < list->size(); i++) {
-        env->PushLocalFrame(16);
+        auto lf1 = JNILocalFrame::create(env, 16);
 
         jvalue v;
         auto type = list->atType(i);
@@ -995,14 +979,12 @@ static void toNativeList(const std::shared_ptr<List> &list, jobject jList) {
                 env->CallBooleanMethod(jList, addMethod, jno);
             }
         }
-        env->PopLocalFrame(NULL);
     }
-    env->PopLocalFrame(NULL);
 }
 
 static void toMogDictionary(jobject jMap, std::shared_ptr<Dictionary> &dict) {
     JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(128);
+    auto lf0 = JNILocalFrame::create(env, 128);
 
     jclass jcls = env->GetObjectClass(jMap);
     jclass mapCls = env->FindClass("java/util/Map");
@@ -1037,8 +1019,10 @@ static void toMogDictionary(jobject jMap, std::shared_ptr<Dictionary> &dict) {
         for (int i = 0; i < len; i++) {
             jstring jKey = (jstring)env->GetObjectArrayElement(keyArr, i);
             const char *keyCStr = env->GetStringUTFChars(jKey, NULL);
-            auto key = string(keyCStr);
+            auto key = std::string(keyCStr);
             jobject jElement = env->CallObjectMethod(jMap, getId, jKey);
+            env->ReleaseStringUTFChars(jKey, keyCStr);
+
             if (!jElement) continue;
 
             jclass jElmCls = env->GetObjectClass(jElement);
@@ -1086,13 +1070,11 @@ static void toMogDictionary(jobject jMap, std::shared_ptr<Dictionary> &dict) {
             }
         }
     }
-
-    env->PopLocalFrame(NULL);
 }
 
 static void toMogList(jobject jList, std::shared_ptr<List> &list) {
     JNIEnv *env = AndroidHelper::getEnv();
-    env->PushLocalFrame(128);
+    auto lf0 = JNILocalFrame::create(env, 128);
 
     jclass jcls = env->GetObjectClass(jList);
     jclass listCls = env->FindClass("java/util/List");
@@ -1167,13 +1149,11 @@ static void toMogList(jobject jList, std::shared_ptr<List> &list) {
             }
         }
     }
-
-    env->PopLocalFrame(NULL);
 }
 
 
 static void convertArgs(JNIEnv* env, jobjectArray params, std::shared_ptr<List> &list) {
-    env->PushLocalFrame(128);
+    auto lf0 = JNILocalFrame::create(env, 128);
 
     int len = env->GetArrayLength(params);
 
@@ -1230,7 +1210,6 @@ static void convertArgs(JNIEnv* env, jobjectArray params, std::shared_ptr<List> 
             list->append(NativeObject::create((void *)go));
         }
     }
-    env->PopLocalFrame(NULL);
 }
 
 

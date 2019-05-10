@@ -42,7 +42,7 @@ void DrawableGroup::sortChildDrawablesToDraw() {
     
     this->sortedChildDrawables.clear();
     this->sortedChildDrawables.reserve(this->childDrawables.size());
-    unordered_map<uintptr_t, unsigned int> drawableIndexes;
+    std::unordered_map<uintptr_t, unsigned int> drawableIndexes;
     drawableIndexes.reserve(this->childDrawables.size());
     for (int i = 0; i < this->childDrawables.size(); i++) {
         auto drawable = this->childDrawables[i];
@@ -50,7 +50,7 @@ void DrawableGroup::sortChildDrawablesToDraw() {
         drawableIndexes[(uintptr_t)drawable.get()] = i;
     }
     sort(this->sortedChildDrawables.begin(), this->sortedChildDrawables.end(),
-         [&drawableIndexes](const shared_ptr<Drawable> &d1, const shared_ptr<Drawable> &d2) {
+         [&drawableIndexes](const std::shared_ptr<Drawable> &d1, const std::shared_ptr<Drawable> &d2) {
              if (d1->getZIndex() == d2->getZIndex()) {
                  return drawableIndexes[(uintptr_t)d1.get()] < drawableIndexes[(uintptr_t)d2.get()];
              }

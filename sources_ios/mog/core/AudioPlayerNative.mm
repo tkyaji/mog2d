@@ -7,9 +7,9 @@ using namespace mog;
 
 #pragma - AudioData
 
-unordered_map<string, shared_ptr<AudioData>> AudioData::cachedAudioData;
+std::unordered_map<std::string, std::shared_ptr<AudioData>> AudioData::cachedAudioData;
 
-AudioData::AudioData(ALuint buffer, string filename) {
+AudioData::AudioData(ALuint buffer, std::string filename) {
     this->buffer = buffer;
     this->filename = filename;
 }
@@ -18,7 +18,7 @@ AudioData::~AudioData() {
     alDeleteBuffers(1, &this->buffer);
 }
 
-shared_ptr<AudioData> AudioData::loadAudioData(const char *filename, bool cache) {
+std::shared_ptr<AudioData> AudioData::loadAudioData(const char *filename, bool cache) {
     if (AudioData::cachedAudioData.count(filename) > 0) {
         return AudioData::cachedAudioData[filename];
     }
@@ -26,7 +26,7 @@ shared_ptr<AudioData> AudioData::loadAudioData(const char *filename, bool cache)
     ALuint buffer;
     alGenBuffers(1, &buffer);
     if (AudioData::loadFromAssetNative(buffer, filename)) {
-        auto audioData = shared_ptr<AudioData>(new AudioData(buffer, filename));
+        auto audioData = std::shared_ptr<AudioData>(new AudioData(buffer, filename));
         if (cache) {
             AudioData::cachedAudioData[filename] = audioData;
         }
@@ -65,7 +65,7 @@ bool AudioData::loadFromAssetNative(ALuint buffer, const char *filename) {
         data->getValue(&value, &length);
         int dataLen = stb_vorbis_decode_memory((const uint8 *)value, length, &_channels, &_sampleRate, &_output);
         if (dataLen < 0) {
-            LOGE("Audio resource load failed.");
+            LOGE("Audio resource load failed.\n");
             LOGE(filename);
             return false;
             
@@ -80,7 +80,7 @@ bool AudioData::loadFromAssetNative(ALuint buffer, const char *filename) {
     } else {
         NSString *path = [[NSBundle mainBundle] pathForResource:filenameStr ofType:nil];
         if (!path) {
-            LOGE("Audio resource is not found");
+            LOGE("Audio resource is not found.\n");
             LOGE(filename);
             return false;
         }
@@ -95,7 +95,7 @@ bool AudioData::loadFromAssetNative(ALuint buffer, const char *filename) {
     ALenum error = alGetError();
     if (error != AL_NO_ERROR) {
         mogfree(audioData);
-        LOGE("alBufferData failed. error=%d", (int)error);
+        LOGE("alBufferData failed. error=%d\n", (int)error);
         return false;
     }
     mogfree(audioData);
@@ -114,7 +114,7 @@ void *AudioData::getOpenALAudioData(CFURLRef fileURL, ALsizei* dataSize,
     ExtAudioFileRef audioFile;
     err = ExtAudioFileOpenURL(fileURL, &audioFile);
     if (err) {
-        LOGE("getOpenALAudioData: failed to open audioFile");
+        LOGE("getOpenALAudioData: failed to open audioFile.\n");
         if (audioFile) ExtAudioFileDispose(audioFile);
         return data;
     }
@@ -123,7 +123,7 @@ void *AudioData::getOpenALAudioData(CFURLRef fileURL, ALsizei* dataSize,
     size = sizeof(fileFormat);
     err = ExtAudioFileGetProperty(audioFile, kExtAudioFileProperty_FileDataFormat, &size, &fileFormat);
     if (err) {
-        LOGE("getOpenALAudioData: failed to get fileFormat");
+        LOGE("getOpenALAudioData: failed to get fileFormat.\n");
         if (audioFile) ExtAudioFileDispose(audioFile);
         return data;
     }
@@ -139,7 +139,7 @@ void *AudioData::getOpenALAudioData(CFURLRef fileURL, ALsizei* dataSize,
     outputFormat.mFormatFlags = kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsPacked | kAudioFormatFlagIsSignedInteger;
     err = ExtAudioFileSetProperty(audioFile, kExtAudioFileProperty_ClientDataFormat, sizeof(outputFormat), &outputFormat);
     if (err) {
-        LOGE("getOpenALAudioData: failed to set outputFormat");
+        LOGE("getOpenALAudioData: failed to set outputFormat.\n");
         if (audioFile) ExtAudioFileDispose(audioFile);
         return data;
     }
@@ -148,7 +148,7 @@ void *AudioData::getOpenALAudioData(CFURLRef fileURL, ALsizei* dataSize,
     size = sizeof(fileLengthFrames);
     err = ExtAudioFileGetProperty(audioFile, kExtAudioFileProperty_FileLengthFrames, &size, &fileLengthFrames);
     if (err) {
-        LOGE("getOpenALAudioData: failed to get fileLengthFrames");
+        LOGE("getOpenALAudioData: failed to get fileLengthFrames.\n");
         if (audioFile) ExtAudioFileDispose(audioFile);
         return data;
     }
@@ -164,7 +164,7 @@ void *AudioData::getOpenALAudioData(CFURLRef fileURL, ALsizei* dataSize,
     
     err = ExtAudioFileRead(audioFile, (UInt32*)&fileLengthFrames, &dataBuffer);
     if (err) {
-        LOGE("getOpenALAudioData: failed to read audioFile");
+        LOGE("getOpenALAudioData: failed to read audioFile.\n");
         mogfree(data);
         if (audioFile) ExtAudioFileDispose(audioFile);
         return data;

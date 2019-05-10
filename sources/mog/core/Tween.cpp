@@ -41,75 +41,75 @@ inline float bounceIn(float t) {
 }
 
 
-shared_ptr<EasingFunc> EasingFunc::getEasingFunc(Easing easing) {
+std::shared_ptr<EasingFunc> EasingFunc::getEasingFunc(Easing easing) {
     switch (easing) {
             // Quad
         case Easing::QuadIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuadIn>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingQuadIn>());
         case Easing::QuadOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuadOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingQuadOut>());
         case Easing::QuadInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuadInOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingQuadInOut>());
             // Cubic
         case Easing::CubicIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingCubicIn>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingCubicIn>());
         case Easing::CubicOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingCubicOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingCubicOut>());
         case Easing::CubicInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingCubicInOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingCubicInOut>());
             // Quart
         case Easing::QuartIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuartIn>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingQuartIn>());
         case Easing::QuartOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuartOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingQuartOut>());
         case Easing::QuartInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuartInOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingQuartInOut>());
             // Quint
         case Easing::QuintIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuintIn>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingQuintIn>());
         case Easing::QuintOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuintOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingQuintOut>());
         case Easing::QuintInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingQuintInOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingQuintInOut>());
             // Sine
         case Easing::SineIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingSineIn>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingSineIn>());
         case Easing::SineOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingSineOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingSineOut>());
         case Easing::SineInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingSineInOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingSineInOut>());
             // Back
         case Easing::BackIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingBackIn>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingBackIn>());
         case Easing::BackOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingBackOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingBackOut>());
         case Easing::BackInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingBackInOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingBackInOut>());
             // Circ
         case Easing::CircIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingCircIn>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingCircIn>());
         case Easing::CircOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingCircOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingCircOut>());
         case Easing::CircInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingCircInOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingCircInOut>());
             // Bounce
         case Easing::BounceIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingBounceIn>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingBounceIn>());
         case Easing::BounceOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingBounceOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingBounceOut>());
         case Easing::BounceInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingBounceInOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingBounceInOut>());
             // Elastic
         case Easing::ElasticIn:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingElasticIn>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingElasticIn>());
         case Easing::ElasticOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingElasticOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingElasticOut>());
         case Easing::ElasticInOut:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingElasticInOut>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingElasticInOut>());
             // Linear
         case Easing::Linear:
         default:
-            return static_pointer_cast<EasingFunc>(make_shared<EasingLinear>());
+            return std::static_pointer_cast<EasingFunc>(std::make_shared<EasingLinear>());
     }
 }
 
@@ -297,7 +297,7 @@ float Tween::currentValue(float start, float end, float percent) {
     return start + (percent * (end - start));
 }
 
-void Tween::update(float delta, const shared_ptr<Drawable> &drawable) {
+void Tween::update(float delta, const std::shared_ptr<Drawable> &drawable) {
     if (this->pausing) return;
     
     if (!this->started) {
@@ -353,45 +353,45 @@ void Tween::resume() {
     this->pausing = false;
 }
 
-void Tween::addOnFinishEventForParent(function<void(const shared_ptr<Tween> &m)> callback) {
+void Tween::addOnFinishEventForParent(std::function<void(const std::shared_ptr<Tween> &m)> callback) {
     this->onFinishEventsForParent.emplace_back(callback);
 }
 
 
-void Tween::setOnStartEvent(function<void(const shared_ptr<Drawable> &d)> callback) {
+void Tween::setOnStartEvent(std::function<void(const std::shared_ptr<Drawable> &d)> callback) {
     this->onStartEvent = callback;
 }
 
-void Tween::setOnRestartEvent(function<void(const shared_ptr<Drawable> &d)> callback) {
+void Tween::setOnRestartEvent(std::function<void(const std::shared_ptr<Drawable> &d)> callback) {
     this->onRestartEvent = callback;
 }
 
-void Tween::setOnFinishEvent(function<void(const shared_ptr<Drawable> &d)> callback) {
+void Tween::setOnFinishEvent(std::function<void(const std::shared_ptr<Drawable> &d)> callback) {
     this->onFinishEvent = callback;
 }
 
-void Tween::onStart(const shared_ptr<Drawable> &drawable) {
+void Tween::onStart(const std::shared_ptr<Drawable> &drawable) {
     if (this->onStartEvent) {
         this->onStartEvent(drawable);
     }
 }
 
-void Tween::onRestart(const shared_ptr<Drawable> &drawable) {
+void Tween::onRestart(const std::shared_ptr<Drawable> &drawable) {
     if (this->onRestartEvent) {
         this->onRestartEvent(drawable);
     }
 }
 
-void Tween::onFinish(const shared_ptr<Drawable> &drawable) {
+void Tween::onFinish(const std::shared_ptr<Drawable> &drawable) {
     if (this->onFinishEvent) {
         this->onFinishEvent(drawable);
     }
 }
 
 
-shared_ptr<TweenMove> TweenMove::create(const Point &start, const Point &end, float duration, Easing easing,
+std::shared_ptr<TweenMove> TweenMove::create(const Point &start, const Point &end, float duration, Easing easing,
                                         LoopType loopType, int loopCount, float delayTime) {
-    return shared_ptr<TweenMove>(new TweenMove(start, end, duration, easing, loopType, loopCount, delayTime));
+    return std::shared_ptr<TweenMove>(new TweenMove(start, end, duration, easing, loopType, loopCount, delayTime));
 }
 
 TweenMove::TweenMove(const Point &start, const Point &end, float duration, Easing easing,
@@ -399,15 +399,15 @@ TweenMove::TweenMove(const Point &start, const Point &end, float duration, Easin
 : Tween(0, 1.0, duration, easing, loopType, loopCount, delayTime), startPoint(start), endPoint(end) {
 }
 
-void TweenMove::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
+void TweenMove::onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) {
     auto p = this->startPoint + (this->endPoint - this->startPoint) * currentValue;
     drawable->setPosition(p);
 }
 
 
-shared_ptr<TweenAlpha> TweenAlpha::create(float start, float end, float duration, Easing easing,
+std::shared_ptr<TweenAlpha> TweenAlpha::create(float start, float end, float duration, Easing easing,
                                           LoopType loopType, int loopCount, float delayTime) {
-    return shared_ptr<TweenAlpha>(new TweenAlpha(start, end, duration, easing, loopType, loopCount, delayTime));
+    return std::shared_ptr<TweenAlpha>(new TweenAlpha(start, end, duration, easing, loopType, loopCount, delayTime));
 }
 
 TweenAlpha::TweenAlpha(float start, float end, float duration, Easing easing,
@@ -415,17 +415,17 @@ TweenAlpha::TweenAlpha(float start, float end, float duration, Easing easing,
 : Tween(start, end, duration, easing, loopType, loopCount, delayTime) {
 }
 
-void TweenAlpha::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
-    auto e = static_pointer_cast<Drawable>(drawable);
+void TweenAlpha::onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) {
+    auto e = std::static_pointer_cast<Drawable>(drawable);
     Color color = e->getColor();
     color.a = currentValue;
     e->setColor(color);
 }
 
 
-shared_ptr<TweenColor> TweenColor::create(const Color &start, const Color &end, float duration, Easing easing,
+std::shared_ptr<TweenColor> TweenColor::create(const Color &start, const Color &end, float duration, Easing easing,
                                           LoopType loopType, int loopCount, float delayTime) {
-    return shared_ptr<TweenColor>(new TweenColor(start, end, duration, easing, loopType, loopCount, delayTime));
+    return std::shared_ptr<TweenColor>(new TweenColor(start, end, duration, easing, loopType, loopCount, delayTime));
 }
 
 TweenColor::TweenColor(const Color &start, const Color &end, float duration, Easing easing,
@@ -433,8 +433,8 @@ TweenColor::TweenColor(const Color &start, const Color &end, float duration, Eas
 : Tween(0, 1.0, duration, easing, loopType, loopCount, delayTime), startColor(start), endColor(end) {
 }
 
-void TweenColor::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
-    auto e = static_pointer_cast<Drawable>(drawable);
+void TweenColor::onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) {
+    auto e = std::static_pointer_cast<Drawable>(drawable);
     
     float r = this->startColor.r + (this->endColor.r - this->startColor.r) * currentValue;
     float g = this->startColor.g + (this->endColor.g - this->startColor.g) * currentValue;
@@ -445,14 +445,14 @@ void TweenColor::onModify(float currentValue, const shared_ptr<Drawable> &drawab
 }
 
 
-shared_ptr<TweenScale> TweenScale::create(float start, float end, float duration, Easing easing,
+std::shared_ptr<TweenScale> TweenScale::create(float start, float end, float duration, Easing easing,
                                           LoopType loopType, int loopCount, float delayTime) {
-    return shared_ptr<TweenScale>(new TweenScale(start, end, duration, easing, loopType, loopCount, delayTime));
+    return std::shared_ptr<TweenScale>(new TweenScale(start, end, duration, easing, loopType, loopCount, delayTime));
 }
 
-shared_ptr<TweenScale> TweenScale::create(const Point &start, const Point &end, float duration, Easing easing,
+std::shared_ptr<TweenScale> TweenScale::create(const Point &start, const Point &end, float duration, Easing easing,
                                           LoopType loopType, int loopCount, float delayTime) {
-    return shared_ptr<TweenScale>(new TweenScale(start, end, duration, easing, loopType, loopCount, delayTime));
+    return std::shared_ptr<TweenScale>(new TweenScale(start, end, duration, easing, loopType, loopCount, delayTime));
 }
 
 TweenScale::TweenScale(float start, float end, float duration, Easing easing,
@@ -469,14 +469,14 @@ TweenScale::TweenScale(const Point &start, const Point &end, float duration, Eas
     this->endScale = end;
 }
 
-void TweenScale::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
+void TweenScale::onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) {
     auto s = this->startScale + (this->endScale - this->startScale) * currentValue;
     drawable->setScale(s);
 }
 
-shared_ptr<TweenRotate> TweenRotate::create(float start, float end, float duration, Easing easing,
+std::shared_ptr<TweenRotate> TweenRotate::create(float start, float end, float duration, Easing easing,
                                             LoopType loopType, int loopCount, float delayTime) {
-    return shared_ptr<TweenRotate>(new TweenRotate(start, end, duration, easing, loopType, loopCount, delayTime));
+    return std::shared_ptr<TweenRotate>(new TweenRotate(start, end, duration, easing, loopType, loopCount, delayTime));
 }
 
 TweenRotate::TweenRotate(float start, float end, float duration, Easing easing,
@@ -484,15 +484,15 @@ TweenRotate::TweenRotate(float start, float end, float duration, Easing easing,
 : Tween(start, end, duration, easing, loopType, loopCount, delayTime) {
 }
 
-void TweenRotate::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
+void TweenRotate::onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) {
     drawable->setRotation(currentValue);
 }
 
 
 
-shared_ptr<TweenValue> TweenValue::create(float start, float end, float duration, Easing easing,
+std::shared_ptr<TweenValue> TweenValue::create(float start, float end, float duration, Easing easing,
                                           LoopType loopType, int loopCount, float delayTime) {
-    return shared_ptr<TweenValue>(new TweenValue(start, end, duration, easing, loopType, loopCount, delayTime));
+    return std::shared_ptr<TweenValue>(new TweenValue(start, end, duration, easing, loopType, loopCount, delayTime));
 }
 
 TweenValue::TweenValue(float start, float end, float duration, Easing easing,
@@ -500,30 +500,30 @@ TweenValue::TweenValue(float start, float end, float duration, Easing easing,
 : Tween(start, end, duration, easing, loopType, loopCount, delayTime) {
 }
 
-void TweenValue::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
+void TweenValue::onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) {
     if (this->onModifyEvent) {
         this->onModifyEvent(currentValue, drawable);
     }
 }
 
-void TweenValue::setOnModifyEvent(function<void(float value, const shared_ptr<Drawable> &d)> callback) {
+void TweenValue::setOnModifyEvent(std::function<void(float value, const std::shared_ptr<Drawable> &d)> callback) {
     this->onModifyEvent = callback;
 }
 
 
 
-shared_ptr<TweenUpdate> TweenUpdate::create() {
-    return shared_ptr<TweenUpdate>(new TweenUpdate());
+std::shared_ptr<TweenUpdate> TweenUpdate::create() {
+    return std::shared_ptr<TweenUpdate>(new TweenUpdate());
 }
 
 TweenUpdate::TweenUpdate() {
 }
 
-void TweenUpdate::setOnUpdateEvent(function<void(float delta, const shared_ptr<Drawable> &d)> callback) {
+void TweenUpdate::setOnUpdateEvent(std::function<void(float delta, const std::shared_ptr<Drawable> &d)> callback) {
     this->onUpdateEvent = callback;
 }
 
-void TweenUpdate::update(float delta, const shared_ptr<Drawable> &drawable) {
+void TweenUpdate::update(float delta, const std::shared_ptr<Drawable> &drawable) {
     if (this->onUpdateEvent) {
         this->onUpdateEvent(delta, drawable);
     }
@@ -543,28 +543,28 @@ void TweenGroup::init() {
     }
 }
 
-void TweenGroup::addTweenOne(const shared_ptr<Tween> &tween) {
+void TweenGroup::addTweenOne(const std::shared_ptr<Tween> &tween) {
     this->tweens.emplace_back(tween);
 }
 
-void TweenGroup::update(float delta, const shared_ptr<Drawable> &drawable) {
+void TweenGroup::update(float delta, const std::shared_ptr<Drawable> &drawable) {
 }
 
-void TweenGroup::onModify(float currentValue, const shared_ptr<Drawable> &drawable) {
+void TweenGroup::onModify(float currentValue, const std::shared_ptr<Drawable> &drawable) {
 }
 
 
 TweenConcurrentGroup::TweenConcurrentGroup() {
 }
 
-void TweenConcurrentGroup::addTweenOne(const shared_ptr<Tween> &tween) {
+void TweenConcurrentGroup::addTweenOne(const std::shared_ptr<Tween> &tween) {
     TweenGroup::addTweenOne(tween);
-    tween->addOnFinishEventForParent([this](const shared_ptr<Tween> &m) {
+    tween->addOnFinishEventForParent([this](const std::shared_ptr<Tween> &m) {
         this->tweensToRemove.emplace_back(m);
     });
 }
 
-void TweenConcurrentGroup::update(float delta, const shared_ptr<Drawable> &drawable) {
+void TweenConcurrentGroup::update(float delta, const std::shared_ptr<Drawable> &drawable) {
     for (const auto &tween : this->tweens) {
         tween->update(delta, drawable);
     }
@@ -602,20 +602,20 @@ void TweenConcurrentGroup::resume() {
 TweenSequenceGroup::TweenSequenceGroup() {
 }
 
-void TweenSequenceGroup::addTweenOne(const shared_ptr<Tween> &tween) {
+void TweenSequenceGroup::addTweenOne(const std::shared_ptr<Tween> &tween) {
     TweenGroup::addTweenOne(tween);
     
     if (this->tweens.size() == 1) {
-        tween->addOnFinishEventForParent([this](const shared_ptr<Tween> &t) {
+        tween->addOnFinishEventForParent([this](const std::shared_ptr<Tween> &t) {
             this->next = true;
         });
     }
-    tween->addOnFinishEventForParent([this](const shared_ptr<Tween> &t) {
+    tween->addOnFinishEventForParent([this](const std::shared_ptr<Tween> &t) {
         this->next = true;
     });
 }
 
-void TweenSequenceGroup::update(float delta, const shared_ptr<Drawable> &drawable) {
+void TweenSequenceGroup::update(float delta, const std::shared_ptr<Drawable> &drawable) {
     this->tweens[this->currentIndex]->update(delta, drawable);
     
     if (this->next) {
@@ -653,14 +653,14 @@ void TweenSequenceGroup::resume() {
 TweenJoinGroup::TweenJoinGroup() {
 }
 
-void TweenJoinGroup::addTweenOne(const shared_ptr<Tween> &tween) {
+void TweenJoinGroup::addTweenOne(const std::shared_ptr<Tween> &tween) {
     TweenGroup::addTweenOne(tween);
-    tween->addOnFinishEventForParent([this](const shared_ptr<Tween> &t) {
+    tween->addOnFinishEventForParent([this](const std::shared_ptr<Tween> &t) {
         this->tweensToRemove.emplace_back(t);
     });
 }
 
-void TweenJoinGroup::update(float delta, const shared_ptr<Drawable> &drawable) {
+void TweenJoinGroup::update(float delta, const std::shared_ptr<Drawable> &drawable) {
     if (this->tweensToRemove.size() > 0) {
         for (const auto &tween : this->tweensToRemove) {
             this->tweens.erase(remove(this->tweens.begin(), this->tweens.end(), tween), this->tweens.end());
@@ -680,12 +680,12 @@ void TweenJoinGroup::update(float delta, const shared_ptr<Drawable> &drawable) {
 }
 
 
-shared_ptr<TweenDelay> TweenDelay::create(float delayTime) {
-    return shared_ptr<TweenDelay>(new TweenDelay(delayTime));
+std::shared_ptr<TweenDelay> TweenDelay::create(float delayTime) {
+    return std::shared_ptr<TweenDelay>(new TweenDelay(delayTime));
 }
 
-shared_ptr<TweenDelay> TweenDelay::create(float delayTime, function<void(const shared_ptr<Drawable> &d)> callback) {
-    auto delay = shared_ptr<TweenDelay>(new TweenDelay(delayTime));
+std::shared_ptr<TweenDelay> TweenDelay::create(float delayTime, std::function<void(const std::shared_ptr<Drawable> &d)> callback) {
+    auto delay = std::shared_ptr<TweenDelay>(new TweenDelay(delayTime));
     delay->setOnFinishEvent(callback);
     return delay;
 }

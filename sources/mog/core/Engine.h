@@ -7,7 +7,6 @@
 #include "mog/core/TouchInput.h"
 #include "mog/core/Touch.h"
 #include "mog/core/KeyEvent.h"
-#include "mog/core/NativeClass.h"
 #include "mog/core/MogStats.h"
 #include "mog/base/AppBase.h"
 
@@ -32,10 +31,6 @@ namespace mog {
 
         std::shared_ptr<AppBase> getApp();
         
-        std::shared_ptr<NativeObject> getNativeObject(string name);
-        void setNativeObject(string name, const std::shared_ptr<NativeObject> &nObj);
-        void removeNativeObject(string name);
-        
         bool isRunning();
         int getCurrentOrientation();
         unsigned long long getFrameCount();
@@ -59,22 +54,21 @@ namespace mog {
         
         void setStatsEnable(bool enable);
         void setStatsAlignment(Alignment alignment);
-        shared_ptr<MogStats> getStats();
+        std::shared_ptr<MogStats> getStats();
 
         void setTouchEnable(bool enable);
         void setMultiTouchEnable(bool enable);
         bool isTouchEnable();
         bool isMultiTouchEnable();
-        void pushTouchableEntity(const shared_ptr<Entity> &entity);
+        void pushTouchableEntity(const std::shared_ptr<Entity> &entity);
 
-        unsigned int registerOnUpdateFunc(function<void(unsigned int funcId)> onUpdateFunc);
+        unsigned int registerOnUpdateFunc(std::function<void(unsigned int funcId)> onUpdateFunc);
         void removeOnUpdateFunc(unsigned int funcId);
 
     protected:
         unsigned int onUpdateFuncIdCounter;
         
         std::shared_ptr<AppBase> app;
-        unordered_map<string, std::shared_ptr<NativeObject>> nativeObjects;
         std::shared_ptr<Renderer> renderer;
         std::shared_ptr<MogStats> stats;
         bool running = false;
@@ -105,7 +99,7 @@ namespace mog {
         bool displaySizeChanged = false;
         bool touchEnable = true;
         bool multiTouchEnable = true;
-        std::vector<shared_ptr<Entity>> touchableEntities;
+        std::vector<std::shared_ptr<Entity>> touchableEntities;
         std::unordered_map<int, Touch> prevTouches;
         char baseScreenSides = '_';
         float baseScreenSize = 0.0f;

@@ -4,20 +4,17 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
-
-using namespace std;
+#include "mog/core/Texture2D.h"
 
 namespace mog {
-    class Texture2D;
-    
     class Texture2DNative {
     public:
-        static void loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFilename, float height = 0);
-        static string getLocalizedTextNative(const char *textKey, va_list args);
+        static void loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFilename, float height = 0, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        static std::string getLocalizedTextNative(const char *textKey, va_list args);
         
     private:
-        static unordered_map<string, string> registeredFontNames;
-        static string registerCustomFont(const char *fontFilename);
+        static std::unordered_map<std::string, std::string> registeredFontNames;
+        static std::string registerCustomFont(const char *fontFilename);
     };
 }
 

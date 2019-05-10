@@ -2,7 +2,6 @@
 #include "mog/core/Device.h"
 #include <math.h>
 
-using namespace std;
 using namespace mog;
 
 const Density Density::x1_0 = Density(Type::x1_0);
@@ -12,9 +11,9 @@ const Density Density::x3_0 = Density(Type::x3_0);
 const Density Density::x4_0 = Density(Type::x4_0);
 
 #ifdef MOG_IOS
-vector<Density> Density::allDensities = {Density::x1_0, Density::x2_0, Density::x3_0};
+std::vector<Density> Density::allDensities = {Density::x1_0, Density::x2_0, Density::x3_0};
 #else
-vector<Density> Density::allDensities = {Density::x1_0, Density::x1_5, Density::x2_0, Density::x3_0, Density::x4_0};
+std::vector<Density> Density::allDensities = {Density::x1_0, Density::x1_5, Density::x2_0, Density::x3_0, Density::x4_0};
 #endif
 
 Density Density::getCurrent() {

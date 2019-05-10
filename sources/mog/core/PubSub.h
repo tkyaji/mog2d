@@ -9,20 +9,18 @@
 #include <memory>
 #include "mog/core/Data.h"
 
-using namespace std;
-
 namespace mog {
-    class PubSub : public enable_shared_from_this<PubSub> {
+    class PubSub : public std::enable_shared_from_this<PubSub> {
     public:
-        void publish(string key);
-        void publish(string key, const std::shared_ptr<Data> &param);
+        void publish(std::string key);
+        void publish(std::string key, const std::shared_ptr<Data> &param);
         
-        unsigned int subscribe(string key, function<void(const std::shared_ptr<Data> &p)> func);
-        void unsubscribe(string key, unsigned int subscribeId);
-        void unsubscribeAll(string key);
+        unsigned int subscribe(std::string key, std::function<void(const std::shared_ptr<Data> &p)> func);
+        void unsubscribe(std::string key, unsigned int subscribeId);
+        void unsubscribeAll(std::string key);
         
-        void propagate(const weak_ptr<PubSub> childPubsub);
-        void stopPropagete(const weak_ptr<PubSub> childPubsub);
+        void propagate(const std::weak_ptr<PubSub> childPubsub);
+        void stopPropagete(const std::weak_ptr<PubSub> childPubsub);
         
         PubSub();
         ~PubSub();
@@ -32,9 +30,9 @@ namespace mog {
         static unsigned int pubsubInstanceId;
         unsigned int subscribeIdCounter = 0;
         
-        map<string, map<unsigned int, function<void(const std::shared_ptr<Data> &p)>>> subscribers;
-        map<unsigned int, weak_ptr<PubSub>> childPubsubs;
-        map<unsigned int, weak_ptr<PubSub>> parentPubsubs;
+        std::map<std::string, std::map<unsigned int, std::function<void(const std::shared_ptr<Data> &p)>>> subscribers;
+        std::map<unsigned int, std::weak_ptr<PubSub>> childPubsubs;
+        std::map<unsigned int, std::weak_ptr<PubSub>> parentPubsubs;
     };
 }
 

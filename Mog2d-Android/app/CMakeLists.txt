@@ -44,12 +44,13 @@ add_library(
     ${PROJ_DIR}/sources/mog/base/SpriteSheet.cpp
     ${PROJ_DIR}/sources/mog/base/Scene.cpp
     ${PROJ_DIR}/sources/mog/base/Entity.cpp
+    ${PROJ_DIR}/sources/mog/base/ScrollGroup.cpp
     ${PROJ_DIR}/sources/mog/base/Sprite.cpp
     ${PROJ_DIR}/sources/mog/base/Drawable.cpp
+    ${PROJ_DIR}/sources/mog/base/TiledSprite.cpp
     ${PROJ_DIR}/sources/mog/base/Slice9Sprite.cpp
     ${PROJ_DIR}/sources/mog/base/Graphics.cpp
     ${PROJ_DIR}/sources/mog/base/Label.cpp
-    ${PROJ_DIR}/sources/mog/base/Triangle.cpp
     ${PROJ_DIR}/sources/mog/base/Polygon.cpp
     ${PROJ_DIR}/sources/mog/base/Rectangle.cpp
     ${PROJ_DIR}/sources/mog/base/Circle.cpp
@@ -65,7 +66,9 @@ add_library(
     ${PROJ_DIR}/sources_android/mog/core/FileUtilsNative.cpp
     ${PROJ_DIR}/sources_android/mog/core/Texture2DNative.cpp
     ${PROJ_DIR}/sources_android/mog/core/PreferenceNative.cpp
+    ${PROJ_DIR}/sources_android/mog/os/JNILocalFrame.cpp
     ${PROJ_DIR}/sources_android/mog/os/Java_MogJniBridge.cpp
+    ${PROJ_DIR}/sources_android/mog/os/AndroidHelper.cpp
 ### << SOURCE_LIST ###
     )
 

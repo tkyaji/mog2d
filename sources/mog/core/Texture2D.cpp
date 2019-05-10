@@ -9,20 +9,20 @@
 
 using namespace mog;
 
-shared_ptr<Texture2D> Texture2D::createWithAsset(string filename) {
-    auto tex2d = make_shared<Texture2D>();
+std::shared_ptr<Texture2D> Texture2D::createWithAsset(std::string filename) {
+    auto tex2d = std::make_shared<Texture2D>();
     tex2d->loadTextureAsset(filename);
     return tex2d;
 }
 
-shared_ptr<Texture2D> Texture2D::createWithFile(string filepath, Density density) {
-    auto tex2d = make_shared<Texture2D>();
+std::shared_ptr<Texture2D> Texture2D::createWithFile(std::string filepath, Density density) {
+    auto tex2d = std::make_shared<Texture2D>();
     tex2d->loadTextureFile(filepath, density);
     return tex2d;
 }
 
-shared_ptr<Texture2D> Texture2D::createWithImage(const std::shared_ptr<ByteArray> &bytes) {
-    auto tex2d = make_shared<Texture2D>();
+std::shared_ptr<Texture2D> Texture2D::createWithImage(const std::shared_ptr<ByteArray> &bytes) {
+    auto tex2d = std::make_shared<Texture2D>();
     unsigned char *value = nullptr;
     unsigned int length = 0;
     bytes->getValue(&value, &length);
@@ -30,20 +30,20 @@ shared_ptr<Texture2D> Texture2D::createWithImage(const std::shared_ptr<ByteArray
     return tex2d;
 }
 
-shared_ptr<Texture2D> Texture2D::createWithText(string text, float fontSize, string fontFilename, float height) {
-    auto tex2d = make_shared<Texture2D>();
-    tex2d->loadFontTexture(text, fontSize, fontFilename, height);
+std::shared_ptr<Texture2D> Texture2D::createWithText(std::string text, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
+    auto tex2d = std::make_shared<Texture2D>();
+    tex2d->loadFontTexture(text, fontSize, fontFilename, height, textMode, strokeWidth);
     return tex2d;
 }
 
-shared_ptr<Texture2D> Texture2D::createWithColor(TextureType textureType, const Color &color, int width, int height, Density density) {
-    auto tex2d = make_shared<Texture2D>();
+std::shared_ptr<Texture2D> Texture2D::createWithColor(TextureType textureType, const Color &color, int width, int height, Density density) {
+    auto tex2d = std::make_shared<Texture2D>();
     tex2d->loadColorTexture(textureType, color, width, height, density);
     return tex2d;
 }
 
-shared_ptr<Texture2D> Texture2D::createWithRGBA(unsigned char *data, int width, int height, Density density) {
-    auto tex2d = make_shared<Texture2D>();
+std::shared_ptr<Texture2D> Texture2D::createWithRGBA(unsigned char *data, int width, int height, Density density) {
+    auto tex2d = std::make_shared<Texture2D>();
     tex2d->data = data;
     tex2d->dataLength = width * height * 4;
     tex2d->width = width;
@@ -59,12 +59,10 @@ Texture2D::Texture2D() {
 
 Texture2D::~Texture2D() {
     if (this->data) mogfree(this->data);
-    if (this->textureId > 0) {
-        glDeleteTextures(1, &this->textureId);
-    }
+    this->releaseBuffer();
 }
 
-void Texture2D::loadTextureAsset(string filename) {
+void Texture2D::loadTextureAsset(std::string filename) {
     Density den = Density::x1_0;
     
     auto data = this->readBytesAsset(filename, &den);
@@ -80,7 +78,7 @@ void Texture2D::loadTextureAsset(string filename) {
     this->loadImageFromBuffer(value, length);
 }
 
-void Texture2D::loadTextureFile(string filepath, Density density) {
+void Texture2D::loadTextureFile(std::string filepath, Density density) {
     this->density = density;
     auto buffer = FileUtils::readDataFromFile(filepath);
     unsigned char *value = nullptr;
@@ -89,7 +87,7 @@ void Texture2D::loadTextureFile(string filepath, Density density) {
     this->loadImageFromBuffer(value, length);
 }
 
-std::shared_ptr<ByteArray> Texture2D::readBytesAsset(string filename, Density *density) {
+std::shared_ptr<ByteArray> Texture2D::readBytesAsset(std::string filename, Density *density) {
     Density current = Density::getCurrent();
     Density den = current;
     auto data = FileUtils::readBytesAsset(den.directory + "/" + filename);
@@ -131,9 +129,9 @@ std::shared_ptr<ByteArray> Texture2D::readBytesAsset(string filename, Density *d
     return data;
 }
 
-void Texture2D::loadFontTexture(string text, float fontSize, string fontFilename, float height) {
+void Texture2D::loadFontTexture(std::string text, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
     Density den = Density::getCurrent();
-    Texture2DNative::loadFontTexture(this, text.c_str(), fontSize * den.value, fontFilename.c_str(), height * den.value);
+    Texture2DNative::loadFontTexture(this, text.c_str(), fontSize * den.value, fontFilename.c_str(), height * den.value, textMode, strokeWidth * den.value);
     this->density = den;
 }
 
@@ -235,4 +233,11 @@ void Texture2D::loadImageFromBuffer(unsigned char *buffer, int len) {
     this->height = y;
     this->bitsPerPixel = n;
     this->dataLength = x * y * n;
+}
+
+void Texture2D::releaseBuffer() {
+    if (this->textureId > 0) {
+        glDeleteTextures(1, &this->textureId);
+        this->textureId = 0;
+    }
 }

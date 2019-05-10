@@ -20,14 +20,15 @@ namespace mog {
         }
 
         std::vector<Point> getPoints();
-        virtual shared_ptr<Collider> getCollider() override;
+        virtual std::shared_ptr<Collider> getCollider() override;
 
     protected:
         void init(const std::vector<Point> &vertexPoints);
         virtual void bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform = false) override;
-        virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) override;
+        virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) override;
         virtual std::shared_ptr<AABB> getAABB() override;
-        virtual shared_ptr<POLYGON> getPOLYGON();
+        virtual std::shared_ptr<POLYGON> getPOLYGON();
+        virtual std::shared_ptr<Entity> cloneEntity() override;
 
         std::vector<Point> vertexPoints;
         Point minPosition = Point::zero;

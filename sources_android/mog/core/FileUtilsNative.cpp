@@ -42,13 +42,13 @@ bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, unsi
 }
 
 string FileUtilsNative::getDocumentsDirectory() {
-    auto fileRet = AndroidHelper::getActivity()->execute<NativeObject>("getFilesDir");
+    auto fileRet = AndroidHelper::mogActivity->execute<NativeObject>("getFilesDir");
     auto pathRet = fileRet->execute<String>("getCanonicalPath");
     return pathRet->getValue();
 }
 
 string FileUtilsNative::getCachesDirectory() {
-    auto fileRet = AndroidHelper::getActivity()->execute<NativeObject>("getCacheDir");
+    auto fileRet = AndroidHelper::mogActivity->execute<NativeObject>("getCacheDir");
     auto pathRet = fileRet->execute<String>("getCanonicalPath");
     return pathRet->getValue();
 }

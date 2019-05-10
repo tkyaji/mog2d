@@ -20,12 +20,15 @@ public:
     void setScrollPosition(const mog::Point &position);
 
 protected:
+    ScrollGroup() {}
+    
     std::shared_ptr<mog::Group> contentGroup;
     mog::Point velocity = mog::Point::zero;
     bool dragging = false;
     unsigned char scrollFlag = SCROLL_BOTH;
     
     void init(const mog::Size &scrollSize, const mog::Size &contentSize, unsigned char scrollFlag);
+    virtual std::shared_ptr<Entity> cloneEntity() override;
 };
 
 #endif /* ScrollGroup_h */

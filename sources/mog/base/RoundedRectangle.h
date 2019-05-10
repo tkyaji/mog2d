@@ -19,20 +19,22 @@
 namespace mog {
     class RoundedRectangle : public Sprite {
     public:
-        static shared_ptr<RoundedRectangle> create(const Size &size, float cornerRadius, unsigned char cornerFlag = CORNER_ALL);
-        static shared_ptr<RoundedRectangle> create(float width, float height, float cornerRadius, unsigned char cornerFlag = CORNER_ALL);
+        static std::shared_ptr<RoundedRectangle> create(const Size &size, float cornerRadius, unsigned char cornerFlag = CORNER_ALL);
+        static std::shared_ptr<RoundedRectangle> create(float width, float height, float cornerRadius, unsigned char cornerFlag = CORNER_ALL);
         
         float getCornerRadius();
-        
+        std::shared_ptr<RoundedRectangle> clone();
+
     protected:
         float cornerRadius = 0;
         unsigned char cornerFlag = CORNER_ALL;
         
-        RoundedRectangle();
+        RoundedRectangle() {}
         
         void init(const Size &size, float cornerRadius, unsigned char cornerFlag);
         virtual void bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) override;
-        virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) override;
+        virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) override;
+        virtual std::shared_ptr<Entity> cloneEntity() override;
     };
 }
 

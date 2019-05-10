@@ -3,22 +3,22 @@
 using namespace mog;
 
 static const GLchar *fragmentShaderSource = "\
-uniform sampler2D u_texture;\
+uniform sampler2D u_texture0;\
 uniform highp vec2 u_screenSize;\
 uniform highp float u_screenScale;\
 uniform highp vec2 u_position;\
 uniform highp vec2 u_size;\
-varying highp vec2 v_uv;\
+varying highp vec2 v_uv0;\
 varying mediump vec4 v_color;\
 void main() {\
     if (gl_FragCoord.x < u_position.x * u_screenScale || gl_FragCoord.y > (u_screenSize.y - u_position.y) * u_screenScale) {\
         discard;\
     } else if (gl_FragCoord.x > (u_position.x + u_size.x) * u_screenScale || gl_FragCoord.y < (u_screenSize.y - (u_position.y + u_size.y)) * u_screenScale) {\
         discard;\
-    } else if (v_uv.x < -0.1) {\
+    } else if (v_uv0.x < -0.1) {\
         gl_FragColor = v_color;\
     } else {\
-        gl_FragColor = texture2D(u_texture, v_uv) * v_color;\
+        gl_FragColor = texture2D(u_texture0, v_uv0) * v_color;\
     }\
 }\
 ";
@@ -32,7 +32,7 @@ std::shared_ptr<ScrollGroup> ScrollGroup::create(const mog::Size &scrollSize, co
 void ScrollGroup::init(const mog::Size &scrollSize, const mog::Size &contentSize, unsigned char scrollFlag) {
     this->scrollFlag = scrollFlag;
     this->enableBatching = true;
-    this->enableTexture = true;
+    this->numOfTexture = 1;
     this->contentGroup = Group::create();
     this->contentGroup->setSize(contentSize);
     Group::add(this->contentGroup);
@@ -41,7 +41,7 @@ void ScrollGroup::init(const mog::Size &scrollSize, const mog::Size &contentSize
     this->renderer->fragmentShader = Shader::create(fragmentShaderSource, ShaderType::FragmentShader);
     
     auto listener = TouchEventListener::create();
-    listener->setOnTouchMoveEvent([this](const Touch &t, const shared_ptr<Entity> &e) {
+    listener->setOnTouchMoveEvent([this](const Touch &t, const std::shared_ptr<Entity> &e) {
         this->dragging = true;
         auto deltaPosition = t.deltaPosition;
         if ((this->scrollFlag & SCROLL_HORIZONTAL) == SCROLL_HORIZONTAL) {
@@ -56,12 +56,12 @@ void ScrollGroup::init(const mog::Size &scrollSize, const mog::Size &contentSize
         }
         this->setScrollPosition(this->contentGroup->getPosition() + deltaPosition);
     });
-    listener->setOnTouchBeginEvent([this](const Touch &t, const shared_ptr<Entity> &e) {
+    listener->setOnTouchBeginEvent([this](const Touch &t, const std::shared_ptr<Entity> &e) {
         if (!this->contentGroup) return false;
         this->velocity = Point::zero;
         return true;
     });
-    listener->setOnTouchEndEvent([this](const Touch &t, const shared_ptr<Entity> &e) {
+    listener->setOnTouchEndEvent([this](const Touch &t, const std::shared_ptr<Entity> &e) {
         this->dragging = false;
     });
     this->addTouchEvent(listener);
@@ -107,4 +107,8 @@ void ScrollGroup::setScrollPosition(const Point &position) {
     p.y = fmax(p.y, scrollSize.height - contentSize.height);
     p.y = fmin(p.y, 0);
     this->contentGroup->setPosition(p);
+}
+
+std::shared_ptr<Entity> ScrollGroup::cloneEntity() {
+    return nullptr;
 }

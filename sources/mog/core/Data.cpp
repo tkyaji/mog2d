@@ -7,11 +7,23 @@
 #include <string.h>
 
 using namespace mog;
-using namespace std;
 
 #pragma - Data
 
 void *enabler;
+
+#pragma - Null
+
+std::shared_ptr<Null> Null::create() {
+    return std::shared_ptr<Null>(new Null());
+}
+
+void Null::write(std::ostream &out) {
+}
+
+void Null::read(std::istream &in) {
+}
+
 
 #pragma - Int
 
@@ -28,12 +40,12 @@ int Int::getValue() {
     return this->value;
 }
 
-void Int::write(ostream &out) {
+void Int::write(std::ostream &out) {
     out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->value, sizeof(int));
 }
 
-void Int::read(istream &in) {
+void Int::read(std::istream &in) {
     in.read((char *)&this->type, sizeof(char));
     if (this->type != DataType::Int) {
         throw std::ios_base::failure("data type is not match. type=Int");
@@ -57,12 +69,12 @@ long long Long::getValue() {
     return this->value;
 }
 
-void Long::write(ostream &out) {
+void Long::write(std::ostream &out) {
     out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->value, sizeof(long long));
 }
 
-void Long::read(istream &in) {
+void Long::read(std::istream &in) {
     in.read((char *)&this->type, sizeof(char));
     if (this->type != DataType::Long) {
         throw std::ios_base::failure("data type is not match. type=Long");
@@ -86,12 +98,12 @@ float Float::getValue() {
     return this->value;
 }
 
-void Float::write(ostream &out) {
+void Float::write(std::ostream &out) {
     out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->value, sizeof(float));
 }
 
-void Float::read(istream &in) {
+void Float::read(std::istream &in) {
     in.read((char *)&this->type, sizeof(char));
     if (this->type != DataType::Float) {
         throw std::ios_base::failure("data type is not match. type=Float");
@@ -115,12 +127,12 @@ double Double::getValue() {
     return this->value;
 }
 
-void Double::write(ostream &out) {
+void Double::write(std::ostream &out) {
     out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->value, sizeof(double));
 }
 
-void Double::read(istream &in) {
+void Double::read(std::istream &in) {
     in.read((char *)&this->type, sizeof(char));
     if (this->type != DataType::Double) {
         throw std::ios_base::failure("data type is not match. type=Double");
@@ -144,12 +156,12 @@ bool Bool::getValue() {
     return this->value;
 }
 
-void Bool::write(ostream &out) {
+void Bool::write(std::ostream &out) {
     out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->value, sizeof(bool));
 }
 
-void Bool::read(istream &in) {
+void Bool::read(std::istream &in) {
     in.read((char *)&this->type, sizeof(char));
     if (this->type != DataType::Bool) {
         throw std::ios_base::failure("data type is not match. type=Bool");
@@ -204,13 +216,13 @@ unsigned char *ByteArray::getBytes(bool copy) {
     }
 }
 
-void ByteArray::write(ostream &out) {
+void ByteArray::write(std::ostream &out) {
     out.write((char *)&this->type, sizeof(char));
     out.write((char *)&this->length, sizeof(unsigned int));
     out.write((char *)this->value, this->length * sizeof(char));
 }
 
-void ByteArray::read(istream &in) {
+void ByteArray::read(std::istream &in) {
     in.read((char *)&this->type, sizeof(char));
     if (this->type != DataType::ByteArray) {
         throw std::ios_base::failure("data type is not match. type=ByteArray");
@@ -219,12 +231,12 @@ void ByteArray::read(istream &in) {
     in.read((char *)this->value, this->length * sizeof(char));
 }
 
-string ByteArray::toString() {
-    return string((char *)this->value, this->length);
+std::string ByteArray::toString() {
+    return std::string((char *)this->value, this->length);
 }
 
-string ByteArray::toString() const {
-    return string((char *)this->value, this->length);
+std::string ByteArray::toString() const {
+    return std::string((char *)this->value, this->length);
 }
 
 
@@ -255,14 +267,14 @@ std::string String::getValue() {
     return this->value;
 }
 
-void String::write(ostream &out) {
+void String::write(std::ostream &out) {
     out.write((char *)&this->type, sizeof(char));
     unsigned int size = (unsigned int)this->value.size();
     out.write((char *)&size, sizeof(unsigned int));
     out.write((char *)this->value.c_str(), size * sizeof(char));
 }
 
-void String::read(istream &in) {
+void String::read(std::istream &in) {
     in.read((char *)&this->type, sizeof(char));
     if (this->type != DataType::String) {
         throw std::ios_base::failure("data type is not match. type=String");
@@ -271,7 +283,7 @@ void String::read(istream &in) {
     in.read((char *)&size, sizeof(unsigned int));
     char *str = (char *)mogmalloc(sizeof(char) * size);
     in.read((char *)str, size * sizeof(char));
-    this->value = string(str, size);
+    this->value = std::string(str, size);
     mogfree(str);
 }
 
@@ -310,7 +322,7 @@ DataType List::atType(int idx) const {
     return this->datum.at(idx)->type;
 }
 
-void List::write(ostream &out) {
+void List::write(std::ostream &out) {
     out.write((char *)&this->type, sizeof(char));
     unsigned int size = (unsigned int)this->datum.size();
     out.write((char *)&size, sizeof(unsigned int));
@@ -319,7 +331,7 @@ void List::write(ostream &out) {
     }
 }
 
-void List::read(istream &in) {
+void List::read(std::istream &in) {
     in.read((char *)&this->type, sizeof(char));
     if (this->type != DataType::List) {
         throw std::ios_base::failure("data type is not match. type=List");
@@ -389,7 +401,7 @@ Dictionary::Dictionary() {
     this->type = DataType::Dictionary;
 }
 
-void Dictionary::remove(string key) {
+void Dictionary::remove(std::string key) {
     this->datum.erase(key);
 }
 
@@ -405,8 +417,8 @@ void Dictionary::put(std::string key, const std::shared_ptr<Data> &data) {
     this->datum[key] = data;
 }
 
-vector<string> Dictionary::getKeys() const {
-    vector<string> keys;
+std::vector<std::string> Dictionary::getKeys() const {
+    std::vector<std::string> keys;
     keys.reserve(this->datum.size());
     for (auto &pair : this->datum) {
         keys.emplace_back(pair.first);
@@ -420,11 +432,11 @@ std::pair<std::string, std::shared_ptr<Data>> Dictionary::getKeyValue(int idx) {
     return std::pair<std::string, std::shared_ptr<Data>>(itr->first, itr->second);
 }
 
-DataType Dictionary::getType(string key) const {
+DataType Dictionary::getType(std::string key) const {
     return this->datum.at(key)->type;
 }
 
-void Dictionary::write(ostream &out) {
+void Dictionary::write(std::ostream &out) {
     out.write((char *)&this->type, sizeof(char));
     unsigned int size = (unsigned int)this->datum.size();
     out.write((char *)&size, sizeof(unsigned int));
@@ -435,7 +447,7 @@ void Dictionary::write(ostream &out) {
     }
 }
 
-void Dictionary::read(istream &in) {
+void Dictionary::read(std::istream &in) {
     in.read((char *)&this->type, sizeof(char));
     if (this->type != DataType::Dictionary) {
         throw std::ios_base::failure("data type is not match. type=Dictionary");
@@ -499,7 +511,7 @@ void Dictionary::read(istream &in) {
 }
 
 
-static shared_ptr<Data> jsonValueToData(json_value_s *value) {
+static std::shared_ptr<Data> jsonValueToData(json_value_s *value) {
     switch (value->type) {
         case json_type_object: {
             auto dict = Dictionary::create();
@@ -507,7 +519,7 @@ static shared_ptr<Data> jsonValueToData(json_value_s *value) {
             json_object_element_s *elm = obj->start;
             while (elm != NULL) {
                 json_string_s *name = elm->name;
-                string key = string(name->string);
+                std::string key = std::string(name->string);
                 auto value = jsonValueToData(elm->value);
                 dict->put(key, value);
                 elm = elm->next;
@@ -551,26 +563,26 @@ static shared_ptr<Data> jsonValueToData(json_value_s *value) {
     }
 }
 
-static void dataTojsonString(stringstream &ss, const std::shared_ptr<Data> &data) {
+static void dataTojsonString(std::stringstream &ss, const std::shared_ptr<Data> &data) {
     switch (data->type) {
         case DataType::Int:
-            ss << static_pointer_cast<Int>(data)->getValue();
+            ss << std::static_pointer_cast<Int>(data)->getValue();
             break;
             
         case DataType::Long:
-            ss << static_pointer_cast<Long>(data)->getValue();
+            ss << std::static_pointer_cast<Long>(data)->getValue();
             break;
             
         case DataType::Float:
-            ss << static_pointer_cast<Float>(data)->getValue();
+            ss << std::static_pointer_cast<Float>(data)->getValue();
             break;
             
         case DataType::Double:
-            ss << static_pointer_cast<Double>(data)->getValue();
+            ss << std::static_pointer_cast<Double>(data)->getValue();
             break;
             
         case DataType::Bool: {
-            bool b = static_pointer_cast<Bool>(data)->getValue();
+            bool b = std::static_pointer_cast<Bool>(data)->getValue();
             if (b) {
                 ss << "true";
             } else {
@@ -580,7 +592,7 @@ static void dataTojsonString(stringstream &ss, const std::shared_ptr<Data> &data
         }
             
         case DataType::String: {
-            string str = static_pointer_cast<String>(data)->getValue();
+            std::string str = std::static_pointer_cast<String>(data)->getValue();
             if (!str.empty()) {
                 std::string::size_type pos = 0;
                 while ((pos = str.find('"', pos)) != std::string::npos) {
@@ -593,7 +605,7 @@ static void dataTojsonString(stringstream &ss, const std::shared_ptr<Data> &data
         }
             
         case DataType::ByteArray: {
-            auto bytes = static_pointer_cast<ByteArray>(data);
+            auto bytes = std::static_pointer_cast<ByteArray>(data);
             ss << "[";
             for (int i = 0; i < bytes->getLength(); i++) {
                 if (i > 0) ss << ",";
@@ -605,7 +617,7 @@ static void dataTojsonString(stringstream &ss, const std::shared_ptr<Data> &data
         }
             
         case DataType::Dictionary: {
-            auto dict = static_pointer_cast<Dictionary>(data);
+            auto dict = std::static_pointer_cast<Dictionary>(data);
             ss << "{";
             for (int i = 0; i < dict->size(); i++) {
                 if (i > 0) ss << ",";
@@ -619,7 +631,7 @@ static void dataTojsonString(stringstream &ss, const std::shared_ptr<Data> &data
         }
             
         case DataType::List: {
-            auto list = static_pointer_cast<List>(data);
+            auto list = std::static_pointer_cast<List>(data);
             ss << "[";
             for (int i = 0; i < list->size(); i++) {
                 if (i > 0) ss << ",";
@@ -636,13 +648,13 @@ static void dataTojsonString(stringstream &ss, const std::shared_ptr<Data> &data
 }
 
 
-std::shared_ptr<Data> Json::_parse(string jsonText) {
+std::shared_ptr<Data> Json::_parse(std::string jsonText) {
     json_value_s *root = json_parse(jsonText.c_str(), jsonText.size());
     return jsonValueToData(root);
 }
 
 std::string Json::toJson(const std::shared_ptr<Data> &data) {
-    stringstream ss;
+    std::stringstream ss;
     dataTojsonString(ss, data);
     return ss.str();
 }

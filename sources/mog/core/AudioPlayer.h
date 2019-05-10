@@ -49,6 +49,7 @@ namespace mog {
     
     class AudioPlayer {
     public:
+        static AudioPlayer *instance;
         std::unique_ptr<AudioPlayerNative> audioPlayerNative;
         
         static void initialize();
@@ -68,7 +69,6 @@ namespace mog {
         static void onResume();
 
     private:
-        static AudioPlayer *instance;
         static void preload() { }
         static void preloadOne(std::string filename);
         static void execute();

@@ -16,8 +16,8 @@ using namespace mog;
 
 std::weak_ptr<Engine> Engine::instance;
 
-std::shared_ptr<Engine> Engine::create(const shared_ptr<AppBase> &app) {
-    auto engine = shared_ptr<Engine>(new Engine());
+std::shared_ptr<Engine> Engine::create(const std::shared_ptr<AppBase> &app) {
+    auto engine = std::shared_ptr<Engine>(new Engine());
     Engine::instance = engine;
     engine->app = app;
     app->setEngine(engine);
@@ -30,7 +30,7 @@ std::shared_ptr<Engine> Engine::getInstance() {
 
 Engine::Engine() {
     AudioPlayer::initialize();
-    this->renderer = make_shared<Renderer>();
+    this->renderer = Renderer::create();
 }
 
 Engine::~Engine() {
@@ -69,6 +69,8 @@ void Engine::stopEngine() {
     
     if (this->app) {
         this->app->onPause();
+        Renderer::releaseAllBuffer();
+        BasicShader::clearShaderCache();
     }
     AudioPlayer::onPause();
     
@@ -79,7 +81,7 @@ void Engine::stopEngine() {
     this->running = false;
 }
 
-void Engine::onDrawFrame(map<unsigned int, TouchInput> touches) {
+void Engine::onDrawFrame(std::map<unsigned int, TouchInput> touches) {
     if (!this->running) return;
 
     float elapsed = this->getTimerElapsedSec();
@@ -124,20 +126,8 @@ void Engine::initScreen() {
     this->displaySizeChanged = false;
 }
 
-shared_ptr<AppBase> Engine::getApp() {
+std::shared_ptr<AppBase> Engine::getApp() {
     return this->app;
-}
-
-shared_ptr<NativeObject> Engine::getNativeObject(string name) {
-    return this->nativeObjects[name];
-}
-
-void Engine::setNativeObject(string name, const shared_ptr<NativeObject> &nObj) {
-    this->nativeObjects[name] = nObj;
-}
-
-void Engine::removeNativeObject(string name) {
-    this->nativeObjects.erase(name);
 }
 
 bool Engine::isRunning() {
@@ -229,7 +219,7 @@ void Engine::setStatsAlignment(Alignment alignment) {
     this->stats->setAlignment(alignment);
 }
 
-shared_ptr<MogStats> Engine::getStats() {
+std::shared_ptr<MogStats> Engine::getStats() {
     return this->stats;
 }
 
@@ -252,7 +242,7 @@ float Engine::getTimerElapsedSec() {
     return this->getTimerElapsed() * 0.000001f;
 }
 
-void Engine::fireTouchListeners(map<unsigned int, TouchInput> touches) {
+void Engine::fireTouchListeners(std::map<unsigned int, TouchInput> touches) {
     float scale = this->screenSize.width / this->viewSize.width;
     float uptime = this->getTimerElapsedSec();
     
@@ -319,7 +309,7 @@ void Engine::fireTouchListeners(map<unsigned int, TouchInput> touches) {
     this->touchableEntities.clear();
 }
 
-void Engine::pushTouchableEntity(const shared_ptr<Entity> &entity) {
+void Engine::pushTouchableEntity(const std::shared_ptr<Entity> &entity) {
     this->touchableEntities.emplace_back(entity);
 }
 
@@ -339,7 +329,7 @@ bool Engine::isMultiTouchEnable() {
     return this->multiTouchEnable;
 }
 
-unsigned int Engine::registerOnUpdateFunc(function<void(unsigned int funcId)> onUpdateFunc) {
+unsigned int Engine::registerOnUpdateFunc(std::function<void(unsigned int funcId)> onUpdateFunc) {
     unsigned int funcId = ++Engine::onUpdateFuncIdCounter;
     this->onUpdateFuncsToAdd[funcId] = onUpdateFunc;
     return funcId;

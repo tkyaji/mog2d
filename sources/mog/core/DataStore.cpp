@@ -5,11 +5,11 @@ using namespace mog;
 
 #pragma - DataStore
 
-unordered_map<string, shared_ptr<Data>> DataStore::caches;
-unordered_map<string, bool> DataStore::unsaved;
-mutex DataStore::mtx;
+std::unordered_map<std::string, std::shared_ptr<Data>> DataStore::caches;
+std::unordered_map<std::string, bool> DataStore::unsaved;
+std::mutex DataStore::mtx;
 
-void DataStore::setData(string key, const std::shared_ptr<Data> &value, bool immediatelySave) {
+void DataStore::setData(std::string key, const std::shared_ptr<Data> &value, bool immediatelySave) {
     std::lock_guard<std::mutex> lock(mtx);
     
     DataStore::caches[key] = value;
@@ -20,11 +20,11 @@ void DataStore::setData(string key, const std::shared_ptr<Data> &value, bool imm
     }
 }
 
-void DataStore::serialize(string filepath, const std::shared_ptr<Data> &data) {
-    string tmp = filepath + ".tmp";
-    ofstream fout;
-    fout.exceptions(ios::failbit|ios::badbit);
-    fout.open(tmp, ios::out|ios::binary);
+void DataStore::serialize(std::string filepath, const std::shared_ptr<Data> &data) {
+    std::string tmp = filepath + ".tmp";
+    std::ofstream fout;
+    fout.exceptions(std::ios::failbit|std::ios::badbit);
+    fout.open(tmp, std::ios::out|std::ios::binary);
     data->write(fout);
     fout.flush();
     fout.close();
@@ -39,8 +39,8 @@ void DataStore::serialize(string filepath, const std::shared_ptr<Data> &data) {
 }
 
 void DataStore::serialize(unsigned char **byteData, int *len, const std::shared_ptr<Data> &data) {
-    ostringstream sout(ios::binary);
-    sout.exceptions(ios::failbit|ios::badbit);
+    std::ostringstream sout(std::ios::binary);
+    sout.exceptions(std::ios::failbit|std::ios::badbit);
     data->write(sout);
     const char *sdata = sout.str().data();
     size_t size = sout.str().size();
@@ -49,37 +49,37 @@ void DataStore::serialize(unsigned char **byteData, int *len, const std::shared_
     memcpy(*byteData, sdata, size);
 }
 
-void DataStore::_serialize(string key, const std::shared_ptr<Data> &data) {
-    string dirStr = getStoreDirectory();
+void DataStore::_serialize(std::string key, const std::shared_ptr<Data> &data) {
+    std::string dirStr = getStoreDirectory();
     const char *dir = dirStr.c_str();
     struct stat st;
     if (stat(dir, &st) == -1) {
         mkdir(dir, S_IRWXU|S_IRWXG);
     }
-    string file = getStoreFilePath(key);
+    std::string file = getStoreFilePath(key);
     serialize(file, data);
 }
 
-bool DataStore::hasKey(string key) {
+bool DataStore::hasKey(std::string key) {
     std::lock_guard<std::mutex> lock(mtx);
     return _hasKey(key);
 }
 
-bool DataStore::_hasKey(string key) {
+bool DataStore::_hasKey(std::string key) {
     if (DataStore::caches.count(key) > 0) return true;
     
-    string file = getStoreFilePath(key);
+    std::string file = getStoreFilePath(key);
     struct stat st;
     return (stat(file.c_str(), &st) == 0);
 }
 
-void DataStore::remove(string key) {
+void DataStore::remove(std::string key) {
     std::lock_guard<std::mutex> lock(mtx);
     _remove(key);
 }
 
-void DataStore::_remove(string key) {
-    string file = getStoreFilePath(key);
+void DataStore::_remove(std::string key) {
+    std::string file = getStoreFilePath(key);
     std::remove(file.c_str());
 }
 
@@ -95,7 +95,7 @@ void DataStore::_removeAll() {
     struct dirent* dt;
     while ((dt = readdir(dp)) != NULL) {
         if (dt->d_type == DT_REG) {
-            string file = getStoreDirectory() + dt->d_name;
+            std::string file = getStoreDirectory() + dt->d_name;
             std::remove(file.c_str());
         }
     }
@@ -118,12 +118,12 @@ void DataStore::_save() {
     DataStore::unsaved.clear();
 }
 
-void DataStore::save(string key) {
+void DataStore::save(std::string key) {
     std::lock_guard<std::mutex> lock(mtx);
     _save(key);
 }
 
-void DataStore::_save(string key) {
+void DataStore::_save(std::string key) {
     auto data = DataStore::caches[key];
     if (data) {
         DataStore::_serialize(key, data);

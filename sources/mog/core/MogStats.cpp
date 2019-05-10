@@ -16,14 +16,14 @@ using namespace mog;
 int MogStats::drawCallCount = 0;
 int MogStats::instanceCount = 0;
 
-shared_ptr<MogStats> MogStats::create(bool enable) {
-    auto stats = shared_ptr<MogStats>(new MogStats());
+std::shared_ptr<MogStats> MogStats::create(bool enable) {
+    auto stats = std::shared_ptr<MogStats>(new MogStats());
     stats->enable = enable;
     stats->setAlignment(Alignment::BottomLeft);
     return stats;
 }
 
-void MogStats::drawFrame(const shared_ptr<Engine> &engine, float delta) {
+void MogStats::drawFrame(const std::shared_ptr<Engine> &engine, float delta) {
     if (!this->enable) return;
     
     this->screenScale = engine->getScreenScale();
@@ -122,23 +122,23 @@ void MogStats::bindVertex() {
     this->renderer->vertices[4] = size.width;   this->renderer->vertices[5] = 0;
     this->renderer->vertices[6] = size.width;   this->renderer->vertices[7] = size.height;
 
-    this->renderer->vertexTexCoords[0] = 0;     this->renderer->vertexTexCoords[1] = 0;
-    this->renderer->vertexTexCoords[2] = 0;     this->renderer->vertexTexCoords[3] = 1.0;
-    this->renderer->vertexTexCoords[4] = 1.0f;  this->renderer->vertexTexCoords[5] = 0;
-    this->renderer->vertexTexCoords[6] = 1.0f;  this->renderer->vertexTexCoords[7] = 1.0f;
+    this->renderer->vertexTexCoords[0][0] = 0;     this->renderer->vertexTexCoords[0][1] = 0;
+    this->renderer->vertexTexCoords[0][2] = 0;     this->renderer->vertexTexCoords[0][3] = 1.0;
+    this->renderer->vertexTexCoords[0][4] = 1.0f;  this->renderer->vertexTexCoords[0][5] = 0;
+    this->renderer->vertexTexCoords[0][6] = 1.0f;  this->renderer->vertexTexCoords[0][7] = 1.0f;
 
     this->renderer->bindVertex(true);
     this->texture->bindTexture();
     this->renderer->bindVertexTexCoords(this->texture->textureId, true);
 }
 
-void MogStats::init(const shared_ptr<Engine> &engine) {
-    this->renderer = make_shared<Renderer>();
-    this->transform = make_shared<Transform>();
+void MogStats::init(const std::shared_ptr<Engine> &engine) {
+    this->renderer = Renderer::create();
+    this->transform = std::make_shared<Transform>();
     this->renderer->initScreenParameters(engine);
 
     for (int i = 0; i < 10; i++) {
-        auto tex = this->createLabelTexture(to_string(i));
+        auto tex = this->createLabelTexture(std::to_string(i));
         this->numberTexture2ds[i] = tex;
     }
     this->numberTexture2ds['.'] = this->createLabelTexture(".");
@@ -160,9 +160,9 @@ void MogStats::init(const shared_ptr<Engine> &engine) {
     auto instants = this->createLabelTexture("0");
 
     this->width = fps->width + separator->width + delta->width + xMargin * 2 + padding * 2;
-    this->height = max(fps->height, delta->height) +
-        max(drawCallLabel->height, drawCall->height) +
-        max(instantsLabel->height, instants->height) + padding * 2;
+    this->height = fmax(fps->height, delta->height) +
+        fmax(drawCallLabel->height, drawCall->height) +
+        fmax(instantsLabel->height, instants->height) + padding * 2;
     this->data = (unsigned char *)mogcalloc(this->width * this->height * 4, sizeof(unsigned char));
     for (int i = 0; i < this->width * this->height; i++) {
         this->data[i * 4 + 3] = ALPHA;
@@ -170,26 +170,26 @@ void MogStats::init(const shared_ptr<Engine> &engine) {
     this->texture = Texture2D::createWithRGBA(this->data, this->width, this->height, Density::getCurrent());
 
     this->setTextToData(fps, x, y);
-    this->positions[FPS] = pair<int, int>(x, y);
+    this->positions[FPS] = std::pair<int, int>(x, y);
     x += fps->width + xMargin;
     this->setTextToData(separator, x, y);
     x += separator->width + xMargin;
     this->setTextToData(delta, x, y);
-    this->positions[DELTA] = pair<int, int>(x, y);
+    this->positions[DELTA] = std::pair<int, int>(x, y);
 
     x = startX;
     y += fps->height + yMargin;
     this->setTextToData(drawCallLabel, x, y);
     x += drawCallLabel->width + xMargin;
     this->setTextToData(drawCall, x, y);
-    this->positions[DRAW_CALL] = pair<int, int>(x, y);
+    this->positions[DRAW_CALL] = std::pair<int, int>(x, y);
 
     x = startX;
     y += drawCallLabel->height + yMargin;
     this->setTextToData(instantsLabel, x, y);
     x += instantsLabel->width + xMargin;
     this->setTextToData(instants, x, y);
-    this->positions[INSTANTS] = pair<int, int>(x, y);
+    this->positions[INSTANTS] = std::pair<int, int>(x, y);
 
     this->bindVertex();
     this->initialized = true;
@@ -198,7 +198,7 @@ void MogStats::init(const shared_ptr<Engine> &engine) {
     this->initialized = true;
 }
 
-void MogStats::setTextToData(shared_ptr<Texture2D> text, int x, int y) {
+void MogStats::setTextToData(std::shared_ptr<Texture2D> text, int x, int y) {
     for (int yi = 0; yi < text->height; yi++) {
         memcpy(&this->data[((yi + y) * this->width + x) * 4],
                &text->data[(yi * text->width) * 4],
@@ -207,10 +207,10 @@ void MogStats::setTextToData(shared_ptr<Texture2D> text, int x, int y) {
 }
 
 void MogStats::setNumberToData(float value, int intLength, int decimalLength, int x, int y) {
-    intLength = max(intLength, (int)log10(value) + 1);
+    intLength = fmax(intLength, (int)log10(value) + 1);
     int intVal = (int)(value * pow(10, decimalLength));
     int length = intLength + decimalLength;
-    vector<shared_ptr<Texture2D>> vec;
+    std::vector<std::shared_ptr<Texture2D>> vec;
     int width = 0;
     int height = 0;
     for (int i = 0; i < length; i++) {
@@ -218,12 +218,12 @@ void MogStats::setNumberToData(float value, int intLength, int decimalLength, in
         auto tex = this->numberTexture2ds[v];
         vec.emplace_back(tex);
         width += tex->width;
-        height = max(height, tex->height);
+        height = fmax(height, tex->height);
         if (i + 1 == decimalLength) {
             tex = this->numberTexture2ds['.'];
             vec.emplace_back(tex);
             width += tex->width;
-            height = max(height, tex->height);
+            height = fmax(height, tex->height);
         }
         intVal /= 10;
     }
@@ -240,7 +240,7 @@ void MogStats::setNumberToData(float value, int intLength, int decimalLength, in
 #include <QFontDatabase>
 #endif
 
-shared_ptr<Texture2D> MogStats::createLabelTexture(string text) {
+std::shared_ptr<Texture2D> MogStats::createLabelTexture(std::string text) {
 #if defined(MOG_IOS) || defined(MOG_OSX)
     const char *fontFace = "Courier";
 #elif defined(MOG_ANDROID)

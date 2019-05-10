@@ -13,8 +13,6 @@
 #define VBO_TEXTURES 2
 #define VBO_COLORS 3
 
-using namespace std;
-
 namespace mog {
     class Engine;
     
@@ -50,14 +48,22 @@ namespace mog {
     class Renderer {
     public:
         static float identityMatrix[20];
+        static std::unordered_map<unsigned long long, std::weak_ptr<Renderer>> allRenderers;
+        static unsigned long long rendererIdCounter;
+        
+        static void releaseAllBuffer();
+        static std::shared_ptr<Renderer> create();
 
+        unsigned long long rendererId = 0;
         int textureId = 0;
         int verticesNum = 0;
         int indicesNum = 0;
         float *vertices = nullptr;
         short *indices = nullptr;
         float *vertexColors = nullptr;
-        float *vertexTexCoords = nullptr;
+        float *vertexTexCoords[4] = {
+            nullptr, nullptr, nullptr, nullptr,
+        };
         float matrix[20] = {
             1, 0, 0, 0,
             0, 1, 0, 0,
@@ -66,12 +72,11 @@ namespace mog {
             1, 1, 1, 1,
         };
 
-        Renderer();
         ~Renderer();
         
         void setDrawType(DrawType drawType);
         
-        void initScreenParameters(const shared_ptr<Engine> &engine);
+        void initScreenParameters(const std::shared_ptr<Engine> &engine);
         void setBlendFunc(BlendingFactor blendingFactorSrc, BlendingFactor blendingFactorDest);
         void setLineWidth(float width);
         void setUniformPointSize(float size);
@@ -102,11 +107,11 @@ namespace mog {
         float getMaxPointSize();
         
         void bindVertex(bool dynamicDraw = false);
-        void bindVertexTexCoords(int textureId, bool dynamicDraw = false);
+        void bindVertexTexCoords(int textureId, int textureIdx, bool dynamicDraw = false);
         void bindVertexColors(bool dynamicDraw = false);
 
         void bindVertexSub(int index, int size);
-        void bindVertexTexCoordsSub(int index, int size);
+        void bindVertexTexCoordsSub(int index, int size, int textureIdx = 0);
         void bindVertexColorsSub(int index, int size);
 
         bool setVerticesNum(int verticesNum);
@@ -114,12 +119,13 @@ namespace mog {
         void newVerticesArr();
         void newIndicesArr();
         void newVertexColorsArr();
-        void newVertexTexCoordsArr();
+        void newVertexTexCoordsArr(int textureIdx = 0);
+        void releaseBuffer();
         
         void drawFrame();
         
-        shared_ptr<Shader> vertexShader = nullptr;
-        shared_ptr<Shader> fragmentShader = nullptr;
+        std::shared_ptr<Shader> vertexShader = nullptr;
+        std::shared_ptr<Shader> fragmentShader = nullptr;
         
     private:
         class UniformParameter {
@@ -196,6 +202,7 @@ namespace mog {
         GLuint vertexBuffer[2] = {0, 0};
         GLuint glShaderProgram = 0;
 
+        Renderer() {}
         std::unordered_map<std::string, UniformParameter> uniformParamsMap;
         std::unordered_map<std::string, bool> dirtyUniformParamsMap;
         

@@ -17,7 +17,12 @@ namespace mog {
         RGB,
     };
     
-    
+
+    enum class TextDrawingMode {
+        Fill,
+        Stroke
+    };
+
     class Texture2D : public std::enable_shared_from_this<Texture2D> {
     public:
         GLuint textureId = 0;
@@ -34,7 +39,7 @@ namespace mog {
         static std::shared_ptr<Texture2D> createWithAsset(std::string filename);
         static std::shared_ptr<Texture2D> createWithFile(std::string filepath, Density density = Density::x1_0);
         static std::shared_ptr<Texture2D> createWithImage(const std::shared_ptr<ByteArray> &bytes);
-        static std::shared_ptr<Texture2D> createWithText(std::string text, float fontSize, std::string fontFilename = "", float height = 0);
+        static std::shared_ptr<Texture2D> createWithText(std::string text, float fontSize, std::string fontFilename = "", float height = 0, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
         static std::shared_ptr<Texture2D> createWithColor(TextureType textureType, const Color &color, int width, int height, Density density);
         static std::shared_ptr<Texture2D> createWithRGBA(unsigned char *data, int width, int height, Density density);
         
@@ -44,12 +49,13 @@ namespace mog {
         void bindTexture();
         void bindTextureSub(GLubyte* data, int x, int y, int width, int height);
         void loadImageFromBuffer(unsigned char *buffer, int len);
+        void releaseBuffer();
         
     private:
         void loadTextureAsset(std::string filename);
         std::shared_ptr<ByteArray> readBytesAsset(std::string filename, Density *density);
         void loadTextureFile(std::string filepath, Density density = Density::x1_0);
-        void loadFontTexture(std::string text, float fontSize, std::string fontFilename = "", float height = 0);
+        void loadFontTexture(std::string text, float fontSize, std::string fontFilename = "", float height = 0, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
         void loadColorTexture(TextureType textureType, const Color &color, int width, int height, Density density = Density::x1_0);
     };
 }

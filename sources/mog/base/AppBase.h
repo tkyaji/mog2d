@@ -43,7 +43,7 @@ namespace mog {
     };
     
     
-    class AppBase : public enable_shared_from_this<AppBase> {
+    class AppBase : public std::enable_shared_from_this<AppBase> {
         friend class Engine;
     public:
         AppBase();
@@ -73,7 +73,7 @@ namespace mog {
         void setStatsViewEnable(bool enable);
         void setStatsViewAlignment(Alignment alignment);
 
-        shared_ptr<PubSub> getPubSub();
+        std::shared_ptr<PubSub> getPubSub();
         unsigned int getSceneStackSize();
 
         virtual void drawFrame(float delta);
@@ -93,7 +93,7 @@ namespace mog {
             Pop,
         };
 
-        weak_ptr<Engine> engine;
+        std::weak_ptr<Engine> engine;
         std::shared_ptr<PubSub> pubsub;
         std::vector<std::shared_ptr<Scene>> sceneStack;
         std::shared_ptr<Scene> currentScene;

@@ -9,7 +9,6 @@
 namespace mog {
     class Graphics : public Drawable {
     public:
-        ~Graphics();
         static std::shared_ptr<Graphics> create(DrawType drawType, const std::vector<Point> &vertexPositions);
         static std::shared_ptr<Graphics> create(DrawType drawType, const std::vector<Point> &vertexPositions, const std::vector<unsigned int> &vertexIndices);
 
@@ -21,7 +20,8 @@ namespace mog {
         void setVertexColor(const std::vector<Color> &vertexColors);
 
     protected:
-        Graphics();
+        Graphics() {}
+        
         void init(DrawType drawType, const std::vector<Point> &vertexPositions);
         void init(DrawType drawType, const std::vector<Point> &vertexPositions, const std::vector<unsigned int> &vertexIndices);
         virtual void bindVertex() override;

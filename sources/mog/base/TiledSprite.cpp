@@ -2,26 +2,41 @@
 
 using namespace mog;
 
-std::shared_ptr<TiledSprite> TiledSprite::create(const std::shared_ptr<Sprite> sprite, const Size &size) {
-    auto tiledSprite = shared_ptr<TiledSprite>(new TiledSprite());
-    tiledSprite->init(sprite, size);
+std::shared_ptr<TiledSprite> TiledSprite::create(std::string filename, const Size &size, const Rect &rect) {
+    auto texture = Texture2D::createWithAsset(filename);
+    return TiledSprite::create(texture, size, rect);
+}
+
+std::shared_ptr<TiledSprite> TiledSprite::create(const std::shared_ptr<Texture2D> &texture, const Size &size, const Rect &rect) {
+    auto tiledSprite = std::shared_ptr<TiledSprite>(new TiledSprite());
+    tiledSprite->init(texture, size, rect);
     return tiledSprite;
 }
 
-TiledSprite::TiledSprite() {
+std::shared_ptr<TiledSprite> TiledSprite::create(const std::shared_ptr<Sprite> &sprite, const Size &size) {
+    return TiledSprite::create(sprite->getTexture(), size, sprite->getRect());
 }
 
-void TiledSprite::init(const shared_ptr<Sprite> sprite, const Size &size) {
-    this->filename = sprite->getFilename();
-    this->texture = sprite->getTexture();
+void TiledSprite::init(const std::shared_ptr<Texture2D> texture, const Size &size, const Rect &rect) {
+    this->textures[0] = texture;
+    this->numOfTexture = 1;
     this->transform->size = size;
-    this->rect = sprite->getRect();
+    Rect _rect = rect;
+    if (rect.size == Size::zero) {
+        _rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
+                          this->textures[0]->height / this->textures[0]->density.value);
+    }
+    this->rect = _rect;
 
-    this->texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
+    this->texSize = Size(this->textures[0]->width, this->textures[0]->height) / this->textures[0]->density.value;
     this->xCount = ceil(this->transform->size.width / texSize.width);
     this->yCount = ceil(this->transform->size.height / texSize.height);
     int vCount = this->xCount * this->yCount * 4 + (this->yCount - 1) * 2;
     this->initRendererVertices(vCount, vCount);
+}
+
+Rect TiledSprite::getRect() {
+    return this->rect;
 }
 
 void TiledSprite::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) {
@@ -102,34 +117,55 @@ void TiledSprite::bindVertices(const std::shared_ptr<Renderer> &renderer, int *v
     }
 }
 
-void TiledSprite::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
+void TiledSprite::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) {
     float _x = x + this->rect.position.x / this->texSize.width;
     float _y = y + this->rect.position.y / this->texSize.height;
     float _w = w * (this->rect.size.width / this->texSize.width);
     float _h = h * (this->rect.size.height / this->texSize.height);
     
+    float hs = 1.0f;
+    float ws = 1.0f;
+    
     for (int yi = 0; yi < this->yCount; yi++) {
         if (yi > 0) {
-            if (this->texture->isFlip) {
-                renderer->vertexTexCoords[(*idx)++] = _x + _w;  renderer->vertexTexCoords[(*idx)++] = _y;
-                renderer->vertexTexCoords[(*idx)++] = _x;       renderer->vertexTexCoords[(*idx)++] = _y + _h;
+            if (this->textures[0]->isFlip) {
+                renderer->vertexTexCoords[texIdx][(*idx)++] = _x + _w * ws; renderer->vertexTexCoords[texIdx][(*idx)++] = _y;
+                renderer->vertexTexCoords[texIdx][(*idx)++] = _x;           renderer->vertexTexCoords[texIdx][(*idx)++] = _y + _h * hs;
             } else {
-                renderer->vertexTexCoords[(*idx)++] = _x + _w;  renderer->vertexTexCoords[(*idx)++] = _y + _h;
-                renderer->vertexTexCoords[(*idx)++] = _x;       renderer->vertexTexCoords[(*idx)++] = _y;
+                renderer->vertexTexCoords[texIdx][(*idx)++] = _x + _w * ws; renderer->vertexTexCoords[texIdx][(*idx)++] = _y + _h * hs;
+                renderer->vertexTexCoords[texIdx][(*idx)++] = _x;           renderer->vertexTexCoords[texIdx][(*idx)++] = _y;
             }
         }
+
+        hs = ((this->transform->size.height * this->textures[0]->density.value) - (this->textures[0]->height * yi)) / this->textures[0]->height;
+        if (hs > 1.0f) hs = 1.0f;
+        
         for (int xi = 0; xi < this->xCount; xi++) {
-            if (this->texture->isFlip) {
-                renderer->vertexTexCoords[(*idx)++] = _x;       renderer->vertexTexCoords[(*idx)++] = _y + _h;
-                renderer->vertexTexCoords[(*idx)++] = _x;       renderer->vertexTexCoords[(*idx)++] = _y;
-                renderer->vertexTexCoords[(*idx)++] = _x + _w;  renderer->vertexTexCoords[(*idx)++] = _y + _h;
-                renderer->vertexTexCoords[(*idx)++] = _x + _w;  renderer->vertexTexCoords[(*idx)++] = _y;
+            ws = ((this->transform->size.width * this->textures[0]->density.value) - (this->textures[0]->width * xi)) / this->textures[0]->width;
+            if (ws > 1.0f) ws = 1.0f;
+            
+            if (this->textures[0]->isFlip) {
+                renderer->vertexTexCoords[texIdx][(*idx)++] = _x;           renderer->vertexTexCoords[texIdx][(*idx)++] = _y + _h * hs;
+                renderer->vertexTexCoords[texIdx][(*idx)++] = _x;           renderer->vertexTexCoords[texIdx][(*idx)++] = _y;
+                renderer->vertexTexCoords[texIdx][(*idx)++] = _x + _w * ws; renderer->vertexTexCoords[texIdx][(*idx)++] = _y + _h * hs;
+                renderer->vertexTexCoords[texIdx][(*idx)++] = _x + _w * ws; renderer->vertexTexCoords[texIdx][(*idx)++] = _y;
             } else {
-                renderer->vertexTexCoords[(*idx)++] = _x;       renderer->vertexTexCoords[(*idx)++] = _y;
-                renderer->vertexTexCoords[(*idx)++] = _x;       renderer->vertexTexCoords[(*idx)++] = _y + _h;
-                renderer->vertexTexCoords[(*idx)++] = _x + _w;  renderer->vertexTexCoords[(*idx)++] = _y;
-                renderer->vertexTexCoords[(*idx)++] = _x + _w;  renderer->vertexTexCoords[(*idx)++] = _y + _h;
+                renderer->vertexTexCoords[texIdx][(*idx)++] = _x;           renderer->vertexTexCoords[texIdx][(*idx)++] = _y;
+                renderer->vertexTexCoords[texIdx][(*idx)++] = _x;           renderer->vertexTexCoords[texIdx][(*idx)++] = _y + _h * hs;
+                renderer->vertexTexCoords[texIdx][(*idx)++] = _x + _w * ws; renderer->vertexTexCoords[texIdx][(*idx)++] = _y;
+                renderer->vertexTexCoords[texIdx][(*idx)++] = _x + _w * ws; renderer->vertexTexCoords[texIdx][(*idx)++] = _y + _h * hs;
             }
         }
     }
+}
+
+std::shared_ptr<TiledSprite> TiledSprite::clone() {
+    auto e = this->cloneEntity();
+    return std::static_pointer_cast<TiledSprite>(e);
+}
+
+std::shared_ptr<Entity> TiledSprite::cloneEntity() {
+    auto sprite = TiledSprite::create(this->textures[0], this->transform->size, this->rect);
+    this->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
+    return sprite;
 }

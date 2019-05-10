@@ -15,7 +15,7 @@ namespace mog {
         friend class AppBase;
         friend class Drawable;
     public:
-        virtual void updateFrame(const shared_ptr<Engine> &engine, float delta);
+        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta);
         virtual void drawFrame(float delta);
         void add(const std::shared_ptr<Drawable> &drawable);
         void remove(const std::shared_ptr<Drawable> &drawable);

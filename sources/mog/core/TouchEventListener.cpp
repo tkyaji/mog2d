@@ -3,8 +3,10 @@
 
 using namespace mog;
 
-shared_ptr<TouchEventListener> TouchEventListener::create() {
-    return shared_ptr<TouchEventListener>(new TouchEventListener());
+#define ON_TAP_THRESHOLD 8.0f
+
+std::shared_ptr<TouchEventListener> TouchEventListener::create() {
+    return std::shared_ptr<TouchEventListener>(new TouchEventListener());
 }
 
 TouchEventListener::TouchEventListener() {
@@ -13,7 +15,7 @@ TouchEventListener::TouchEventListener() {
 TouchEventListener::~TouchEventListener() {
 }
 
-void TouchEventListener::touchBegin(const Touch &touch, const shared_ptr<Entity> &entity) {
+void TouchEventListener::touchBegin(const Touch &touch, const std::shared_ptr<Entity> &entity) {
     if (!this->enabled) return;
     
     unsigned long long tid = ((unsigned long long)entity.get() << 32) + touch.touchId;
@@ -33,7 +35,7 @@ void TouchEventListener::touchBegin(const Touch &touch, const shared_ptr<Entity>
     this->touchBeganIds.insert(tid);
 }
 
-void TouchEventListener::touchMove(const Touch &touch, const shared_ptr<Entity> &entity) {
+void TouchEventListener::touchMove(const Touch &touch, const std::shared_ptr<Entity> &entity) {
     if (!this->enabled) return;
     
     unsigned long long tid = ((unsigned long long)entity.get() << 32) + touch.touchId;
@@ -65,7 +67,7 @@ void TouchEventListener::touchMove(const Touch &touch, const shared_ptr<Entity> 
     }
 }
 
-void TouchEventListener::touchEnd(const Touch &touch, const shared_ptr<Entity> &entity) {
+void TouchEventListener::touchEnd(const Touch &touch, const std::shared_ptr<Entity> &entity) {
     if (!this->enabled) return;
     
     unsigned long long tid = ((unsigned long long)entity.get() << 32) + touch.touchId;
@@ -74,11 +76,16 @@ void TouchEventListener::touchEnd(const Touch &touch, const shared_ptr<Entity> &
         if (this->onTouchEndEvent) {
             this->onTouchEndEvent(touch, entity);
         }
-        if (entity->contains(touch.position)) {
-            if (this->onTapEvent) {
-                this->onTapEvent(touch, entity);
+        
+        if (abs(touch.viewPosition.x - touch.startViewPosition.x) < ON_TAP_THRESHOLD &&
+            abs(touch.viewPosition.y - touch.startViewPosition.y) < ON_TAP_THRESHOLD) {
+            if (entity->contains(touch.position)) {
+                if (this->onTapEvent) {
+                    this->onTapEvent(touch, entity);
+                }
             }
         }
+        
         this->touchBeganIds.erase(tid);
     }
     
@@ -90,31 +97,31 @@ void TouchEventListener::touchEnd(const Touch &touch, const shared_ptr<Entity> &
     }
 }
 
-void TouchEventListener::setOnTapEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTapEvent) {
+void TouchEventListener::setOnTapEvent(std::function<void(const Touch &t, const std::shared_ptr<Entity> &e)> onTapEvent) {
     this->onTapEvent = onTapEvent;
 }
 
-void TouchEventListener::setOnTouchBeginEvent(function<bool(const Touch &t, const shared_ptr<Entity> &e)> onTouchBeginEvent) {
+void TouchEventListener::setOnTouchBeginEvent(std::function<bool(const Touch &t, const std::shared_ptr<Entity> &e)> onTouchBeginEvent) {
     this->onTouchBeginEvent = onTouchBeginEvent;
 }
 
-void TouchEventListener::setOnTouchMoveEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchMoveEvent) {
+void TouchEventListener::setOnTouchMoveEvent(std::function<void(const Touch &t, const std::shared_ptr<Entity> &e)> onTouchMoveEvent) {
     this->onTouchMoveEvent = onTouchMoveEvent;
 }
 
-void TouchEventListener::setOnTouchEndEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchEndEvent) {
+void TouchEventListener::setOnTouchEndEvent(std::function<void(const Touch &t, const std::shared_ptr<Entity> &e)> onTouchEndEvent) {
     this->onTouchEndEvent = onTouchEndEvent;
 }
 
-void TouchEventListener::setOnTouchEnterEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchEnterEvent) {
+void TouchEventListener::setOnTouchEnterEvent(std::function<void(const Touch &t, const std::shared_ptr<Entity> &e)> onTouchEnterEvent) {
     this->onTouchEnterEvent = onTouchEnterEvent;
 }
 
-void TouchEventListener::setOnTouchOverEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchOverEvent) {
+void TouchEventListener::setOnTouchOverEvent(std::function<void(const Touch &t, const std::shared_ptr<Entity> &e)> onTouchOverEvent) {
     this->onTouchOverEvent = onTouchOverEvent;
 }
 
-void TouchEventListener::setOnTouchExitEvent(function<void(const Touch &t, const shared_ptr<Entity> &e)> onTouchExitEvent) {
+void TouchEventListener::setOnTouchExitEvent(std::function<void(const Touch &t, const std::shared_ptr<Entity> &e)> onTouchExitEvent) {
     this->onTouchExitEvent = onTouchExitEvent;
 }
 

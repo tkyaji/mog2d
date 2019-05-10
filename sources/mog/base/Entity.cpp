@@ -4,14 +4,7 @@
 
 using namespace mog;
 
-Entity::Entity() {
-}
-
-shared_ptr<Texture2D> Entity::getTexture() {
-    return this->texture;
-}
-
-void Entity::updateFrame(const shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
+void Entity::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
     Drawable::updateFrame(engine, delta, parentMatrix, parentReRenderFlag);
     this->extractEvent(engine, delta);
     if (((this->reRenderFlag | parentReRenderFlag) & RERENDER_VERTEX) == RERENDER_VERTEX) {
@@ -19,9 +12,9 @@ void Entity::updateFrame(const shared_ptr<Engine> &engine, float delta, float *p
     }
 }
 
-void Entity::extractEvent(const shared_ptr<Engine> &engine, float delta) {
+void Entity::extractEvent(const std::shared_ptr<Engine> &engine, float delta) {
     if (!this->active) return;
-    auto self = static_pointer_cast<Entity>(shared_from_this());
+    auto self = std::static_pointer_cast<Entity>(shared_from_this());
     if (this->touchEnable && (this->swallowTouches || this->touchListeners.size() > 0)) {
         engine->pushTouchableEntity(self);
     }
@@ -44,15 +37,15 @@ void Entity::bindVertex() {
         this->renderer->bindVertex();
     }
 
-    if (this->texture) {
+    if (this->textures[0]) {
         if ((this->reRenderFlag & RERENDER_TEXTURE) == RERENDER_TEXTURE) {
-            this->texture->bindTexture();
+            this->textures[0]->bindTexture();
         }
         if ((this->reRenderFlag & RERENDER_TEX_COORDS) == RERENDER_TEX_COORDS) {
             int vertexTexCoordsIdx = 0;
-            if (!this->renderer->vertexTexCoords) this->renderer->newVertexTexCoordsArr();
-            this->bindVertexTexCoords(this->renderer, &vertexTexCoordsIdx, 0, 0, 1.0f, 1.0f);
-            this->renderer->bindVertexTexCoords(this->texture->textureId);
+            if (!this->renderer->vertexTexCoords[0]) this->renderer->newVertexTexCoordsArr();
+            this->bindVertexTexCoords(this->renderer, &vertexTexCoordsIdx, 0, 0, 0, 1.0f, 1.0f);
+            this->renderer->bindVertexTexCoords(this->textures[0]->textureId, 0);
         }
     }
 
@@ -111,18 +104,18 @@ void Entity::bindVertexColors(const std::shared_ptr<Renderer> &renderer, int *id
     }
 }
 
-void Entity::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
-    if (this->texture && this->texture->isFlip) {
-        renderer->vertexTexCoords[(*idx)++] = x;        renderer->vertexTexCoords[(*idx)++] = y + h;
-        renderer->vertexTexCoords[(*idx)++] = x;        renderer->vertexTexCoords[(*idx)++] = y;
-        renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y + h;
-        renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y;
+void Entity::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) {
+    if (this->textures[0] && this->textures[0]->isFlip) {
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x;        renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x;        renderer->vertexTexCoords[texIdx][(*idx)++] = y;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;    renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;    renderer->vertexTexCoords[texIdx][(*idx)++] = y;
         
     } else {
-        renderer->vertexTexCoords[(*idx)++] = x;        renderer->vertexTexCoords[(*idx)++] = y;
-        renderer->vertexTexCoords[(*idx)++] = x;        renderer->vertexTexCoords[(*idx)++] = y + h;
-        renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y;
-        renderer->vertexTexCoords[(*idx)++] = x + w;    renderer->vertexTexCoords[(*idx)++] = y + h;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x;        renderer->vertexTexCoords[texIdx][(*idx)++] = y;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x;        renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;    renderer->vertexTexCoords[texIdx][(*idx)++] = y;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;    renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
     }
 }
 
@@ -190,17 +183,17 @@ bool Entity::contains(const Point &position) {
     return Collision::collides(this->getCollider(), position);
 }
 
-bool Entity::collidesWith(const shared_ptr<Entity> &other) {
+bool Entity::collidesWith(const std::shared_ptr<Entity> &other) {
     return Collision::collides(this->getCollider(), other->getCollider());
 }
 
-unsigned int Entity::addTouchEvent(const shared_ptr<TouchEventListener> &listener) {
+unsigned int Entity::addTouchEvent(const std::shared_ptr<TouchEventListener> &listener) {
     unsigned int eventId = ++this->eventIdCounter;
     this->touchListeners[eventId] = listener;
     return eventId;
 }
 
-shared_ptr<TouchEventListener> Entity::getTouchEvent(unsigned int eventId) {
+std::shared_ptr<TouchEventListener> Entity::getTouchEvent(unsigned int eventId) {
     return this->touchListeners[eventId];
 }
 
@@ -215,7 +208,7 @@ void Entity::removeAllTouchEvents() {
 void Entity::fireTouchBeginEvent(const Touch &touch) {
     if (!this->touchEnable) return;
     
-    auto self = static_pointer_cast<Entity>(shared_from_this());
+    auto self = std::static_pointer_cast<Entity>(shared_from_this());
     for (auto pair : this->touchListeners) {
         auto listener = pair.second;
         listener->touchBegin(touch, self);
@@ -225,7 +218,7 @@ void Entity::fireTouchBeginEvent(const Touch &touch) {
 void Entity::fireTouchMoveEvent(const Touch &touch) {
     if (!this->touchEnable) return;
     
-    auto self = static_pointer_cast<Entity>(shared_from_this());
+    auto self = std::static_pointer_cast<Entity>(shared_from_this());
     for (auto pair : this->touchListeners) {
         auto listener = pair.second;
         listener->touchMove(touch, self);
@@ -235,7 +228,7 @@ void Entity::fireTouchMoveEvent(const Touch &touch) {
 void Entity::fireTouchEndEvent(const Touch &touch) {
     if (!this->touchEnable) return;
     
-    auto self = static_pointer_cast<Entity>(shared_from_this());
+    auto self = std::static_pointer_cast<Entity>(shared_from_this());
     for (auto pair : this->touchListeners) {
         auto listener = pair.second;
         listener->touchEnd(touch, self);
@@ -260,13 +253,13 @@ bool Entity::isTouchEnable() {
 
 std::shared_ptr<Collider> Entity::getCollider() {
     if (this->collider) return this->collider;
-    this->collider = shared_ptr<Collider>(new Collider(ColliderShape::Rect));
+    this->collider = std::shared_ptr<Collider>(new Collider(ColliderShape::Rect));
     this->collider->aabb = this->getAABB();
     this->collider->obb = this->getOBB();
     return this->collider;
 }
 
-shared_ptr<OBB> Entity::getOBB() {
+std::shared_ptr<OBB> Entity::getOBB() {
     float scaleX = sqrt(this->matrix[0] * this->matrix[0] +
                         this->matrix[1] * this->matrix[1]);
     float scaleY = sqrt(this->matrix[4] * this->matrix[4] +
@@ -281,10 +274,10 @@ shared_ptr<OBB> Entity::getOBB() {
     float centerX = x + vec3.x;
     float centerY = y + vec3.y;
     
-    return shared_ptr<OBB>(new OBB(vec1, vec2, centerX, centerY));
+    return std::shared_ptr<OBB>(new OBB(vec1, vec2, centerX, centerY));
 }
 
-shared_ptr<AABB> Entity::getAABB() {
+std::shared_ptr<AABB> Entity::getAABB() {
     auto v1 = Point(this->matrix[0], this->matrix[1]);
     auto v2 = Point(this->matrix[4], this->matrix[5]);
     auto offset = Point(this->matrix[12], this->matrix[13]);
@@ -293,8 +286,23 @@ shared_ptr<AABB> Entity::getAABB() {
     auto p2 = Point(v1.x * size.width, v1.y * size.width);
     auto p3 = Point(v2.x * size.height, v2.y * size.height);
     auto p4 = p2 + p3;
-    Point minP = Point(min(min(p1.x, p2.x), min(p3.x, p4.x)), min(min(p1.y, p2.y), min(p3.y, p4.y)));
-    Point maxP = Point(max(max(p1.x, p2.x), max(p3.x, p4.x)), max(max(p1.y, p2.y), max(p3.y, p4.y)));
+    Point minP = Point(fmin(fmin(p1.x, p2.x), fmin(p3.x, p4.x)), fmin(fmin(p1.y, p2.y), fmin(p3.y, p4.y)));
+    Point maxP = Point(fmax(fmax(p1.x, p2.x), fmax(p3.x, p4.x)), fmax(fmax(p1.y, p2.y), fmax(p3.y, p4.y)));
     
-    return shared_ptr<AABB>(new AABB(offset.x + minP.x, offset.y + minP.y, offset.x + maxP.x, offset.y + maxP.y));
+    return std::shared_ptr<AABB>(new AABB(offset.x + minP.x, offset.y + minP.y, offset.x + maxP.x, offset.y + maxP.y));
+}
+
+void Entity::copyProperties(const std::shared_ptr<Entity> &entity) {
+    this->setTag(entity->getTag());
+    this->setAnchor(entity->getAnchor());
+    this->setPosition(entity->getPosition());
+    this->setSize(entity->getSize());
+    this->setScale(entity->getScale());
+    this->setRotation(entity->getRotation());
+    this->setColor(entity->getColor());
+    this->setSwallowTouches(entity->isSwallowTouches());
+    this->setTouchEnable(entity->isTouchEnable());
+    this->setZIndex(entity->getZIndex());
+    this->setActive(entity->isActive());
+    this->setParam(entity->getParam<Data>());
 }

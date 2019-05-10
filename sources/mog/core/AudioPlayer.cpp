@@ -8,10 +8,10 @@ using namespace mog;
 #pragma - AudioChannel
 
 AudioChannel::AudioChannel(AudioPlayer *audioPlayer) {
-    this->audioChannelNative = unique_ptr<AudioChannelNative>(new AudioChannelNative(audioPlayer->audioPlayerNative.get()));
+    this->audioChannelNative = std::unique_ptr<AudioChannelNative>(new AudioChannelNative(audioPlayer->audioPlayerNative.get()));
 }
 
-void AudioChannel::play(string filename, bool cache) {
+void AudioChannel::play(std::string filename, bool cache) {
     if (this->mute) return;
     this->audioChannelNative->load(filename.c_str(), cache);
     this->audioChannelNative->play();
@@ -83,8 +83,8 @@ void AudioChannel::execute() {
 AudioPlayer *AudioPlayer::instance;
 
 AudioPlayer::AudioPlayer() {
-    this->audioPlayerNative = unique_ptr<AudioPlayerNative>(new AudioPlayerNative());
-    auto channel = shared_ptr<AudioChannel>(new AudioChannel(this));
+    this->audioPlayerNative = std::unique_ptr<AudioPlayerNative>(new AudioPlayerNative());
+    auto channel = std::shared_ptr<AudioChannel>(new AudioChannel(this));
     this->poolOneShotChannels.emplace_back(channel);
 }
 
@@ -94,20 +94,20 @@ void AudioPlayer::initialize() {
     }
 }
 
-shared_ptr<AudioChannel> AudioPlayer::createChannel(string key) {
+std::shared_ptr<AudioChannel> AudioPlayer::createChannel(std::string key) {
     if (AudioPlayer::instance->channels[key]) {
         return AudioPlayer::instance->channels[key];
     }
-    auto channel = shared_ptr<AudioChannel>(new AudioChannel(AudioPlayer::instance));
+    auto channel = std::shared_ptr<AudioChannel>(new AudioChannel(AudioPlayer::instance));
     AudioPlayer::instance->channels[key] = channel;
     return channel;
 }
 
-shared_ptr<AudioChannel> AudioPlayer::getChannel(string key) {
+std::shared_ptr<AudioChannel> AudioPlayer::getChannel(std::string key) {
     return AudioPlayer::instance->channels[key];
 }
 
-void AudioPlayer::removeChannel(string key) {
+void AudioPlayer::removeChannel(std::string key) {
     auto channel = AudioPlayer::instance->channels[key];
     if (channel) {
         channel->close();
@@ -115,14 +115,14 @@ void AudioPlayer::removeChannel(string key) {
     }
 }
 
-void AudioPlayer::preloadOne(string filename) {
+void AudioPlayer::preloadOne(std::string filename) {
     AudioPlayer::instance->audioPlayerNative->preload(filename.c_str());
 }
 
-void AudioPlayer::playOneShot(string filename) {
-    shared_ptr<AudioChannel> channel = nullptr;
+void AudioPlayer::playOneShot(std::string filename) {
+    std::shared_ptr<AudioChannel> channel = nullptr;
     for (int i = (int)AudioPlayer::instance->poolOneShotChannels.size() - 1; i >= 0; i--) {
-        const shared_ptr<AudioChannel> &c = AudioPlayer::instance->poolOneShotChannels[i];
+        const std::shared_ptr<AudioChannel> &c = AudioPlayer::instance->poolOneShotChannels[i];
         if (c->getState() == AudioChannel::State::Playing) {
             continue;
         }
@@ -138,7 +138,7 @@ void AudioPlayer::playOneShot(string filename) {
         }
     }
     if (!channel) {
-        channel = shared_ptr<AudioChannel>(new AudioChannel(AudioPlayer::instance));
+        channel = std::shared_ptr<AudioChannel>(new AudioChannel(AudioPlayer::instance));
         AudioPlayer::instance->poolOneShotChannels.emplace_back(channel);
     }
     channel->play(filename);

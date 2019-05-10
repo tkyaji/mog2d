@@ -10,11 +10,13 @@ namespace mog {
     public:
         static std::shared_ptr<Rectangle> create(const Size &size);
         static std::shared_ptr<Rectangle> create(float width, float height);
-        
+        std::shared_ptr<Rectangle> clone();
+
     protected:
-        Rectangle();
+        Rectangle() {}
         
         void init(const Size &size);
+        virtual std::shared_ptr<Entity> cloneEntity() override;
     };
 }
 

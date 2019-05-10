@@ -3,6 +3,7 @@
 
 #include "mog/base/Scene.h"
 #include "mog/base/Entity.h"
+#include "mog/core/Texture2D.h"
 
 namespace mog {
     
@@ -10,11 +11,11 @@ namespace mog {
 
     class LocalizedText {
     public:
-        LocalizedText(string textKey, ...);
-        string text;
+        LocalizedText(std::string textKey, ...);
+        std::string text;
         
     private:
-        string getLocalizedText(const char *textKey, int count, ...);
+        std::string getLocalizedText(const char *textKey, int count, ...);
     };
     
     
@@ -22,30 +23,55 @@ namespace mog {
     
     class Label : public Entity {
     public:
-        static shared_ptr<Label> create(string text, float fontSize, string fontFilename = "", float height = 0);
-        static shared_ptr<Label> create(const LocalizedText &localizedText, float fontSize, string fontFilename = "", float height = 0);
+        static std::shared_ptr<Label> create(std::string text, float fontSize, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        static std::shared_ptr<Label> create(std::string text, float fontSize, std::string fontFilename, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        static std::shared_ptr<Label> create(std::string text, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+
+        static std::shared_ptr<Label> create(const LocalizedText &localizedText, float fontSize, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        static std::shared_ptr<Label> create(const LocalizedText &localizedText, float fontSize, std::string fontFilename, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        static std::shared_ptr<Label> create(const LocalizedText &localizedText, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+
+        void setText(std::string text, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        void setText(std::string text, float fontSize, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        void setText(std::string text, float fontSize, std::string fontFilename, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        void setText(std::string text, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+
+        void setText(const LocalizedText &localizedText, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        void setText(const LocalizedText &localizedText, float fontSize, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        void setText(const LocalizedText &localizedText, float fontSize, std::string fontFilename, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        void setText(const LocalizedText &localizedText, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
         
-        void setText(string text, float fontSize = 0, string fontFilename = "", float height = 0);
-        void setText(const LocalizedText &localizedText, float fontSize = 0, string fontFilename = "", float height = 0);
-        string getText();
+        std::string getText();
         
         void setFontSize(float fontSize);
         float getFontSize();
         
-        void setFontFilename(string fontFilename);
-        string getFontFilename();
+        void setFontFilename(std::string fontFilename);
+        std::string getFontFilename();
         
         void setFontHeight(float height);
         float getFontHeight();
+        
+        void setTextDrawingMode(TextDrawingMode textMode, float strokeWidth = 0);
+        TextDrawingMode getTextDrawingMode();
+        
+        void setStrokeWidth(float strokeWidth);
+        float getStrokeWidth();
+        
+        std::shared_ptr<Label> clone();
 
     protected:
-        Label();
-        void init(string text, float fontSize, string fontFilename = "", float height = 0);
+        Label() {}
         
-        string text;
+        void init(std::string text, float fontSize, std::string fontFilename = "", float height = 0, TextDrawingMode textMode = TextDrawingMode::Fill, float outlineWidth = 0);
+        virtual std::shared_ptr<Entity> cloneEntity() override;
+        
+        std::string text;
         float fontSize;
-        string fontFilename;
+        std::string fontFilename;
         float height;
+        TextDrawingMode textMode = TextDrawingMode::Fill;
+        float strokeWidth;
     };
 }
 

@@ -29,8 +29,8 @@ public class TextBitmap {
         }
     }
 
-    public static Result createFontTexture(Activity activity, String text, float fontSize, String fontFilename, boolean isBold, boolean isItalic, int height) {
-        Paint forePaint = getFontPaint(activity, fontSize, fontFilename, isBold, isItalic);
+    public static Result createFontTexture(Activity activity, String text, float fontSize, String fontFilename, boolean isBold, boolean isItalic, int height, int textDrawingMode, float strokeWidth) {
+        Paint forePaint = getFontPaint(activity, fontSize, fontFilename, isBold, isItalic, textDrawingMode, strokeWidth);
         Paint.FontMetrics metrics = forePaint.getFontMetrics();
 
         Paint backPaint = new Paint();
@@ -65,7 +65,7 @@ public class TextBitmap {
         return new Result(buffer.array(), textWidth, textHeight);
     }
 
-    private static Paint getFontPaint(Activity activity, float fontSize, String fontFilename, boolean isBold, boolean isItalic) {
+    private static Paint getFontPaint(Activity activity, float fontSize, String fontFilename, boolean isBold, boolean isItalic, int textDrawingMode, float strokeWidth) {
         Paint paint = new Paint();
         Typeface typeface = getTypeFace(activity, fontFilename);
         if (isBold && isItalic) {
@@ -77,6 +77,12 @@ public class TextBitmap {
         }
         paint.setColor(Color.WHITE);
         paint.setAntiAlias(true);
+        if (textDrawingMode == 1) {
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(strokeWidth);
+        } else {
+            paint.setStyle(Paint.Style.FILL);
+        }
         if (fontSize > 0) {
             paint.setTextSize(fontSize);
         }

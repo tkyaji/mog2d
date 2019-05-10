@@ -1,28 +1,28 @@
 #include <jni.h>
 #include <string.h>
 #include "mog/core/Texture2DNative.h"
-#include "mog/core/Texture2D.h"
 #include "mog/core/Engine.h"
 #include "mog/os/AndroidHelper.h"
 #include "mog/Constants.h"
+#include "mog/os/JNILocalFrame.h"
 
 using namespace mog;
 
-void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFace, float height) {
+void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFace, float height, TextDrawingMode textMode, float strokeWidth) {
     if (strlen(text) == 0) return;
 
     JNIEnv* env = AndroidHelper::getEnv();
-    jobject activity = (jobject)AndroidHelper::getActivity()->getValue();
+    jobject activity = (jobject)AndroidHelper::mogActivity->getValue();
 //    vm->AttachCurrentThread(&env, NULL);
 
-    env->PushLocalFrame(16);
+    auto lf0 = JNILocalFrame::create(env, 16);
 
     jclass jcls = env->FindClass("org/mog2d/TextBitmap");
-    jmethodID methodId = env->GetStaticMethodID(jcls, "createFontTexture", "(Landroid/app/Activity;Ljava/lang/String;FLjava/lang/String;ZZI)Lorg/mog2d/TextBitmap$Result;");
+    jmethodID methodId = env->GetStaticMethodID(jcls, "createFontTexture", "(Landroid/app/Activity;Ljava/lang/String;FLjava/lang/String;ZZIIF)Lorg/mog2d/TextBitmap$Result;");
     jstring textStr = env->NewStringUTF(text);
     jobject result = env->CallStaticObjectMethod(jcls, methodId, activity, textStr,
                                                  (jfloat)fontSize, env->NewStringUTF(fontFace),
-                                                 JNI_FALSE, JNI_FALSE, (int)(height + 0.5f));
+                                                 JNI_FALSE, JNI_FALSE, (int)(height + 0.5f), textMode, strokeWidth);
 
     jclass jrcls = env->GetObjectClass(result);
     jfieldID bytesId = env->GetFieldID(jrcls, "bytes", "[B");
@@ -52,18 +52,14 @@ void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float 
     }
 
     env->ReleaseByteArrayElements(byteArr, bytes, JNI_ABORT);
-
-    env->PopLocalFrame(NULL);
-
-//    vm->DetachCurrentThread();
 }
 
-string Texture2DNative::getLocalizedTextNative(const char *textKey, va_list args) {
+std::string Texture2DNative::getLocalizedTextNative(const char *textKey, va_list args) {
     JNIEnv* env = AndroidHelper::getEnv();
-    jobject activityObj = (jobject)AndroidHelper::getActivity()->getValue();
+    jobject activityObj = (jobject)AndroidHelper::mogActivity->getValue();
 //    vm->AttachCurrentThread(&env, NULL);
 
-    env->PushLocalFrame(16);
+    auto lf0 = JNILocalFrame::create(env, 16);
 
     jclass activityClass = env->GetObjectClass(activityObj);
 
@@ -77,7 +73,7 @@ string Texture2DNative::getLocalizedTextNative(const char *textKey, va_list args
     jmethodID getIdentifierMethodId = env->GetMethodID(resourcesClass, "getIdentifier", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I");
     int stringId = env->CallIntMethod(resourcesObj, getIdentifierMethodId, env->NewStringUTF(textKey), env->NewStringUTF("string"), packageNameObj);
 
-    string ret = "";
+    std::string ret = "";
     if (stringId != 0) {
         jmethodID getStringMethodId = env->GetMethodID(resourcesClass, "getString", "(I)Ljava/lang/String;");
         jstring localizedJStr = (jstring)env->CallObjectMethod(resourcesObj, getStringMethodId, stringId);
@@ -89,12 +85,11 @@ string Texture2DNative::getLocalizedTextNative(const char *textKey, va_list args
         char *str = new char[strlen(localizedStr) + 4096];
         vsprintf(str, localizedStr, args);
 
-        ret = string(str);
+        env->ReleaseStringUTFChars(localizedJStr, localizedStr);
+
+        ret = std::string(str);
         delete[] str;
     }
-
-    env->PopLocalFrame(NULL);
-//    vm->DetachCurrentThread();
 
     return ret;
 }

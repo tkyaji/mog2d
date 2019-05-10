@@ -12,20 +12,20 @@
 
 using namespace mog;
 
-shared_ptr<Group> Group::create(bool enableBatching) {
-    auto group = shared_ptr<Group>(new Group());
+std::shared_ptr<Group> Group::create(bool enableBatching) {
+    auto group = std::shared_ptr<Group>(new Group());
     group->init(enableBatching);
     return group;
 }
 
 Group::Group() {
-    this->drawableGroup = make_shared<DrawableGroup>();
+    this->drawableGroup = std::make_shared<DrawableGroup>();
     this->drawableGroup->addChildListener = [this](const std::shared_ptr<Drawable> &drawable) {
-        auto e = static_pointer_cast<Entity>(drawable);
-        e->group = static_pointer_cast<Group>(shared_from_this());
+        auto e = std::static_pointer_cast<Entity>(drawable);
+        e->group = std::static_pointer_cast<Group>(shared_from_this());
     };
     this->drawableGroup->removeChildListener = [this](const std::shared_ptr<Drawable> &drawable) {
-        auto e = static_pointer_cast<Entity>(drawable);
+        auto e = std::static_pointer_cast<Entity>(drawable);
         e->group.reset();
     };
 }
@@ -35,13 +35,13 @@ void Group::init(bool enableBatching) {
     this->reRenderFlag = RERENDER_ALL;
 }
 
-void Group::updateFrame(const shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
+void Group::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
     this->drawableGroup->sortChildDrawablesToDraw();
     Entity::updateFrame(engine, delta, parentMatrix, parentReRenderFlag);
     int verticesNum = 0;
     int indicesNum = 0;
     for (const auto &drawable : this->drawableGroup->sortedChildDrawables) {
-        auto entity = static_pointer_cast<Entity>(drawable);
+        auto entity = std::static_pointer_cast<Entity>(drawable);
         if (this->enableBatching) {
             parentReRenderFlag |= (parentReRenderFlag | this->reRenderFlag);
         } else {
@@ -54,17 +54,17 @@ void Group::updateFrame(const shared_ptr<Engine> &engine, float delta, float *pa
         indicesNum += entity->renderer->indicesNum;
 
         if (auto g = dynamic_cast<Group *>(entity.get())) {
-            if (g->enableTexture) this->enableTexture = true;
+            if (g->numOfTexture > this->numOfTexture) this->numOfTexture = g->numOfTexture;
             this->reRenderFlagChildren |= (entity->reRenderFlag | g->reRenderFlagChildren);
         } else {
-            if (entity->texture) this->enableTexture = true;
+            if (entity->numOfTexture > this->numOfTexture) this->numOfTexture = entity->numOfTexture;
             this->reRenderFlagChildren |= entity->reRenderFlag;
         }
     }
     if (this->renderer->setVerticesNum(verticesNum)) {
         this->renderer->newVerticesArr();
         this->renderer->newVertexColorsArr();
-        if (this->enableTexture) {
+        if (this->numOfTexture > 0) {
             this->renderer->newVertexTexCoordsArr();
         }
     }
@@ -87,7 +87,7 @@ void Group::drawFrame(float delta) {
             this->bindVertex();
             
         } else if (this->reRenderFlagChildren > 0) {
-            if (this->enableTexture && (this->reRenderFlagChildren & RERENDER_TEXTURE) == RERENDER_TEXTURE) {
+            if (this->numOfTexture > 0 && (this->reRenderFlagChildren & RERENDER_TEXTURE) == RERENDER_TEXTURE) {
                 this->bindVertex();
             } else {
                 this->bindVertexSub();
@@ -99,7 +99,7 @@ void Group::drawFrame(float delta) {
 
     } else {
         for (const auto &drawable : this->drawableGroup->sortedChildDrawables) {
-            auto entity = static_pointer_cast<Entity>(drawable);
+            auto entity = std::static_pointer_cast<Entity>(drawable);
             if (((this->reRenderFlag | entity->reRenderFlag) & RERENDER_VERTEX) == RERENDER_VERTEX) {
                 Transform::multiplyMatrix(entity->transform->matrix, this->renderer->matrix, entity->renderer->matrix);
             }
@@ -120,24 +120,24 @@ void Group::bindVertex() {
     
     int vertexIndices[4] = {0, 0, 0, 0};
     
-    if (this->enableTexture) {
-        this->textureAtlas = make_shared<TextureAtlas>();
+    if (this->numOfTexture > 0) {
+        this->textureAtlas = std::make_shared<TextureAtlas>();
         this->addTextureTo(this->textureAtlas);
-        this->texture = this->textureAtlas->createTexture();
+        this->textures[0] = this->textureAtlas->createTexture();
         this->textureAtlas->bindTexture();
     }
 
     this->bindVertexRecursive(this->renderer, this->textureAtlas, vertexIndices, Renderer::identityMatrix);
     this->renderer->bindVertex(true);
     this->renderer->bindVertexColors(true);
-    if (this->enableTexture) {
-        this->renderer->bindVertexTexCoords(this->texture->textureId);
+    if (this->numOfTexture > 0) {
+        this->renderer->bindVertexTexCoords(this->textures[0]->textureId, 0);
     }
 }
 
 void Group::bindVertexRecursive(const std::shared_ptr<Renderer> &renderer, std::shared_ptr<TextureAtlas> &textureAtlas, int *vertexIndices, float *parentMatrix) {
     for (const auto &drawable : this->drawableGroup->sortedChildDrawables) {
-        auto entity = static_pointer_cast<Entity>(drawable);
+        auto entity = std::static_pointer_cast<Entity>(drawable);
         if ((this->reRenderFlagChildren & RERENDER_VERTEX) == RERENDER_VERTEX) {
             Transform::multiplyMatrix(entity->transform->matrix, parentMatrix, entity->renderer->matrix);
         }
@@ -151,8 +151,8 @@ void Group::bindVertexRecursive(const std::shared_ptr<Renderer> &renderer, std::
             entity->bindVertices(renderer, &vertexIndices[VERTICES_IDX], &vertexIndices[INDICES_IDX], true);
             entity->bindVertexColors(renderer, &vertexIndices[VERTEX_COLORS_IDX]);
             std::shared_ptr<TextureAtlasCell> cell = nullptr;
-            if (this->enableTexture) {
-                if (entity->texture) cell = textureAtlas->getCell(entity->texture);
+            if (this->numOfTexture > 0) {
+                if (entity->textures[0]) cell = textureAtlas->getCell(entity->textures[0]);
                 float x = 0;
                 float y = 0;
                 float w = 0;
@@ -163,7 +163,7 @@ void Group::bindVertexRecursive(const std::shared_ptr<Renderer> &renderer, std::
                     w = (float)cell->width / (float)textureAtlas->width;
                     h = (float)cell->height / (float)textureAtlas->height;
                 }
-                entity->bindVertexTexCoords(renderer, &vertexIndices[VERTEX_TEX_COORDS_IDX], x, y, w, h);
+                entity->bindVertexTexCoords(renderer, &vertexIndices[VERTEX_TEX_COORDS_IDX], 0, x, y, w, h);
             }
         }
         entity->reRenderFlag = 0;
@@ -177,7 +177,7 @@ void Group::bindVertexSub() {
 
 void Group::bindVertexSubRecursive(const std::shared_ptr<Renderer> &renderer, std::shared_ptr<TextureAtlas> &textureAtlas, int *vertexIndices, float *parentMatrix) {
     for (const auto &drawable : this->drawableGroup->sortedChildDrawables) {
-        auto entity = static_pointer_cast<Entity>(drawable);
+        auto entity = std::static_pointer_cast<Entity>(drawable);
         Transform::multiplyMatrix(entity->transform->matrix, parentMatrix, entity->renderer->matrix);
         Transform::multiplyColor(entity->transform->matrix, parentMatrix, entity->renderer->matrix);
         
@@ -198,20 +198,17 @@ void Group::bindVertexSubRecursive(const std::shared_ptr<Renderer> &renderer, st
             } else {
                 vertexIndices[VERTEX_COLORS_IDX] += entity->renderer->verticesNum * 4;
             }
-            if (this->enableTexture && entity->texture) {
+            if (this->numOfTexture > 0 && entity->textures[0]) {
                 if ((entity->reRenderFlag & RERENDER_TEX_COORDS) == RERENDER_TEX_COORDS) {
-//                    entity->bindVertexColors(renderer, &vertexIndices[VERTEX_COLORS_IDX]);
                     std::shared_ptr<TextureAtlasCell> cell = nullptr;
-                    if (this->enableTexture) {
-                        if (entity->texture) cell = textureAtlas->getCell(entity->texture);
-                        float x = (cell) ? ((float)cell->x / (float)textureAtlas->width) : -1.0f;
-                        float y = (cell) ? ((float)cell->y / (float)textureAtlas->height) : -1.0f;
-                        float w = (cell) ? ((float)cell->width / (float)textureAtlas->width) : 1.0f;
-                        float h = (cell) ? ((float)cell->height / (float)textureAtlas->height) : 1.0f;
-                        int index = vertexIndices[VERTEX_TEX_COORDS_IDX];
-                        entity->bindVertexTexCoords(renderer, &vertexIndices[VERTEX_TEX_COORDS_IDX], x, y, w, h);
-                        renderer->bindVertexTexCoordsSub(index, entity->renderer->verticesNum);
-                    }
+                    if (entity->textures[0]) cell = textureAtlas->getCell(entity->textures[0]);
+                    float x = (cell) ? ((float)cell->x / (float)textureAtlas->width) : -1.0f;
+                    float y = (cell) ? ((float)cell->y / (float)textureAtlas->height) : -1.0f;
+                    float w = (cell) ? ((float)cell->width / (float)textureAtlas->width) : 1.0f;
+                    float h = (cell) ? ((float)cell->height / (float)textureAtlas->height) : 1.0f;
+                    int index = vertexIndices[VERTEX_TEX_COORDS_IDX];
+                    entity->bindVertexTexCoords(renderer, &vertexIndices[VERTEX_TEX_COORDS_IDX], 0, x, y, w, h);
+                    renderer->bindVertexTexCoordsSub(index, entity->renderer->verticesNum);
                 } else {
                     vertexIndices[VERTEX_TEX_COORDS_IDX] += entity->renderer->verticesNum * 2;
                 }
@@ -221,12 +218,12 @@ void Group::bindVertexSubRecursive(const std::shared_ptr<Renderer> &renderer, st
     }
 }
 
-void Group::add(const shared_ptr<Entity> &entity) {
+void Group::add(const std::shared_ptr<Entity> &entity) {
     this->drawableGroup->addChild(entity);
     this->reRenderFlag |= RERENDER_ALL;
 }
 
-void Group::remove(const shared_ptr<Entity> &entity) {
+void Group::remove(const std::shared_ptr<Entity> &entity) {
     this->drawableGroup->removeChild(entity);
     this->reRenderFlag |= RERENDER_ALL;
 }
@@ -236,22 +233,22 @@ void Group::removeAll() {
     this->reRenderFlag |= RERENDER_ALL;
 }
 
-vector<shared_ptr<Entity>> Group::getChildEntities() {
-    vector<shared_ptr<Entity>> entities;
+std::vector<std::shared_ptr<Entity>> Group::getChildEntities() {
+    std::vector<std::shared_ptr<Entity>> entities;
     entities.reserve(this->drawableGroup->childDrawables.size());
     for (const auto &drawable : this->drawableGroup->childDrawables) {
-        entities.emplace_back(static_pointer_cast<Entity>(drawable));
+        entities.emplace_back(std::static_pointer_cast<Entity>(drawable));
     }
     return entities;
 }
 
-shared_ptr<Entity> Group::findChildByName(string name, bool recursive) {
+std::shared_ptr<Entity> Group::findChildByName(std::string name, bool recursive) {
     for (const auto &drawable : this->drawableGroup->childDrawables) {
-        auto entity = static_pointer_cast<Entity>(drawable);
+        auto entity = std::static_pointer_cast<Entity>(drawable);
         if (entity->getName() == name) return entity;
         if (!recursive) continue;
         
-        if (auto g = dynamic_pointer_cast<Group>(entity)) {
+        if (auto g = std::dynamic_pointer_cast<Group>(entity)) {
             if (auto e = g->findChildByName(name, recursive)) {
                 return e;
             }
@@ -260,13 +257,13 @@ shared_ptr<Entity> Group::findChildByName(string name, bool recursive) {
     return nullptr;
 }
 
-shared_ptr<Entity> Group::findFirstChildByTag(string tag, bool recursive) {
+std::shared_ptr<Entity> Group::findFirstChildByTag(std::string tag, bool recursive) {
     for (const auto &drawable : this->drawableGroup->childDrawables) {
-        auto entity = static_pointer_cast<Entity>(drawable);
+        auto entity = std::static_pointer_cast<Entity>(drawable);
         if (entity->getTag() == tag) return entity;
         if (!recursive) continue;
         
-        if (auto g = dynamic_pointer_cast<Group>(entity)) {
+        if (auto g = std::dynamic_pointer_cast<Group>(entity)) {
             if (auto e = g->findFirstChildByTag(tag, recursive)) {
                 return e;
             }
@@ -275,16 +272,16 @@ shared_ptr<Entity> Group::findFirstChildByTag(string tag, bool recursive) {
     return nullptr;
 }
 
-vector<shared_ptr<Entity>> Group::findChildrenByTag(string tag, bool recursive) {
-    vector<shared_ptr<Entity>> vec;
+std::vector<std::shared_ptr<Entity>> Group::findChildrenByTag(std::string tag, bool recursive) {
+    std::vector<std::shared_ptr<Entity>> vec;
     for (const auto &drawable : this->drawableGroup->childDrawables) {
-        auto entity = static_pointer_cast<Entity>(drawable);
+        auto entity = std::static_pointer_cast<Entity>(drawable);
         if (entity->getTag() == tag) {
             vec.emplace_back(entity);
         };
         if (!recursive) continue;
         
-        if (auto g = dynamic_pointer_cast<Group>(entity)) {
+        if (auto g = std::dynamic_pointer_cast<Group>(entity)) {
             auto entities = g->findChildrenByTag(tag, recursive);
             if (entities.size() > 0) {
                 vec.insert(vec.end(), entities.begin(), entities.end());
@@ -294,10 +291,10 @@ vector<shared_ptr<Entity>> Group::findChildrenByTag(string tag, bool recursive) 
     return vec;
 }
 
-void Group::addTextureTo(const shared_ptr<TextureAtlas> &textureAtlas) {
+void Group::addTextureTo(const std::shared_ptr<TextureAtlas> &textureAtlas) {
     for (const auto &drawable : this->drawableGroup->sortedChildDrawables) {
-        auto entity = static_pointer_cast<Entity>(drawable);
-        if (auto g = dynamic_pointer_cast<Group>(entity)) {
+        auto entity = std::static_pointer_cast<Entity>(drawable);
+        if (auto g = std::dynamic_pointer_cast<Group>(entity)) {
             g->addTextureTo(textureAtlas);
         } else {
             textureAtlas->addTexture(entity->getTexture());
@@ -305,7 +302,23 @@ void Group::addTextureTo(const shared_ptr<TextureAtlas> &textureAtlas) {
     }
 }
 
-shared_ptr<Sprite> Group::createTextureSprite() {
+std::shared_ptr<Sprite> Group::createTextureSprite() {
     if (!this->textureAtlas) return nullptr;
     return Sprite::createWithTexture(this->textureAtlas->texture);
+}
+
+std::shared_ptr<Group> Group::clone() {
+    auto e = this->cloneEntity();
+    return std::static_pointer_cast<Group>(e);
+}
+
+std::shared_ptr<Entity> Group::cloneEntity() {
+    auto group = Group::create(this->enableBatching);
+    for (const auto &drawable : this->drawableGroup->childDrawables) {
+        auto entity = std::static_pointer_cast<Entity>(drawable);
+        auto cloneEntity = entity->cloneEntity();
+        group->add(cloneEntity);
+    }
+    group->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
+    return group;
 }

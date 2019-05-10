@@ -2,28 +2,43 @@
 
 using namespace mog;
 
-shared_ptr<SpriteSheet> SpriteSheet::create(const shared_ptr<Sprite> sprite, const Size &frameSize, unsigned int frameCount, unsigned int margin) {
-    auto spriteSheet =  shared_ptr<SpriteSheet>(new SpriteSheet());
-    spriteSheet->init(sprite, frameSize, frameCount, margin);
+std::shared_ptr<SpriteSheet> SpriteSheet::create(std::string filename, const Size &frameSize, unsigned int frameCount, unsigned int margin, const Rect &rect) {
+    auto texture = Texture2D::createWithAsset(filename);
+    return SpriteSheet::create(texture, frameSize, frameCount, margin, rect);
+}
+
+std::shared_ptr<SpriteSheet> SpriteSheet::create(const std::shared_ptr<Texture2D> &texture, const Size &frameSize, unsigned int frameCount, unsigned int margin, const Rect &rect) {
+    auto spriteSheet = std::shared_ptr<SpriteSheet>(new SpriteSheet());
+    spriteSheet->init(texture, frameSize, frameCount, margin, rect);
     return spriteSheet;
 }
 
-SpriteSheet::SpriteSheet() {
+std::shared_ptr<SpriteSheet> SpriteSheet::create(const std::shared_ptr<Sprite> &sprite, const Size &frameSize, unsigned int frameCount, unsigned int margin) {
+    return SpriteSheet::create(sprite->getTexture(), frameSize, frameCount, margin, sprite->getRect());
 }
 
-void SpriteSheet::init(const shared_ptr<Sprite> sprite, const Size &frameSize, unsigned int frameCount, unsigned int margin) {
-    this->texture = sprite->getTexture();
-    this->filename = sprite->getFilename();
-    this->transform->size = frameSize;
-    this->rect = sprite->getRect();
+void SpriteSheet::init(const std::shared_ptr<Texture2D> &texture, const Size &frameSize, unsigned int frameCount, unsigned int margin, const Rect &rect) {
+    this->textures[0] = texture;
+    this->numOfTexture = 1;
+    Rect _rect = rect;
+    if (rect.size == Size::zero) {
+        _rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
+                          this->textures[0]->height / this->textures[0]->density.value);
+    }
+    this->rect = _rect;
+    this->transform->size = this->rect.size;
     this->frameSize = frameSize;
     
     this->initRendererVertices(4, 4);
     this->initFrames(frameCount, margin);
 }
 
+Rect SpriteSheet::getRect() {
+    return this->rect;
+}
+
 void SpriteSheet::initFrames(unsigned int frameCount, unsigned int margin) {
-    float _margin = (float)margin / this->texture->density.value;
+    float _margin = (float)margin / this->textures[0]->density.value;
     int cols = (this->rect.size.width + _margin) / (frameSize.width + _margin);
     int rows = (this->rect.size.height + _margin) / (frameSize.height + _margin);
     
@@ -66,9 +81,9 @@ void SpriteSheet::setMargin(unsigned int margin) {
     this->initFrames(this->frameCount, margin);
 }
 
-void SpriteSheet::updateFrame(const shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
+void SpriteSheet::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
     this->updateSpriteFrame(delta);
-    Sprite::updateFrame(engine, delta, parentMatrix, parentReRenderFlag);
+    Entity::updateFrame(engine, delta, parentMatrix, parentReRenderFlag);
 }
 
 void SpriteSheet::updateSpriteFrame(float delta) {
@@ -114,7 +129,7 @@ void SpriteSheet::startAnimation(float timePerFrame, LoopType loopType, int loop
     this->startAnimation(this->timePerFrames, loopType, startFrame, endFrame);
 }
 
-void SpriteSheet::startAnimation(const vector<float> &timePerFrames, LoopType loopType, int loopCount, int startFrame, int endFrame) {
+void SpriteSheet::startAnimation(const std::vector<float> &timePerFrames, LoopType loopType, int loopCount, int startFrame, int endFrame) {
     this->timePerFrames = timePerFrames;
     
     this->startFrame = startFrame;
@@ -137,12 +152,12 @@ void SpriteSheet::startAnimation(const vector<float> &timePerFrames, LoopType lo
 void SpriteSheet::stopAnimation() {
     this->animating = false;
     if (this->onFinishEvent) {
-        this->onFinishEvent(static_pointer_cast<SpriteSheet>(shared_from_this()));
+        this->onFinishEvent(std::static_pointer_cast<SpriteSheet>(shared_from_this()));
     }
 }
 
-void SpriteSheet::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, float x, float y, float w, float h) {
-    Size texSize = Size(this->texture->width, this->texture->height) / this->texture->density.value;
+void SpriteSheet::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) {
+    Size texSize = Size(this->textures[0]->width, this->textures[0]->height) / this->textures[0]->density.value;
     x += this->rect.position.x / texSize.width;
     y += this->rect.position.y / texSize.height;
     
@@ -152,17 +167,17 @@ void SpriteSheet::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer,
     w = (this->frameSize.width / texSize.width) * w;
     h = (this->frameSize.height / texSize.height) * h;
     
-    if (this->texture->isFlip) {
-        renderer->vertexTexCoords[(*idx)++] = x;      renderer->vertexTexCoords[(*idx)++] = y + h;
-        renderer->vertexTexCoords[(*idx)++] = x;      renderer->vertexTexCoords[(*idx)++] = y;
-        renderer->vertexTexCoords[(*idx)++] = x + w;  renderer->vertexTexCoords[(*idx)++] = y + h;
-        renderer->vertexTexCoords[(*idx)++] = x + w;  renderer->vertexTexCoords[(*idx)++] = y;
+    if (this->textures[0]->isFlip) {
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x;      renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x;      renderer->vertexTexCoords[texIdx][(*idx)++] = y;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;  renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;  renderer->vertexTexCoords[texIdx][(*idx)++] = y;
         
     } else {
-        renderer->vertexTexCoords[(*idx)++] = x;      renderer->vertexTexCoords[(*idx)++] = y;
-        renderer->vertexTexCoords[(*idx)++] = x;      renderer->vertexTexCoords[(*idx)++] = y + h;
-        renderer->vertexTexCoords[(*idx)++] = x + w;  renderer->vertexTexCoords[(*idx)++] = y;
-        renderer->vertexTexCoords[(*idx)++] = x + w;  renderer->vertexTexCoords[(*idx)++] = y + h;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x;      renderer->vertexTexCoords[texIdx][(*idx)++] = y;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x;      renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;  renderer->vertexTexCoords[texIdx][(*idx)++] = y;
+        renderer->vertexTexCoords[texIdx][(*idx)++] = x + w;  renderer->vertexTexCoords[texIdx][(*idx)++] = y + h;
     }
 }
 
@@ -182,6 +197,17 @@ Size SpriteSheet::getFrameSize() {
     return this->frameSize;
 }
 
-void SpriteSheet::setOnFinishEvent(function<void(const shared_ptr<SpriteSheet> &spriteSheet)> onFinishEvent) {
+void SpriteSheet::setOnFinishEvent(std::function<void(const std::shared_ptr<SpriteSheet> &spriteSheet)> onFinishEvent) {
     this->onFinishEvent = onFinishEvent;
+}
+
+std::shared_ptr<SpriteSheet> SpriteSheet::clone() {
+    auto e = this->cloneEntity();
+    return std::static_pointer_cast<SpriteSheet>(e);
+}
+
+std::shared_ptr<Entity> SpriteSheet::cloneEntity() {
+    auto spriteSheet = SpriteSheet::create(this->textures[0], this->frameSize, this->frameCount, this->margin, this->rect);
+    spriteSheet->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
+    return spriteSheet;
 }
