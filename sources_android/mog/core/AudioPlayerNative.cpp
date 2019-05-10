@@ -6,7 +6,7 @@
 
 using namespace mog;
 
-unordered_map<string, AudioData::AudioAsset> AudioData::cachedAudioData;
+std::unordered_map<std::string, AudioData::AudioAsset> AudioData::cachedAudioData;
 
 AudioData::AudioData(SLEngineItf &slEngine, SLObjectItf &outputMixObj, const char *filename) {
     this->slEngine = slEngine;
@@ -19,20 +19,20 @@ AudioData::~AudioData() {
     this->close();
 }
 
-shared_ptr<AudioData> AudioData::loadAudioData(SLEngineItf &slEngine, SLObjectItf &outputMixObj, const char *filename, bool cache) {
-    return make_shared<AudioData>(slEngine, outputMixObj, filename);
+std::shared_ptr<AudioData> AudioData::loadAudioData(SLEngineItf &slEngine, SLObjectItf &outputMixObj, const char *filename, bool cache) {
+    return std::make_shared<AudioData>(slEngine, outputMixObj, filename);
 }
 
 void AudioData::clearCache() {
     AudioData::cachedAudioData.clear();
 }
 
-bool AudioData::preLoadAssetFile(string filename) {
+bool AudioData::preLoadAssetFile(std::string filename) {
     AudioAsset audioAsset;
     return AudioData::loadAssetFile(filename, &audioAsset);
 }
 
-bool AudioData::loadAssetFile(string filename, AudioAsset *audioAsset) {
+bool AudioData::loadAssetFile(std::string filename, AudioAsset *audioAsset) {
     if (AudioData::cachedAudioData.count(filename) > 0) {
         auto cachedAudioAsset = AudioData::cachedAudioData[filename];
         audioAsset->fd = cachedAudioAsset.fd;

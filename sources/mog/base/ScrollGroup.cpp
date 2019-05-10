@@ -110,5 +110,6 @@ void ScrollGroup::setScrollPosition(const Point &position) {
 }
 
 std::shared_ptr<Entity> ScrollGroup::cloneEntity() {
+    // TODO
     return nullptr;
 }

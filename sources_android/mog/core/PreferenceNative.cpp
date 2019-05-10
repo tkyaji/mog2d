@@ -16,10 +16,10 @@ double PreferenceNative::getDouble(const char *key, double defaultVal) {
     return defaultVal;
 }
 
-void PreferenceNative::setString(const char *key, string strVal) {
+void PreferenceNative::setString(const char *key, std::string strVal) {
 }
 
-string PreferenceNative::getString(const char *key, string defaultVal) {
+std::string PreferenceNative::getString(const char *key, std::string defaultVal) {
     return defaultVal;
 }
 

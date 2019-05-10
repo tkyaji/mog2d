@@ -7,7 +7,7 @@
 
 using namespace mog;
 
-bool FileUtilsNative::existAsset(string filename) {
+bool FileUtilsNative::existAsset(std::string filename) {
     AAssetManager *aAssetManager = AndroidHelper::getAssetManager();
     AAsset *aAsset = AAssetManager_open(aAssetManager, filename.c_str(), AASSET_MODE_BUFFER);
     bool isExist = (aAsset != nullptr);
@@ -15,16 +15,16 @@ bool FileUtilsNative::existAsset(string filename) {
     return isExist;
 }
 
-string FileUtilsNative::readTextAsset(string filename) {
+std::string FileUtilsNative::readTextAsset(std::string filename) {
     unsigned char *bytes = nullptr;
     unsigned int len = 0;
     FileUtilsNative::readBytesAsset(filename, &bytes, &len);
-    auto str = string((char *)bytes, len);
+    auto str = std::string((char *)bytes, len);
     mogfree(bytes);
     return str;
 }
 
-bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, unsigned int *len) {
+bool FileUtilsNative::readBytesAsset(std::string filename, unsigned char **data, unsigned int *len) {
     AAssetManager *aAssetManager = AndroidHelper::getAssetManager();
     AAsset *aAsset = AAssetManager_open(aAssetManager, filename.c_str(), AASSET_MODE_BUFFER);
     if (aAsset == nullptr) {
@@ -41,13 +41,13 @@ bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, unsi
     return true;
 }
 
-string FileUtilsNative::getDocumentsDirectory() {
+std::string FileUtilsNative::getDocumentsDirectory() {
     auto fileRet = AndroidHelper::mogActivity->execute<NativeObject>("getFilesDir");
     auto pathRet = fileRet->execute<String>("getCanonicalPath");
     return pathRet->getValue();
 }
 
-string FileUtilsNative::getCachesDirectory() {
+std::string FileUtilsNative::getCachesDirectory() {
     auto fileRet = AndroidHelper::mogActivity->execute<NativeObject>("getCacheDir");
     auto pathRet = fileRet->execute<String>("getCanonicalPath");
     return pathRet->getValue();

@@ -5,13 +5,11 @@
 #include <SLES/OpenSLES_Android.h>
 #include "mog/core/AudioPlayer.h"
 
-using namespace std;
-
 namespace mog {
 
     class AudioData {
     public:
-        string filename;
+        std::string filename;
         bool loaded = false;
         SLObjectItf playerObject;
         SLEngineItf slEngine;
@@ -32,8 +30,8 @@ namespace mog {
         void setVolume(float volume);
         float getVolume();
 
-        static shared_ptr<AudioData> loadAudioData(SLEngineItf &slEngine, SLObjectItf &outputMixObj, const char *filename, bool cache = true);
-        static bool preLoadAssetFile(string filename);
+        static std::shared_ptr<AudioData> loadAudioData(SLEngineItf &slEngine, SLObjectItf &outputMixObj, const char *filename, bool cache = true);
+        static bool preLoadAssetFile(std::string filename);
         static void clearCache();
 
     private:
@@ -43,8 +41,8 @@ namespace mog {
             off_t length;
         };
 
-        static unordered_map<string, AudioAsset> cachedAudioData;
-        static bool loadAssetFile(string filename, AudioAsset *audioAsset);
+        static std::unordered_map<std::string, AudioAsset> cachedAudioData;
+        static bool loadAssetFile(std::string filename, AudioAsset *audioAsset);
         SLuint32 state = SL_PLAYSTATE_STOPPED;
 
         void load();
@@ -60,11 +58,11 @@ namespace mog {
 
         void load(const char *filename, bool cache = true);
         void play();
-        void playWithFade(float duration, function<void()> onComplate = nullptr);
+        void playWithFade(float duration, std::function<void()> onComplate = nullptr);
         void pause();
         void resume();
         void stop();
-        void stopWithFade(float duration, function<void()> onComplate = nullptr);
+        void stopWithFade(float duration, std::function<void()> onComplate = nullptr);
         void close();
         void seek(float offset);
         void setLoop(bool isLoop);
@@ -77,7 +75,7 @@ namespace mog {
     private:
         SLEngineItf slEngine;
         SLObjectItf outputMixObj;
-        shared_ptr<AudioData> audioData;
+        std::shared_ptr<AudioData> audioData;
         bool loop = false;
         float volume = 1.0f;
         float offset = 0;

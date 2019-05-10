@@ -3,17 +3,15 @@
 
 #include <string>
 
-using namespace std;
-
 namespace mog {
     class FileUtilsNative {
     public:
-        static bool existAsset(string filename);
-        static string readTextAsset(string filename);
-        static bool readBytesAsset(string filename, unsigned char **data, unsigned int *len);
-        
-        static string getDocumentsDirectory();
-        static string getCachesDirectory();
+        static bool existAsset(std::string filename);
+        static std::string readTextAsset(std::string filename);
+        static bool readBytesAsset(std::string filename, unsigned char **data, unsigned int *len);
+
+        static std::string getDocumentsDirectory();
+        static std::string getCachesDirectory();
     };
 }
 
