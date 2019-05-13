@@ -7,7 +7,7 @@
 #include "mog/base/Scene.h"
 #include "mog/base/Entity.h"
 #include "mog/core/plain_objects.h"
-#include "mog/core/Density.h"
+#include "mog/core/Screen.h"
 
 namespace mog {
     class Sprite : public Entity {

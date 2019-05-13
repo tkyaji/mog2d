@@ -37,13 +37,11 @@ void Graphics::init(DrawType drawType, const std::vector<Point> &vertexPositions
 }
 
 void Graphics::setLineWidth(float width) {
-    float scale = Engine::getInstance()->getScreenScale();
-    this->renderer->setLineWidth(width * scale);
+    this->renderer->setLineWidth(width * Screen::getScreenScale());
 }
 
 void Graphics::setPointSize(float size) {
-    float scale = Engine::getInstance()->getScreenScale();
-    this->renderer->setUniformPointSize(size * scale);
+    this->renderer->setUniformPointSize(size * Screen::getScreenScale());
 }
 
 void Graphics::setVertexPositions(const std::vector<Point> &vertexPositions) {

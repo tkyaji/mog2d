@@ -98,6 +98,22 @@ void ScrollGroup::removeAll() {
     this->contentGroup->removeAll();
 }
 
+std::vector<std::shared_ptr<Entity>> ScrollGroup::getChildEntities() {
+    return this->contentGroup->getChildEntities();
+}
+
+std::shared_ptr<Entity> ScrollGroup::findChildByName(std::string name, bool recursive) {
+    return findChildByName(name, recursive);
+}
+
+std::shared_ptr<Entity> ScrollGroup::findFirstChildByTag(std::string tag, bool recursive) {
+    return this->contentGroup->findFirstChildByTag(tag, recursive);
+}
+
+std::vector<std::shared_ptr<Entity>> ScrollGroup::findChildrenByTag(std::string tag, bool recursive) {
+    return findChildrenByTag(tag, recursive);
+}
+
 void ScrollGroup::setScrollPosition(const Point &position) {
     auto scrollSize = this->getAbsoluteSize();
     auto contentSize = this->contentGroup->getAbsoluteSize();
@@ -109,7 +125,15 @@ void ScrollGroup::setScrollPosition(const Point &position) {
     this->contentGroup->setPosition(p);
 }
 
+std::shared_ptr<ScrollGroup> ScrollGroup::clone() {
+    auto e = this->cloneEntity();
+    return std::static_pointer_cast<ScrollGroup>(e);
+}
+
 std::shared_ptr<Entity> ScrollGroup::cloneEntity() {
-    // TODO
-    return nullptr;
+    auto scrollGroup = ScrollGroup::create(this->getSize(), this->contentGroup->getSize(), this->scrollFlag);
+    auto clonedContentGroup = std::static_pointer_cast<ScrollGroup>(shared_from_this())->contentGroup->clone();
+    scrollGroup->contentGroup = clonedContentGroup;
+    scrollGroup->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
+    return scrollGroup;
 }

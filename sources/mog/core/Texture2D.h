@@ -7,7 +7,7 @@
 #include <memory>
 #include "mog/core/opengl.h"
 #include "mog/core/plain_objects.h"
-#include "mog/core/Density.h"
+#include "mog/core/Screen.h"
 #include "mog/core/Data.h"
 
 namespace mog {

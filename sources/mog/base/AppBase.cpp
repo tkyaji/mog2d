@@ -4,6 +4,7 @@
 #include "mog/base/Scene.h"
 #include "mog/base/Entity.h"
 #include "mog/base/Rectangle.h"
+#include "mog/core/Screen.h"
 
 using namespace mog;
 
@@ -157,17 +158,17 @@ void AppBase::loadSceneWithMoveIn(const std::shared_ptr<Scene> &scene, Transitio
     Point start = Point::zero;
     switch (transition) {
         case Transition::MoveInTop:
-            start.y = -this->getScreenSize().height;
+            start.y = -Screen::getSize().height;
             break;
         case Transition::MoveInBottom:
-            start.y = this->getScreenSize().height;
+            start.y = Screen::getSize().height;
             break;
         case Transition::MoveInRight:
-            start.x = this->getScreenSize().width;
+            start.x = Screen::getSize().width;
             break;
         case Transition::MoveInLeft:
         default:
-            start.x = -this->getScreenSize().width;
+            start.x = -Screen::getSize().width;
             break;
     }
     
@@ -185,17 +186,17 @@ void AppBase::loadSceneWithMoveOut(const std::shared_ptr<Scene> &scene, Transiti
     Point end = Point::zero;
     switch (transition) {
         case Transition::MoveOutTop:
-            end.y = -this->getScreenSize().height;
+            end.y = -Screen::getSize().height;
             break;
         case Transition::MoveOutBottom:
-            end.y = this->getScreenSize().height;
+            end.y = Screen::getSize().height;
             break;
         case Transition::MoveOutLeft:
-            end.x = -this->getScreenSize().width;
+            end.x = -Screen::getSize().width;
             break;
         case Transition::MoveOutRight:
         default:
-            end.x = this->getScreenSize().width;
+            end.x = Screen::getSize().width;
             break;
     }
     
@@ -213,21 +214,21 @@ void AppBase::loadSceneWithSlideIn(const std::shared_ptr<Scene> &scene, Transiti
     Point nextStart = Point::zero;
     switch (transition) {
         case Transition::SlideInTop:
-            currentEnd.y = this->getScreenSize().height;
-            nextStart.y = -this->getScreenSize().height;
+            currentEnd.y = Screen::getSize().height;
+            nextStart.y = -Screen::getSize().height;
             break;
         case Transition::SlideInBottom:
-            currentEnd.y = -this->getScreenSize().height;
-            nextStart.y = this->getScreenSize().height;
+            currentEnd.y = -Screen::getSize().height;
+            nextStart.y = Screen::getSize().height;
             break;
         case Transition::SlideInRight:
-            currentEnd.x = -this->getScreenSize().width;
-            nextStart.x = this->getScreenSize().width;
+            currentEnd.x = -Screen::getSize().width;
+            nextStart.x = Screen::getSize().width;
             break;
         case Transition::SlideInLeft:
         default:
-            currentEnd.x = this->getScreenSize().width;
-            nextStart.x = -this->getScreenSize().width;
+            currentEnd.x = Screen::getSize().width;
+            nextStart.x = -Screen::getSize().width;
             break;
     }
     
@@ -280,26 +281,6 @@ void AppBase::setBackgroundColor(const Color &color) {
 
 std::shared_ptr<Scene> AppBase::getCurrentScene() {
     return this->currentScene;
-}
-
-void AppBase::setScreenSizeBasedOnHeight(float height) {
-    this->engine.lock()->setScreenSizeBasedOnHeight(height);
-}
-
-void AppBase::setScreenSizeBasedOnWidth(float width) {
-    this->engine.lock()->setScreenSizeBasedOnWidth(width);
-}
-
-Size AppBase::getDisplaySize() {
-    return this->engine.lock()->getDisplaySize();
-}
-
-Size AppBase::getScreenSize() {
-    return this->engine.lock()->getScreenSize();
-}
-
-float AppBase::getScreenScale() {
-    return this->engine.lock()->getScreenScale();
 }
 
 void AppBase::setTouchEnable(bool enable) {

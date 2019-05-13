@@ -18,7 +18,7 @@ Drawable::~Drawable() {
 void Drawable::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
     this->onUpdate(delta);
     this->updateTween(delta);
-    this->renderer->initScreenParameters(engine);
+    this->renderer->initScreenParameters();
     this->reRenderFlag |= parentReRenderFlag;
     if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
         this->transform->updateMatrix();

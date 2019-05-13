@@ -143,12 +143,12 @@ public class MogActivity extends Activity {
         }
 
         this.density = this.getResources().getDisplayMetrics().density;
-        MogJniBridge.onCreate(this, this.getAssets(), this.density);
+        MogJniBridge.onCreate(this, this.getAssets());
 
         this.layout = new FrameLayout(this);
         this.glSurfaceView = new GLSurfaceView(this);
         this.glSurfaceView.setEGLContextClientVersion(2);
-        this.glSurfaceView.setRenderer(new MogRenderer(this.glSurfaceView));
+        this.glSurfaceView.setRenderer(new MogRenderer(this.glSurfaceView, this.density));
         this.glSurfaceView.setPreserveEGLContextOnPause(true);
         layout.addView(this.glSurfaceView);
         this.setContentView(layout);

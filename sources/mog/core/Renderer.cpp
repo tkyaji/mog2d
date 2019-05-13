@@ -68,11 +68,14 @@ void Renderer::setUniformPointSize(float size) {
     this->setUniformParameter("u_pointSize", size);
 }
 
-void Renderer::initScreenParameters(const std::shared_ptr<Engine> &engine) {
+void Renderer::initScreenParameters() {
     if (this->screenParameterInitialized) return;
-    this->setUniformParameter("u_screenSize", engine->getScreenSize().width, engine->getScreenSize().height);
-    this->setUniformParameter("u_displaySize", engine->getDisplaySize().width, engine->getDisplaySize().height);
-    this->setUniformParameter("u_screenScale", engine->getScreenScale());
+    auto screenSize = Screen::getSize();
+    auto displaySize = Screen::getDisplaySize();
+    float screenScale = Screen::getScreenScale();
+    this->setUniformParameter("u_screenSize", screenSize.width,screenSize.height);
+    this->setUniformParameter("u_displaySize", displaySize.width, displaySize.height);
+    this->setUniformParameter("u_screenScale", screenScale);
     this->screenParameterInitialized = true;
 }
 

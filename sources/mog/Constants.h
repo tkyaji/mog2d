@@ -11,14 +11,11 @@
 #ifdef MOG_IOS
 #define PLATFORM PLATFORM_IOS
 #endif
-#ifdef MOG_OSX
-#define PLATFORM PLATFORM_OSX
-#endif
 #ifdef MOG_ANDROID
 #define PLATFORM PLATFORM_ANDROID
 #endif
-#ifdef MOG_QT
-#define PLATFORM PLATFORM_QT
+#ifdef MOG_EMSCRIPTEN
+#define PLATFORM PLATFORM_EMSCRIPTEN
 #endif
 
 #define DEFAULT_FPS 60

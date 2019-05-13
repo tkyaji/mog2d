@@ -22,7 +22,6 @@ namespace mog {
         virtual void remove(const std::shared_ptr<Entity> &entity);
         virtual void removeAll();
         std::vector<std::shared_ptr<Entity>> getChildEntities();
-        
         std::shared_ptr<Entity> findChildByName(std::string name, bool recursive = true);
         std::shared_ptr<Entity> findFirstChildByTag(std::string tag, bool recursive = true);
         std::vector<std::shared_ptr<Entity>> findChildrenByTag(std::string tag, bool recursive = true);

@@ -16,6 +16,7 @@ namespace mog {
         
         Rect getRect();
         Rect getCenterRect();
+        std::shared_ptr<Slice9Sprite> clone();
 
     protected:
         Slice9Sprite() {}

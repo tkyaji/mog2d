@@ -88,7 +88,7 @@ void Texture2D::loadTextureFile(std::string filepath, Density density) {
 }
 
 std::shared_ptr<ByteArray> Texture2D::readBytesAsset(std::string filename, Density *density) {
-    Density current = Density::getCurrent();
+    Density current = Screen::getDensity();
     Density den = current;
     auto data = FileUtils::readBytesAsset(den.directory + "/" + filename);
     unsigned int length = 0;
@@ -130,7 +130,7 @@ std::shared_ptr<ByteArray> Texture2D::readBytesAsset(std::string filename, Densi
 }
 
 void Texture2D::loadFontTexture(std::string text, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
-    Density den = Density::getCurrent();
+    Density den = Screen::getDensity();
     Texture2DNative::loadFontTexture(this, text.c_str(), fontSize * den.value, fontFilename.c_str(), height * den.value, textMode, strokeWidth * den.value);
     this->density = den;
 }

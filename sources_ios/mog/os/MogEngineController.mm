@@ -4,9 +4,6 @@
 #import "mog/Constants.h"
 #import "mog/core/mogmalloc.h"
 #import "mog/os/IOSHelper.h"
-#ifdef SCRIPT_BINDNG_ENGINE_HEADER
-#import SCRIPT_BINDNG_ENGINE_HEADER
-#endif
 
 @implementation MogEngineController {
     MogViewController *_mogViewController;
@@ -23,13 +20,11 @@
     if (!self) return self;
     
     mogmalloc_initialize();
-#ifdef ENABLE_SCRIPT_BINDNG
-    _engine = SCRIPT_BINDNG_ENGINE_CLASS::create();
-#else
+    auto displaySize = mog::Size(view.glWidth, view.glHeight);
+    auto viewSize = mog::Size(view.frame.size.width, view.frame.size.height);
+    float deviceDensity = [UIScreen mainScreen].scale;
     _engine = mog::Engine::create(std::make_shared<mog::App>());
-#endif
-    _engine->setDisplaySize(mog::Size(view.glWidth, view.glHeight), mog::Size(view.frame.size.width, view.frame.size.height));
-    _engine->resetScreenSize();
+    _engine->setDisplaySize(displaySize, viewSize, deviceDensity);
     _mogViewController = viewController;
     _mogView = view;
     

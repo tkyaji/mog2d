@@ -8,8 +8,7 @@
 #include "mog/base/Entity.h"
 #include "mog/base/Scene.h"
 #include "mog/base/AppBase.h"
-#include "mog/core/Device.h"
-#include "mog/core/AudioPlayer.h"
+#include "mog/core/Screen.h"
 #include "mog/core/DataStore.h"
 
 using namespace mog;
@@ -20,6 +19,8 @@ std::shared_ptr<Engine> Engine::create(const std::shared_ptr<AppBase> &app) {
     auto engine = std::shared_ptr<Engine>(new Engine());
     Engine::instance = engine;
     engine->app = app;
+    engine->screen = Screen::create();
+    engine->audioPlayer = AudioPlayer::create();
     app->setEngine(engine);
     return engine;
 }
@@ -29,7 +30,6 @@ std::shared_ptr<Engine> Engine::getInstance() {
 }
 
 Engine::Engine() {
-    AudioPlayer::initialize();
     this->renderer = Renderer::create();
 }
 
@@ -97,7 +97,7 @@ void Engine::onDrawFrame(std::map<unsigned int, TouchInput> touches) {
         this->app->drawFrame(delta);
     }
     
-    this->stats->drawFrame(shared_from_this(), delta);
+    this->stats->drawFrame(delta);
     
     this->frameCount++;
     
@@ -121,9 +121,8 @@ void Engine::initParameters() {
 }
 
 void Engine::initScreen() {
-    if (!this->displaySizeChanged) return;
-    glViewport(0, 0, this->displaySize.width, this->displaySize.height);
-    this->displaySizeChanged = false;
+    auto displaySize = this->screen->getDisplaySize();
+    glViewport(0, 0, displaySize.width, displaySize.height);
 }
 
 std::shared_ptr<AppBase> Engine::getApp() {
@@ -138,60 +137,8 @@ unsigned long long Engine::getFrameCount() {
     return this->frameCount;
 }
 
-Size Engine::getDisplaySize() {
-    return this->displaySize;
-}
-
-Size Engine::getScreenSize() {
-    return this->screenSize;
-}
-
-void Engine::setDisplaySize(const Size &displaySize, const Size &viewSize) {
-    if (approximately(this->displaySize.width, displaySize.width) &&
-        approximately(this->displaySize.height, displaySize.height)) {
-        return;
-    }
-    this->displaySize = displaySize;
-    this->viewSize = viewSize;
-    this->displaySizeChanged = true;
-}
-
-
-void Engine::setScreenSizeBasedOnHeight(float height) {
-    auto displaySize = this->getDisplaySize();
-    float scale = height / displaySize.height;
-    float width = displaySize.width * scale;
-    this->screenSize = Size(width, height);
-    this->baseScreenSides = 'h';
-    this->baseScreenSize = height;
-}
-
-void Engine::setScreenSizeBasedOnWidth(float width) {
-    auto displaySize = this->getDisplaySize();
-    float scale = width / displaySize.width;
-    float height = displaySize.height * scale;
-    this->screenSize = Size(width, height);
-    this->baseScreenSides = 'w';
-    this->baseScreenSize = width;
-}
-
-void Engine::resetScreenSize() {
-    if (this->baseScreenSides == '_') {
-#ifdef BASE_SCREEN_WIDTH
-        this->setScreenSizeBasedOnWidth(BASE_SCREEN_WIDTH);
-#endif
-#ifdef BASE_SCREEN_HEIGHT
-        this->setScreenSizeBasedOnHeight(BASE_SCREEN_HEIGHT);
-#endif
-    } else if (this->baseScreenSides == 'w') {
-        this->setScreenSizeBasedOnWidth(this->baseScreenSize);
-    } else {
-        this->setScreenSizeBasedOnHeight(this->baseScreenSize);
-    }
-}
-
-float Engine::getScreenScale() {
-    return this->displaySize.width / this->screenSize.width;
+void Engine::setDisplaySize(const Size &displaySize, const Size &viewSize, float deviceDensity) {
+    this->screen->setDisplaySize(displaySize, viewSize, deviceDensity);
 }
 
 Color Engine::getClearColor() {
@@ -243,7 +190,7 @@ float Engine::getTimerElapsedSec() {
 }
 
 void Engine::fireTouchListeners(std::map<unsigned int, TouchInput> touches) {
-    float scale = this->screenSize.width / this->viewSize.width;
+    float scale = Screen::getSize().width / Screen::getViewSize().width;
     float uptime = this->getTimerElapsedSec();
     
     for (auto pair : touches) {

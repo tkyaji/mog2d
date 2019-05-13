@@ -1,6 +1,6 @@
 #include "mog/base/RoundedRectangle.h"
 #include "mog/core/Engine.h"
-#include "mog/core/Device.h"
+#include "mog/core/Screen.h"
 #include <math.h>
 
 using namespace mog;
@@ -24,8 +24,8 @@ void RoundedRectangle::init(const Size &size, float cornerRadius, unsigned char 
     this->cornerFlag = cornerFlag;
     this->transform->size = size;
     
-    float density = Device::getDeviceDensity();
-    int texWidth = (int)(cornerRadius * density + 0.5f) + 2.0f;
+    float scale = Screen::getScreenScale();
+    int texWidth = (int)(cornerRadius * scale + 0.5f) + 2.0f;
     int texHeight = texWidth;
     unsigned char *data = (unsigned char *)mogmalloc(sizeof(char) * texWidth * texHeight * 4);
     for (int y = 0; y < texHeight; y++) {
@@ -41,7 +41,7 @@ void RoundedRectangle::init(const Size &size, float cornerRadius, unsigned char 
                 if (_y < 0) _y = 0;
                 
                 float l = Point::length(Point(_x, _y));
-                a = (cornerRadius * density) - l;
+                a = (cornerRadius * scale) - l;
             }
             
             if (a > 1.0f) a = 1.0f;
@@ -53,7 +53,7 @@ void RoundedRectangle::init(const Size &size, float cornerRadius, unsigned char 
         }
     }
     
-    this->textures[0] = Texture2D::createWithRGBA(data, texWidth, texHeight, Density::getCurrent());
+    this->textures[0] = Texture2D::createWithRGBA(data, texWidth, texHeight, Screen::getDensity());
     this->numOfTexture = 1;
     this->rect = Rect(Point::zero, this->transform->size);
     this->initRendererVertices(25, 40);
@@ -111,7 +111,7 @@ void RoundedRectangle::bindVertices(const std::shared_ptr<Renderer> &renderer, i
 }
 
 void RoundedRectangle::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) {
-    float density = Device::getDeviceDensity();
+    float density = Screen::getDensity();
     float p1 = 1.0f / (this->cornerRadius * density + 2.0f);
     float p2 = 2.0f / (this->cornerRadius * density + 2.0f);
     

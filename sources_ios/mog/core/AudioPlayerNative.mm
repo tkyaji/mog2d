@@ -183,9 +183,13 @@ void *AudioData::getOpenALAudioData(CFURLRef fileURL, ALsizei* dataSize,
 
 #pragma - AudioChannelNative
 
-AudioChannelNative::AudioChannelNative(AudioPlayerNative *audioPlayerNative) {
-    this->audioPlayerNative = audioPlayerNative;
-    this->loaded = false;
+std::shared_ptr<AudioChannelNative> AudioChannelNative::create(const std::shared_ptr<AudioPlayerNative> &audioPlayerNative) {
+    auto audioChannelNative = std::shared_ptr<AudioChannelNative>(new AudioChannelNative());
+    audioChannelNative->audioPlayerNative = audioPlayerNative;
+    return audioChannelNative;
+}
+
+AudioChannelNative::AudioChannelNative() {
     alGenSources(1, &this->source);
 }
 
@@ -280,6 +284,11 @@ AudioChannel::State AudioChannelNative::getState() {
 
 
 #pragma - AudioPlayerNative
+
+std::shared_ptr<AudioPlayerNative> AudioPlayerNative::create() {
+    auto audioPlayerNative = std::shared_ptr<AudioPlayerNative>(new AudioPlayerNative());
+    return audioPlayerNative;
+}
 
 AudioPlayerNative::AudioPlayerNative() {
     this->device = alcOpenDevice(NULL);

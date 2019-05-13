@@ -23,13 +23,11 @@ std::shared_ptr<MogStats> MogStats::create(bool enable) {
     return stats;
 }
 
-void MogStats::drawFrame(const std::shared_ptr<Engine> &engine, float delta) {
+void MogStats::drawFrame(float delta) {
     if (!this->enable) return;
     
-    this->screenScale = engine->getScreenScale();
-    this->screenSize = engine->getScreenSize();
     if (!this->initialized) {
-        this->init(engine);
+        this->init();
     }
     if (this->dirtyPosition) {
         this->updatePosition();
@@ -61,8 +59,10 @@ void MogStats::setAlignment(Alignment alignment) {
 void MogStats::updatePosition() {
     if (!this->enable) return;
     
-    auto width = this->width / this->screenScale;
-    auto height = this->height / this->screenScale;
+    auto screenSize = Screen::getSize();
+    float screenScale = Screen::getScreenScale();
+    auto width = this->width / screenScale;
+    auto height = this->height / screenScale;
     
     switch (this->alignment) {
         case Alignment::TopLeft:
@@ -73,12 +73,12 @@ void MogStats::updatePosition() {
         case Alignment::TopCenter:
         case Alignment::MiddleCenter:
         case Alignment::BottomCenter:
-            this->transform->position.x = this->screenSize.width * 0.5f - width * 0.5f;
+            this->transform->position.x = screenSize.width * 0.5f - width * 0.5f;
             break;
         case Alignment::TopRight:
         case Alignment::MiddleRight:
         case Alignment::BottomRight:
-            this->transform->position.x = this->screenSize.width - width;
+            this->transform->position.x = screenSize.width - width;
             break;
     }
     switch (alignment) {
@@ -90,12 +90,12 @@ void MogStats::updatePosition() {
         case Alignment::MiddleLeft:
         case Alignment::MiddleCenter:
         case Alignment::MiddleRight:
-            this->transform->position.y = this->screenSize.height * 0.5f - height * 0.5f;
+            this->transform->position.y = screenSize.height * 0.5f - height * 0.5f;
             break;
         case Alignment::BottomLeft:
         case Alignment::BottomCenter:
         case Alignment::BottomRight:
-            this->transform->position.y = this->screenSize.height - height;
+            this->transform->position.y = screenSize.height - height;
             break;
     }
     this->transform->updateMatrix();
@@ -115,7 +115,7 @@ void MogStats::bindVertex() {
     this->renderer->indices[1] = 1;
     this->renderer->indices[2] = 2;
     this->renderer->indices[3] = 3;
-    Size size = Size(this->texture->width, this->texture->height) / this->screenScale;
+    Size size = Size(this->texture->width, this->texture->height) / Screen::getScreenScale();
 
     this->renderer->vertices[0] = 0;            this->renderer->vertices[1] = 0;
     this->renderer->vertices[2] = 0;            this->renderer->vertices[3] = size.height;
@@ -132,10 +132,10 @@ void MogStats::bindVertex() {
     this->renderer->bindVertexTexCoords(this->texture->textureId, true);
 }
 
-void MogStats::init(const std::shared_ptr<Engine> &engine) {
+void MogStats::init() {
     this->renderer = Renderer::create();
     this->transform = std::make_shared<Transform>();
-    this->renderer->initScreenParameters(engine);
+    this->renderer->initScreenParameters();
 
     for (int i = 0; i < 10; i++) {
         auto tex = this->createLabelTexture(std::to_string(i));
@@ -167,7 +167,7 @@ void MogStats::init(const std::shared_ptr<Engine> &engine) {
     for (int i = 0; i < this->width * this->height; i++) {
         this->data[i * 4 + 3] = ALPHA;
     }
-    this->texture = Texture2D::createWithRGBA(this->data, this->width, this->height, Density::getCurrent());
+    this->texture = Texture2D::createWithRGBA(this->data, this->width, this->height, Screen::getDensity());
 
     this->setTextToData(fps, x, y);
     this->positions[FPS] = std::pair<int, int>(x, y);

@@ -256,8 +256,13 @@ float AudioData::getVolume() {
 
 #pragma - AudioChannelNative
 
-AudioChannelNative::AudioChannelNative(AudioPlayerNative *audioPlayerNative) {
-    this->slEngine = audioPlayerNative->slEngine;
+std::shared_ptr<AudioChannelNative> AudioChannelNative::create(const std::shared_ptr<AudioPlayerNative> &audioPlayerNative) {
+    auto audioChannelNative = std::shared_ptr<AudioChannelNative>(new AudioChannelNative(audioPlayerNative->slEngine));
+    return audioChannelNative;
+}
+
+AudioChannelNative::AudioChannelNative(SLEngineItf slEngine) {
+    this->slEngine = slEngine;
     this->createOutputMix();
 }
 
@@ -389,6 +394,11 @@ AudioChannel::State AudioChannelNative::getState() {
 
 
 #pragma - AudioPlayerNative
+
+std::shared_ptr<AudioPlayerNative> AudioPlayerNative::create() {
+    auto audioPlayerNative = std::shared_ptr<AudioPlayerNative>(new AudioPlayerNative());
+    return audioPlayerNative;
+}
 
 AudioPlayerNative::AudioPlayerNative() {
     // create engine

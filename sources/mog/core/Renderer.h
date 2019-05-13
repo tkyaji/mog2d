@@ -76,7 +76,7 @@ namespace mog {
         
         void setDrawType(DrawType drawType);
         
-        void initScreenParameters(const std::shared_ptr<Engine> &engine);
+        void initScreenParameters();
         void setBlendFunc(BlendingFactor blendingFactorSrc, BlendingFactor blendingFactorDest);
         void setLineWidth(float width);
         void setUniformPointSize(float size);

@@ -22,7 +22,7 @@ namespace mog {
             Paused,
         };
         
-        AudioChannel(AudioPlayer *audioPlayer);
+        static std::shared_ptr<AudioChannel> create(const std::shared_ptr<AudioPlayer> &audioPlayer);
         
         void play(std::string filename, bool cache = true);
         void pause();
@@ -40,19 +40,20 @@ namespace mog {
         State getState();
         
     private:
+        AudioChannel() {}
         void execute();
         
-        std::unique_ptr<AudioChannelNative> audioChannelNative;
+        std::shared_ptr<AudioChannelNative> audioChannelNative;
         bool mute = false;
     };
     
     
     class AudioPlayer {
     public:
-        static AudioPlayer *instance;
-        std::unique_ptr<AudioPlayerNative> audioPlayerNative;
+        static std::weak_ptr<AudioPlayer> instance;
+        std::shared_ptr<AudioPlayerNative> audioPlayerNative;
         
-        static void initialize();
+        static std::shared_ptr<AudioPlayer> create();
         static std::shared_ptr<AudioChannel> createChannel(std::string key);
         static std::shared_ptr<AudioChannel> getChannel(std::string key);
         static void removeChannel(std::string key);
@@ -73,11 +74,11 @@ namespace mog {
         static void preloadOne(std::string filename);
         static void execute();
 
+        AudioPlayer() {}
+
         std::unordered_map<std::string, std::shared_ptr<AudioChannel>> channels;
         std::vector<std::shared_ptr<AudioChannel>> poolOneShotChannels;
         std::vector<std::shared_ptr<AudioChannel>> resumeChannels;
-        
-        AudioPlayer();
     };
 }
 

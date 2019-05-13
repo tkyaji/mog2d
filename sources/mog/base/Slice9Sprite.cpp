@@ -126,6 +126,13 @@ void Slice9Sprite::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer
     }
 }
 
+std::shared_ptr<Slice9Sprite> Slice9Sprite::clone() {
+    auto e = this->cloneEntity();
+    return std::static_pointer_cast<Slice9Sprite>(e);
+}
+
 std::shared_ptr<Entity> Slice9Sprite::cloneEntity() {
-    return nullptr;
+    auto sprite = Slice9Sprite::create(this->textures[0], this->centerRect, this->rect);
+    sprite->copyProperties(std::static_pointer_cast<Slice9Sprite>(sprite));
+    return sprite;
 }

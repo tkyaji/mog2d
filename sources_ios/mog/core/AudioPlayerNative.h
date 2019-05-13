@@ -32,7 +32,7 @@ namespace mog {
     
     class AudioChannelNative {
     public:
-        AudioChannelNative(AudioPlayerNative *audioPlayerNative);
+        static std::shared_ptr<AudioChannelNative> create(const std::shared_ptr<AudioPlayerNative> &audioPlayerNative);
         
         void load(const char *filename, bool cache = true);
         void play();
@@ -49,7 +49,9 @@ namespace mog {
         AudioChannel::State getState();
         
     private:
-        AudioPlayerNative *audioPlayerNative;
+        AudioChannelNative();
+        
+        std::weak_ptr<AudioPlayerNative> audioPlayerNative;
         bool enabled;
         bool loaded;
         ALuint  source;
@@ -59,12 +61,13 @@ namespace mog {
     
     class AudioPlayerNative {
     public:
-        AudioPlayerNative();
+        static std::shared_ptr<AudioPlayerNative> create();
         ~AudioPlayerNative();
         
         void preload(const char *filename);
         
     private:
+        AudioPlayerNative();
         ALCdevice*  device;
         ALCcontext* context;
     };

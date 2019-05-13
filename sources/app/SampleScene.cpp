@@ -4,12 +4,12 @@ using namespace mog;
 
 void SampleScene::onLoad() {
     
-    auto scrollSize = this->getApp()->getScreenSize() * 0.8f;
-    auto contentSize = this->getApp()->getScreenSize();
+    auto scrollSize = Screen::getSize()* 0.8f;
+    auto contentSize = Screen::getSize();
     auto scrollGroup = ScrollGroup::create(scrollSize, contentSize, SCROLL_VERTICAL);
     scrollGroup->setSize(scrollSize);
     scrollGroup->setAnchor(Point::half);
-    scrollGroup->setPosition(this->getApp()->getScreenSize() * 0.5f);
+    scrollGroup->setPosition(Screen::getSize() * 0.5f);
     
     auto rect = Rectangle::create(contentSize);
     rect->setColor(Color::blue);
@@ -39,7 +39,7 @@ void SampleScene::onLoad() {
     label2->setColor(Color::white);
 
     
-//    mog::AudioPlayer::createChannel("bgm")->play("bgm_game01.ogg");
+    mog::AudioPlayer::createChannel("bgm")->play("bgm_game01.ogg");
     
 //    auto sprite = Sprite::create("test.png");
 //    this->add(sprite);

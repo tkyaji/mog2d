@@ -4,7 +4,6 @@
 #include "app/App.h"
 #include "mog/Constants.h"
 #include "mog/core/NativeClass.h"
-#include "mog/core/Device.h"
 #include "mog/os/AndroidHelper.h"
 #include "mog/core/mogmalloc.h"
 
@@ -20,7 +19,7 @@ public:
         return MogRenderer::instance;
     }
     
-    void onCreate(JNIEnv* env, jobject obj, jobject jActivity, jobject jAssetManager, float scaleFactor) {
+    void onCreate(JNIEnv* env, jobject obj, jobject jActivity, jobject jAssetManager) {
         this->engine = Engine::create(std::make_shared<mog::App>());
         
         JavaVM *vm;
@@ -28,7 +27,6 @@ public:
         AndroidHelper::vm = vm;
         AndroidHelper::mogActivity = NativeObject::create(jActivity);
         AndroidHelper::mogAAsetManager = NativeObject::create(jAssetManager);
-        Device::density = scaleFactor;
         this->removeTouchIds.reserve(8);
     }
     
@@ -66,9 +64,8 @@ public:
         this->surfaceCreated = true;
     }
     
-    void onSurfaceChanged(JNIEnv* env, jobject obj, jint w, jint h, int vw, int vh) {
-        this->engine->setDisplaySize(Size(w, h), Size(vw, vh));
-        this->engine->resetScreenSize();
+    void onSurfaceChanged(JNIEnv* env, jobject obj, jint w, jint h, int vw, int vh, float scaleFactor) {
+        this->engine->setDisplaySize(Size(w, h), Size(vw, vh), scaleFactor);
         this->engine->startEngine();
     }
     
@@ -117,8 +114,8 @@ JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_onSurfaceCreated(JNIEnv* env,
     MogRenderer::getInstance()->onSurfaceCreated(env, obj);
 }
 
-JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_onSurfaceChanged(JNIEnv* env, jobject obj, jint w, jint h, jint vw, jint vh) {
-    MogRenderer::getInstance()->onSurfaceChanged(env, obj, w, h, vw, vh);
+JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_onSurfaceChanged(JNIEnv* env, jobject obj, jint w, jint h, jint vw, jint vh, jfloat scaleFactor) {
+    MogRenderer::getInstance()->onSurfaceChanged(env, obj, w, h, vw, vh, scaleFactor);
 }
 
 JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_onDrawFrame(JNIEnv* env, jobject obj) {
@@ -134,8 +131,8 @@ JNIEXPORT jint JNICALL Java_org_mog2d_MogJniBridge_getDefaultFps(JNIEnv* env, jo
 }
 
 
-JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_onCreate(JNIEnv* env, jobject obj, jobject jActivity, jobject jAssetManager, jfloat scaleFactor) {
-    MogRenderer::initialize()->onCreate(env, obj, jActivity, jAssetManager, scaleFactor);
+JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_onCreate(JNIEnv* env, jobject obj, jobject jActivity, jobject jAssetManager) {
+    MogRenderer::initialize()->onCreate(env, obj, jActivity, jAssetManager);
 }
 
 JNIEXPORT void JNICALL Java_org_mog2d_MogJniBridge_onDestroy(JNIEnv* env, jobject obj) {

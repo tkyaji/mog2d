@@ -28,7 +28,7 @@
 #include "mog/base/ScrollGroup.h"
 #include "mog/base/Scene.h"
 #include "mog/base/AppBase.h"
-#include "mog/core/Density.h"
+#include "mog/core/Screen.h"
 #include "mog/core/Shader.h"
 
 #include "mog/plugins/plugins.h"

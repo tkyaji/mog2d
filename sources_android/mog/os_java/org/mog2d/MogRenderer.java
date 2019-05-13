@@ -15,9 +15,11 @@ public class MogRenderer implements GLSurfaceView.Renderer {
 
     private int fps = 0;
     private long lastRendererTickInNanoSec = 0;
+    private float density;
 
-    public MogRenderer(View view) {
+    public MogRenderer(View view, float density) {
         this.view = view;
+        this.density = density;
     }
 
     @Override
@@ -30,7 +32,7 @@ public class MogRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceChanged(GL10 gl10, int w, int h) {
         this.displayWidth = w;
         this.displayHeight = h;
-        MogJniBridge.onSurfaceChanged(w, h, this.view.getWidth(), this.view.getHeight());
+        MogJniBridge.onSurfaceChanged(w, h, this.view.getWidth(), this.view.getHeight(), this.density);
     }
 
     @Override

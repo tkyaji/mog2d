@@ -141,7 +141,7 @@ std::shared_ptr<Label> Label::clone() {
 }
 
 std::shared_ptr<Entity> Label::cloneEntity() {
-    auto label = Label::create(this->text, this->fontSize, this->fontFilename, this->height);
+    auto label = Label::create(this->text, this->fontSize, this->fontFilename, this->height, this->textMode, this->strokeWidth);
     label->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
     return label;
 }

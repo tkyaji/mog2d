@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B205EFF2228730440031B4B4 /* Screen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B205EFF0228730440031B4B4 /* Screen.cpp */; };
 		B2506FB21FFD073700237ECA /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2506FB11FFD073700237ECA /* JavaScriptCore.framework */; };
 		B254E0D31F360B16008DD68C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2A103441ED7170200A2EB8A /* AudioToolbox.framework */; };
 		B26812FA20FDF94300AC7AAB /* App.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B268127720FDF94300AC7AAB /* App.cpp */; };
@@ -24,7 +25,6 @@
 		B268130620FDF94300AC7AAB /* TouchEventListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B268129920FDF94300AC7AAB /* TouchEventListener.cpp */; };
 		B268130720FDF94300AC7AAB /* Engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B268129A20FDF94300AC7AAB /* Engine.cpp */; };
 		B268130820FDF94300AC7AAB /* TextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B268129B20FDF94300AC7AAB /* TextureAtlas.cpp */; };
-		B268130920FDF94300AC7AAB /* Density.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B268129E20FDF94300AC7AAB /* Density.cpp */; };
 		B268130A20FDF94300AC7AAB /* Preference.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B268129F20FDF94300AC7AAB /* Preference.cpp */; };
 		B268130B20FDF94300AC7AAB /* AudioPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812A020FDF94300AC7AAB /* AudioPlayer.cpp */; };
 		B268130C20FDF94300AC7AAB /* Collision.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812A120FDF94300AC7AAB /* Collision.cpp */; };
@@ -56,7 +56,6 @@
 		B268132820FDF94400AC7AAB /* mog_functions_native.mm in Sources */ = {isa = PBXBuildFile; fileRef = B26812E420FDF94300AC7AAB /* mog_functions_native.mm */; };
 		B268132920FDF94400AC7AAB /* NativeClass.mm in Sources */ = {isa = PBXBuildFile; fileRef = B26812E720FDF94300AC7AAB /* NativeClass.mm */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		B268132A20FDF94400AC7AAB /* HttpNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = B26812E820FDF94300AC7AAB /* HttpNative.mm */; };
-		B268132B20FDF94400AC7AAB /* Device.mm in Sources */ = {isa = PBXBuildFile; fileRef = B26812EA20FDF94300AC7AAB /* Device.mm */; };
 		B268132C20FDF94400AC7AAB /* AudioPlayerNative.mm in Sources */ = {isa = PBXBuildFile; fileRef = B26812EC20FDF94300AC7AAB /* AudioPlayerNative.mm */; };
 		B268132D20FDF94400AC7AAB /* MogAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B26812F220FDF94300AC7AAB /* MogAppDelegate.m */; };
 		B268132E20FDF94400AC7AAB /* MogEngineController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B26812F520FDF94300AC7AAB /* MogEngineController.mm */; };
@@ -75,6 +74,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B205EFF0228730440031B4B4 /* Screen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Screen.cpp; sourceTree = "<group>"; };
+		B205EFF1228730440031B4B4 /* Screen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Screen.h; sourceTree = "<group>"; };
 		B226B3A421CB75C800A3CFCF /* mogmalloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mogmalloc.h; sourceTree = "<group>"; };
 		B2506FB11FFD073700237ECA /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		B25501F71F6D809E00D1353A /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
@@ -115,9 +116,7 @@
 		B268129920FDF94300AC7AAB /* TouchEventListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TouchEventListener.cpp; sourceTree = "<group>"; };
 		B268129A20FDF94300AC7AAB /* Engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Engine.cpp; sourceTree = "<group>"; };
 		B268129B20FDF94300AC7AAB /* TextureAtlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextureAtlas.cpp; sourceTree = "<group>"; };
-		B268129C20FDF94300AC7AAB /* Density.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Density.h; sourceTree = "<group>"; };
 		B268129D20FDF94300AC7AAB /* MogUILoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MogUILoader.h; sourceTree = "<group>"; };
-		B268129E20FDF94300AC7AAB /* Density.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Density.cpp; sourceTree = "<group>"; };
 		B268129F20FDF94300AC7AAB /* Preference.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Preference.cpp; sourceTree = "<group>"; };
 		B26812A020FDF94300AC7AAB /* AudioPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioPlayer.cpp; sourceTree = "<group>"; };
 		B26812A120FDF94300AC7AAB /* Collision.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Collision.cpp; sourceTree = "<group>"; };
@@ -174,7 +173,6 @@
 		B26812DE20FDF94300AC7AAB /* Texture2DNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Texture2DNative.h; sourceTree = "<group>"; };
 		B26812DF20FDF94300AC7AAB /* PreferenceNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PreferenceNative.mm; sourceTree = "<group>"; };
 		B26812E020FDF94300AC7AAB /* Texture2DNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Texture2DNative.mm; sourceTree = "<group>"; };
-		B26812E120FDF94300AC7AAB /* Device.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Device.h; sourceTree = "<group>"; };
 		B26812E220FDF94300AC7AAB /* opengl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = opengl.h; sourceTree = "<group>"; };
 		B26812E320FDF94300AC7AAB /* FileUtilsNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FileUtilsNative.mm; sourceTree = "<group>"; };
 		B26812E420FDF94300AC7AAB /* mog_functions_native.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = mog_functions_native.mm; sourceTree = "<group>"; };
@@ -183,7 +181,6 @@
 		B26812E720FDF94300AC7AAB /* NativeClass.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = NativeClass.mm; sourceTree = "<group>"; };
 		B26812E820FDF94300AC7AAB /* HttpNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = HttpNative.mm; sourceTree = "<group>"; };
 		B26812E920FDF94300AC7AAB /* FileUtilsNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileUtilsNative.h; sourceTree = "<group>"; };
-		B26812EA20FDF94300AC7AAB /* Device.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Device.mm; sourceTree = "<group>"; };
 		B26812EB20FDF94300AC7AAB /* AudioPlayerNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioPlayerNative.h; sourceTree = "<group>"; };
 		B26812EC20FDF94300AC7AAB /* AudioPlayerNative.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AudioPlayerNative.mm; sourceTree = "<group>"; };
 		B26812EF20FDF94300AC7AAB /* stb_vorbis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_vorbis.h; sourceTree = "<group>"; };
@@ -280,8 +277,6 @@
 				B268128620FDF94300AC7AAB /* Data.h */,
 				B268129320FDF94300AC7AAB /* DataStore.cpp */,
 				B268128820FDF94300AC7AAB /* DataStore.h */,
-				B268129E20FDF94300AC7AAB /* Density.cpp */,
-				B268129C20FDF94300AC7AAB /* Density.h */,
 				B268129A20FDF94300AC7AAB /* Engine.cpp */,
 				B268127E20FDF94300AC7AAB /* Engine.h */,
 				B268128B20FDF94300AC7AAB /* FileUtils.cpp */,
@@ -318,6 +313,8 @@
 				B268129520FDF94300AC7AAB /* Transform.h */,
 				B268127F20FDF94300AC7AAB /* Tween.cpp */,
 				B268127B20FDF94300AC7AAB /* Tween.h */,
+				B205EFF0228730440031B4B4 /* Screen.cpp */,
+				B205EFF1228730440031B4B4 /* Screen.h */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -415,7 +412,6 @@
 				B26812DE20FDF94300AC7AAB /* Texture2DNative.h */,
 				B26812DF20FDF94300AC7AAB /* PreferenceNative.mm */,
 				B26812E020FDF94300AC7AAB /* Texture2DNative.mm */,
-				B26812E120FDF94300AC7AAB /* Device.h */,
 				B26812E220FDF94300AC7AAB /* opengl.h */,
 				B26812E320FDF94300AC7AAB /* FileUtilsNative.mm */,
 				B26812E420FDF94300AC7AAB /* mog_functions_native.mm */,
@@ -424,7 +420,6 @@
 				B26812E720FDF94300AC7AAB /* NativeClass.mm */,
 				B26812E820FDF94300AC7AAB /* HttpNative.mm */,
 				B26812E920FDF94300AC7AAB /* FileUtilsNative.h */,
-				B26812EA20FDF94300AC7AAB /* Device.mm */,
 				B26812EB20FDF94300AC7AAB /* AudioPlayerNative.h */,
 				B26812EC20FDF94300AC7AAB /* AudioPlayerNative.mm */,
 			);
@@ -627,13 +622,13 @@
 				B268132020FDF94300AC7AAB /* Circle.cpp in Sources */,
 				B268132420FDF94400AC7AAB /* RoundedRectangle.cpp in Sources */,
 				B268130520FDF94300AC7AAB /* Texture2D.cpp in Sources */,
-				B268130920FDF94300AC7AAB /* Density.cpp in Sources */,
 				B268131820FDF94300AC7AAB /* Sprite.cpp in Sources */,
 				B268132920FDF94400AC7AAB /* NativeClass.mm in Sources */,
 				B268131620FDF94300AC7AAB /* Scene.cpp in Sources */,
 				B268131E20FDF94300AC7AAB /* Polygon.cpp in Sources */,
 				B268132820FDF94400AC7AAB /* mog_functions_native.mm in Sources */,
 				B268132C20FDF94400AC7AAB /* AudioPlayerNative.mm in Sources */,
+				B205EFF2228730440031B4B4 /* Screen.cpp in Sources */,
 				B268132120FDF94400AC7AAB /* DrawableGroup.cpp in Sources */,
 				B268130320FDF94300AC7AAB /* Transform.cpp in Sources */,
 				B268130A20FDF94300AC7AAB /* Preference.cpp in Sources */,
@@ -651,7 +646,6 @@
 				B26812FA20FDF94300AC7AAB /* App.cpp in Sources */,
 				B268131B20FDF94300AC7AAB /* Graphics.cpp in Sources */,
 				B268130F20FDF94300AC7AAB /* mog_functions.cpp in Sources */,
-				B268132B20FDF94400AC7AAB /* Device.mm in Sources */,
 				B2D989B522760F4E00333277 /* IOSHelper.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

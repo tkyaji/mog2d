@@ -53,7 +53,7 @@ namespace mog {
 
     class AudioChannelNative {
     public:
-        AudioChannelNative(AudioPlayerNative *audioPlayerNative);
+        static std::shared_ptr<AudioChannelNative> create(const std::shared_ptr<AudioPlayerNative> &audioPlayerNative);
         ~AudioChannelNative();
 
         void load(const char *filename, bool cache = true);
@@ -83,6 +83,7 @@ namespace mog {
         bool pausing = false;
         SLuint32 backupState = SL_PLAYSTATE_STOPPED;
 
+        AudioChannelNative(SLEngineItf slEngine);
         void createOutputMix();
     };
 
@@ -92,12 +93,15 @@ namespace mog {
         SLObjectItf slObject;
         SLEngineItf slEngine;
 
-        AudioPlayerNative();
+        static std::shared_ptr<AudioPlayerNative> create();
         ~AudioPlayerNative();
 
         void preload(const char *filename1, const char *filename2 = nullptr, const char *filename3 = nullptr,
                      const char *filename4 = nullptr, const char *filename5 = nullptr, const char *filename6 = nullptr);
 
         void createOutputMix(SLObjectItf &outputMixObj);
+
+    private:
+        AudioPlayerNative();
     };
 }

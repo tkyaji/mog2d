@@ -19,6 +19,7 @@ add_library(
     ${PROJ_DIR}/sources/mog/core/Tween.cpp
     ${PROJ_DIR}/sources/mog/core/PubSub.cpp
     ${PROJ_DIR}/sources/mog/core/MogStats.cpp
+    ${PROJ_DIR}/sources/mog/core/Screen.cpp
     ${PROJ_DIR}/sources/mog/core/MogUILoader.cpp
     ${PROJ_DIR}/sources/mog/core/FileUtils.cpp
     ${PROJ_DIR}/sources/mog/core/Data.cpp
@@ -30,7 +31,6 @@ add_library(
     ${PROJ_DIR}/sources/mog/core/TouchEventListener.cpp
     ${PROJ_DIR}/sources/mog/core/Engine.cpp
     ${PROJ_DIR}/sources/mog/core/TextureAtlas.cpp
-    ${PROJ_DIR}/sources/mog/core/Density.cpp
     ${PROJ_DIR}/sources/mog/core/Preference.cpp
     ${PROJ_DIR}/sources/mog/core/AudioPlayer.cpp
     ${PROJ_DIR}/sources/mog/core/Collision.cpp
@@ -59,7 +59,6 @@ add_library(
     ${PROJ_DIR}/sources/mog/base/Group.cpp
     ${PROJ_DIR}/sources/mog/base/RoundedRectangle.cpp
     ${PROJ_DIR}/sources_android/mog/core/HttpNative.cpp
-    ${PROJ_DIR}/sources_android/mog/core/Device.cpp
     ${PROJ_DIR}/sources_android/mog/core/AudioPlayerNative.cpp
     ${PROJ_DIR}/sources_android/mog/core/mog_functions_native.cpp
     ${PROJ_DIR}/sources_android/mog/core/NativeClass.cpp

@@ -7,6 +7,8 @@
 #include "mog/core/TouchInput.h"
 #include "mog/core/Touch.h"
 #include "mog/core/KeyEvent.h"
+#include "mog/core/Screen.h"
+#include "mog/core/AudioPlayer.h"
 #include "mog/core/MogStats.h"
 #include "mog/base/AppBase.h"
 
@@ -35,13 +37,7 @@ namespace mog {
         int getCurrentOrientation();
         unsigned long long getFrameCount();
         
-        Size getDisplaySize();
-        Size getScreenSize();
-        float getScreenScale();
-        void setDisplaySize(const Size &displaySize, const Size &viewSize);
-        void setScreenSizeBasedOnHeight(float height);
-        void setScreenSizeBasedOnWidth(float width);
-        void resetScreenSize();
+        void setDisplaySize(const Size &displaySize, const Size &viewSize, float deviceDensity);
 
         Color getClearColor();
         void setClearColor(const Color &color);
@@ -73,9 +69,6 @@ namespace mog {
         std::shared_ptr<MogStats> stats;
         bool running = false;
         unsigned long long frameCount = 0;
-        Size displaySize = Size::zero;
-        Size viewSize = Size::zero;
-        Size screenSize = Size::zero;
         Color color = Color::black;
 
         Engine();
@@ -96,13 +89,12 @@ namespace mog {
         static std::weak_ptr<Engine> instance;
         
         bool initialized = false;
-        bool displaySizeChanged = false;
         bool touchEnable = true;
         bool multiTouchEnable = true;
         std::vector<std::shared_ptr<Entity>> touchableEntities;
         std::unordered_map<int, Touch> prevTouches;
-        char baseScreenSides = '_';
-        float baseScreenSize = 0.0f;
+        std::shared_ptr<Screen> screen;
+        std::shared_ptr<AudioPlayer> audioPlayer;
 
         void initParameters();
         void setViewPortScale();

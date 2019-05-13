@@ -1,7 +1,7 @@
 #include "mog/base/Circle.h"
 #include "mog/base/Group.h"
 #include "mog/core/Engine.h"
-#include "mog/core/Device.h"
+#include "mog/core/Screen.h"
 #include <math.h>
 
 using namespace mog;
@@ -16,7 +16,7 @@ void Circle::init(float radius) {
     this->radius = radius;
     this->transform->size = Size(radius * 2, radius * 2);
     
-    float density = Device::getDeviceDensity();
+    float density = Screen::getDensity();
     int texWidth = (int)(radius * density + 0.5f);
     int texHeight = texWidth;
     unsigned char *data = (unsigned char *)mogmalloc(sizeof(char) * texWidth * texHeight * 4);
@@ -32,7 +32,7 @@ void Circle::init(float radius) {
             data[(y * texWidth + x) * 4 + 3] = (unsigned char)(a * 255.0f + 0.5f);
         }
     }
-    this->textures[0] = Texture2D::createWithRGBA(data, texWidth, texHeight, Density::getCurrent());
+    this->textures[0] = Texture2D::createWithRGBA(data, texWidth, texHeight, Screen::getDensity());
     this->numOfTexture = 1;
     this->rect = Rect(Point::zero, this->transform->size);
     this->initRendererVertices(9, 12);

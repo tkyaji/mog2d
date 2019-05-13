@@ -17,7 +17,7 @@ namespace mog {
         static int instanceCount;
 
         static std::shared_ptr<MogStats> create(bool enable);
-        void drawFrame(const std::shared_ptr<Engine> &engine, float delta);
+        void drawFrame(float delta);
         bool isEnabled();
         void setEnable(bool enable);
         void setAlignment(Alignment alignment);
@@ -34,13 +34,11 @@ namespace mog {
         bool initialized = false;
         bool dirtyPosition = false;
         float tmpDelta = 0;
-        float screenScale = 1.0f;
-        Size screenSize = Size::zero;
         Alignment alignment;
         std::unordered_map<char, std::shared_ptr<Texture2D>> numberTexture2ds;
 
         void bindVertex();
-        void init(const std::shared_ptr<Engine> &engine);
+        void init();
         void updatePosition();
         void setTextToData(std::shared_ptr<Texture2D> text, int x, int y);
         void setNumberToData(float value, int intLength, int decimalLength, int x, int y);

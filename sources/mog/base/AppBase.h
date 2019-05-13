@@ -59,12 +59,6 @@ namespace mog {
         void setBackgroundColor(const Color &color);
         std::shared_ptr<Scene> getCurrentScene();
         
-        void setScreenSizeBasedOnHeight(float height);
-        void setScreenSizeBasedOnWidth(float width);
-        Size getScreenSize();
-        float getScreenScale();
-        Size getDisplaySize();
-        
         void setTouchEnable(bool enable);
         void setMultiTouchEnable(bool enable);
         bool isTouchEnable();
