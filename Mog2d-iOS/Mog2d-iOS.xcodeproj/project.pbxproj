@@ -76,6 +76,7 @@
 /* Begin PBXFileReference section */
 		B205EFF0228730440031B4B4 /* Screen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Screen.cpp; sourceTree = "<group>"; };
 		B205EFF1228730440031B4B4 /* Screen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Screen.h; sourceTree = "<group>"; };
+		B205EFFE228B02320031B4B4 /* shader_sources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = shader_sources.h; sourceTree = "<group>"; };
 		B226B3A421CB75C800A3CFCF /* mogmalloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mogmalloc.h; sourceTree = "<group>"; };
 		B2506FB11FFD073700237ECA /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		B25501F71F6D809E00D1353A /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
@@ -315,6 +316,7 @@
 				B268127B20FDF94300AC7AAB /* Tween.h */,
 				B205EFF0228730440031B4B4 /* Screen.cpp */,
 				B205EFF1228730440031B4B4 /* Screen.h */,
+				B205EFFE228B02320031B4B4 /* shader_sources.h */,
 			);
 			path = core;
 			sourceTree = "<group>";

@@ -23,18 +23,21 @@ std::shared_ptr<MogStats> MogStats::create(bool enable) {
     return stats;
 }
 
-void MogStats::drawFrame(float delta) {
+void MogStats::drawFrame(float delta, unsigned char parentReRenderFlag) {
     if (!this->enable) return;
     
     if (!this->initialized) {
         this->init();
+    } else if (parentReRenderFlag > 0) {
+        this->bindVertex();
     }
+    
     if (this->dirtyPosition) {
         this->updatePosition();
     }
 
     this->tmpDelta += delta;
-    if (this->tmpDelta >= INTERVAL) {
+    if (this->tmpDelta >= INTERVAL || parentReRenderFlag > 0) {
         this->updateValues(delta);
         this->texture->bindTexture();
         this->tmpDelta = 0;
@@ -99,7 +102,7 @@ void MogStats::updatePosition() {
             break;
     }
     this->transform->updateMatrix();
-    this->renderer->setUniformMatrix(this->transform->matrix);
+    this->renderer->shader->setUniformMatrix(this->transform->matrix);
 
     this->dirtyPosition = false;
 }
@@ -129,7 +132,7 @@ void MogStats::bindVertex() {
 
     this->renderer->bindVertex(true);
     this->texture->bindTexture();
-    this->renderer->bindVertexTexCoords(this->texture->textureId, true);
+    this->renderer->bindVertexTexCoords(this->texture, 0, true);
 }
 
 void MogStats::init() {
@@ -236,17 +239,11 @@ void MogStats::setNumberToData(float value, int intLength, int decimalLength, in
     }
 }
 
-#ifdef MOG_QT
-#include <QFontDatabase>
-#endif
-
 std::shared_ptr<Texture2D> MogStats::createLabelTexture(std::string text) {
 #if defined(MOG_IOS) || defined(MOG_OSX)
     const char *fontFace = "Courier";
 #elif defined(MOG_ANDROID)
     const char *fontFace = "monospace";
-#elif defined(MOG_QT)
-    const char *fontFace = QFontDatabase::systemFont(QFontDatabase::SystemFont::FixedFont).family().toStdString().c_str();
 #else
     const char *fontFace = "";
 #endif

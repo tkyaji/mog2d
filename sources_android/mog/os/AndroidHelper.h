@@ -43,6 +43,12 @@ namespace mog {
             mogActivity->execute("runOnUiThread", NativeObject::create(f));
         }
 
+        static void runOnGLThread(std::function<void()> func) {
+            auto f = [func](const std::shared_ptr<mog::List> &args) {
+                func();
+            };
+            mogActivity->execute("runOnGLThread", NativeObject::create(f));
+        }
     };
 }
 

@@ -6,6 +6,7 @@
 #include "mog/core/Engine.h"
 #include "mog/core/plain_objects.h"
 #include "mog/core/Texture2D.h"
+#include "mog/Constants.h"
 
 namespace mog {
     class DrawableGroup;
@@ -91,8 +92,7 @@ namespace mog {
 
         std::shared_ptr<Renderer> renderer = nullptr;
         std::shared_ptr<Transform> transform = nullptr;
-        std::array<std::shared_ptr<Texture2D>, 4> textures;
-        int numOfTexture = 0;
+        std::array<std::shared_ptr<Texture2D>, MULTI_TEXTURE_NUM> textures;
         unsigned char reRenderFlag = RERENDER_ALL;
         
         std::weak_ptr<DrawableGroup> parentDrawableGroup;

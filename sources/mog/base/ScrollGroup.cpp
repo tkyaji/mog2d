@@ -32,13 +32,13 @@ std::shared_ptr<ScrollGroup> ScrollGroup::create(const mog::Size &scrollSize, co
 void ScrollGroup::init(const mog::Size &scrollSize, const mog::Size &contentSize, unsigned char scrollFlag) {
     this->scrollFlag = scrollFlag;
     this->enableBatching = true;
-    this->numOfTexture = 1;
+    this->enableTexture = true;
     this->contentGroup = Group::create();
     this->contentGroup->setSize(contentSize);
     Group::add(this->contentGroup);
     
-    this->renderer->vertexShader = BasicShader::getShader(BasicShader::Type::VertexColorWithTexture, ShaderType::VertexShader);
-    this->renderer->fragmentShader = Shader::create(fragmentShaderSource, ShaderType::FragmentShader);
+    this->renderer->shader->vertexShader = BasicShader::getShaderUnit(BasicShader::Type::VertexColorWithTexture, ShaderType::VertexShader);
+    this->renderer->shader->fragmentShader = ShaderUnit::create(fragmentShaderSource, ShaderType::FragmentShader);
     
     auto listener = TouchEventListener::create();
     listener->setOnTouchMoveEvent([this](const Touch &t, const std::shared_ptr<Entity> &e) {
@@ -80,8 +80,8 @@ void ScrollGroup::drawFrame(float delta) {
     if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
         auto pos = this->getAbsolutePosition();
         auto size = this->getAbsoluteSize();
-        this->renderer->setUniformParameter("u_position", pos.x, pos.y);
-        this->renderer->setUniformParameter("u_size", size.width, size.height);
+        this->renderer->shader->setUniformParameter("u_position", pos.x, pos.y);
+        this->renderer->shader->setUniformParameter("u_size", size.width, size.height);
     }
     Group::drawFrame(delta);
 }
@@ -103,7 +103,7 @@ std::vector<std::shared_ptr<Entity>> ScrollGroup::getChildEntities() {
 }
 
 std::shared_ptr<Entity> ScrollGroup::findChildByName(std::string name, bool recursive) {
-    return findChildByName(name, recursive);
+    return this->contentGroup->findChildByName(name, recursive);
 }
 
 std::shared_ptr<Entity> ScrollGroup::findFirstChildByTag(std::string tag, bool recursive) {
@@ -111,7 +111,7 @@ std::shared_ptr<Entity> ScrollGroup::findFirstChildByTag(std::string tag, bool r
 }
 
 std::vector<std::shared_ptr<Entity>> ScrollGroup::findChildrenByTag(std::string tag, bool recursive) {
-    return findChildrenByTag(tag, recursive);
+    return this->contentGroup->findChildrenByTag(tag, recursive);
 }
 
 void ScrollGroup::setScrollPosition(const Point &position) {

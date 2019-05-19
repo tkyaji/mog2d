@@ -245,7 +245,7 @@ void AppBase::loadSceneWithSlideIn(const std::shared_ptr<Scene> &scene, Transiti
                                                     duration, easing, loadMode, 0, SceneTransition::SceneOrder::CurrentNext, f);
 }
 
-void AppBase::drawFrame(float delta) {
+void AppBase::drawFrame(float delta, unsigned char parentReRenderFlag) {
     if (this->currentScene) {
         auto engine = this->engine.lock();
         
@@ -256,7 +256,7 @@ void AppBase::drawFrame(float delta) {
                 this->sceneTransition = nullptr;
             }
         } else {
-            this->currentScene->updateFrame(engine, delta);
+            this->currentScene->updateFrame(engine, delta, parentReRenderFlag);
             this->currentScene->drawFrame(delta);
         }
         if (this->doLoadScene()) {

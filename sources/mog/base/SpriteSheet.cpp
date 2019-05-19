@@ -19,7 +19,6 @@ std::shared_ptr<SpriteSheet> SpriteSheet::create(const std::shared_ptr<Sprite> &
 
 void SpriteSheet::init(const std::shared_ptr<Texture2D> &texture, const Size &frameSize, unsigned int frameCount, unsigned int margin, const Rect &rect) {
     this->textures[0] = texture;
-    this->numOfTexture = 1;
     Rect _rect = rect;
     if (rect.size == Size::zero) {
         _rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,

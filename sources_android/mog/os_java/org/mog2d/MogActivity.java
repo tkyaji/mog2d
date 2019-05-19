@@ -149,9 +149,9 @@ public class MogActivity extends Activity {
         this.glSurfaceView = new GLSurfaceView(this);
         this.glSurfaceView.setEGLContextClientVersion(2);
         this.glSurfaceView.setRenderer(new MogRenderer(this.glSurfaceView, this.density));
-        this.glSurfaceView.setPreserveEGLContextOnPause(true);
+//        this.glSurfaceView.setPreserveEGLContextOnPause(true);
         layout.addView(this.glSurfaceView);
-        this.setContentView(layout);
+        this.setContentView(this.layout);
 
         this.hideNavigationBar();
 
@@ -176,7 +176,12 @@ public class MogActivity extends Activity {
         for (MogActivityEvent.OnPauseListener listener : this.onPauseListeners) {
             listener.onPause(this);
         }
-        MogJniBridge.onPause();
+        this.glSurfaceView.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                MogJniBridge.onPause();
+            }
+        });
         this.glSurfaceView.onPause();
         super.onPause();
     }
@@ -186,7 +191,12 @@ public class MogActivity extends Activity {
         Log.d(TAG, "onResume");
         super.onResume();
         this.hideNavigationBar();
-        MogJniBridge.onResume();
+        this.glSurfaceView.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                MogJniBridge.onResume();
+            }
+        });
         this.glSurfaceView.onResume();
         for (MogActivityEvent.OnResumeListener listener : this.onResumeListeners) {
             listener.onResume(this);

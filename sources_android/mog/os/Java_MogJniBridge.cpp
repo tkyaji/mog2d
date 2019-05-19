@@ -92,7 +92,7 @@ public:
                 break;
         }
     }
-    
+
 private:
     enum NativeTouchAction {
         Down = 1,

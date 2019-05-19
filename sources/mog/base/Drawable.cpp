@@ -34,10 +34,10 @@ void Drawable::updateFrame(const std::shared_ptr<Engine> &engine, float delta, f
 void Drawable::drawFrame(float delta) {
     if (!this->active) return;
     if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
-        this->renderer->setUniformMatrix(this->renderer->matrix);
+        this->renderer->shader->setUniformMatrix(this->renderer->matrix);
     }
     if ((this->reRenderFlag & RERENDER_COLOR) == RERENDER_COLOR) {
-        this->renderer->setUniformColor(this->renderer->matrix[16], this->renderer->matrix[17], this->renderer->matrix[18], this->renderer->matrix[19]);
+        this->renderer->shader->setUniformColor(this->renderer->matrix[16], this->renderer->matrix[17], this->renderer->matrix[18], this->renderer->matrix[19]);
     }
     this->bindVertex();
     this->renderer->drawFrame();

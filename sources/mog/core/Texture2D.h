@@ -23,7 +23,7 @@ namespace mog {
         Stroke
     };
 
-    class Texture2D : public std::enable_shared_from_this<Texture2D> {
+    class Texture2D {
     public:
         GLuint textureId = 0;
         std::string filename;
@@ -42,21 +42,24 @@ namespace mog {
         static std::shared_ptr<Texture2D> createWithText(std::string text, float fontSize, std::string fontFilename = "", float height = 0, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
         static std::shared_ptr<Texture2D> createWithColor(TextureType textureType, const Color &color, int width, int height, Density density);
         static std::shared_ptr<Texture2D> createWithRGBA(unsigned char *data, int width, int height, Density density);
-        
+        static void releaseAllBufferes();
+
         Texture2D();
         ~Texture2D();
         
         void bindTexture();
         void bindTextureSub(GLubyte* data, int x, int y, int width, int height);
         void loadImageFromBuffer(unsigned char *buffer, int len);
-        void releaseBuffer();
         
     private:
+        static std::unordered_map<intptr_t, std::weak_ptr<Texture2D>> allTextures;
+        
         void loadTextureAsset(std::string filename);
         std::shared_ptr<ByteArray> readBytesAsset(std::string filename, Density *density);
         void loadTextureFile(std::string filepath, Density density = Density::x1_0);
         void loadFontTexture(std::string text, float fontSize, std::string fontFilename = "", float height = 0, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
         void loadColorTexture(TextureType textureType, const Color &color, int width, int height, Density density = Density::x1_0);
+        void releaseBuffer();
     };
 }
 

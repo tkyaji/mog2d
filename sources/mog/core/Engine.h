@@ -78,7 +78,8 @@ namespace mog {
         long long timerStartTime = 0;
         long long timerBackupTime = 0;
         float lastElapsedSec = 0;
-        
+        unsigned char reRenderFlag = 0;
+
         std::unordered_map<unsigned int, std::function<void(unsigned int funcId)>> onUpdateFuncs;
         std::unordered_map<unsigned int, std::function<void(unsigned int funcId)>> onUpdateFuncsToAdd;
         std::vector<unsigned int> onUpdateFuncIdsToRemove;
@@ -99,6 +100,7 @@ namespace mog {
         void initParameters();
         void setViewPortScale();
         void initScreen();
+        void releaseAllBuffers();
 
         void fireTouchListeners(std::map<unsigned int, TouchInput> touches);
     };

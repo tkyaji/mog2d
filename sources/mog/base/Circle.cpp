@@ -33,7 +33,6 @@ void Circle::init(float radius) {
         }
     }
     this->textures[0] = Texture2D::createWithRGBA(data, texWidth, texHeight, Screen::getDensity());
-    this->numOfTexture = 1;
     this->rect = Rect(Point::zero, this->transform->size);
     this->initRendererVertices(9, 12);
 }

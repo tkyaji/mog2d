@@ -44,7 +44,6 @@ std::shared_ptr<Label> Label::create(const LocalizedText &localizedText, float f
 
 void Label::init(std::string text, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
     this->textures[0] = Texture2D::createWithText(text, fontSize, fontFilename, height, textMode, strokeWidth);
-    this->numOfTexture = 1;
     this->text = text;
     this->fontSize = fontSize;
     this->fontFilename = fontFilename;

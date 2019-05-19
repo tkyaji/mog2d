@@ -85,7 +85,6 @@ void Sprite::init(std::string filename, const Rect &rect) {
             Sprite::cachedTexture2d[filename] = this->textures[0];
         }
     }
-    this->numOfTexture = 1;
 
     Rect _rect = rect;
     if (rect.size == Size::zero) {
@@ -101,7 +100,6 @@ void Sprite::init(std::string filename, const Rect &rect) {
 void Sprite::initWithFilePath(std::string filepath, const Rect &rect, Density density) {
     this->filename = filepath;
     this->textures[0] = Texture2D::createWithFile(filepath, density);
-    this->numOfTexture = 1;
 
     Rect _rect = rect;
     if (rect.size == Size::zero) {
@@ -116,8 +114,6 @@ void Sprite::initWithFilePath(std::string filepath, const Rect &rect, Density de
 
 void Sprite::initWithImage(const std::shared_ptr<ByteArray> &bytes) {
     this->textures[0] = Texture2D::createWithImage(bytes);
-    this->numOfTexture = 1;
-
     this->transform->size.width = this->textures[0]->width / this->textures[0]->density.value;
     this->transform->size.height = this->textures[0]->height / this->textures[0]->density.value;
     this->rect = Rect(Point::zero, this->transform->size);
@@ -127,8 +123,6 @@ void Sprite::initWithImage(const std::shared_ptr<ByteArray> &bytes) {
 
 void Sprite::initWithRGBA(unsigned char *data, int width, int height) {
     this->textures[0] = Texture2D::createWithRGBA(data, width, height, Screen::getDensity());
-    this->numOfTexture = 1;
-
     this->transform->size.width = this->textures[0]->width / this->textures[0]->density.value;
     this->transform->size.height = this->textures[0]->height / this->textures[0]->density.value;
     this->rect = Rect(Point::zero, this->transform->size);
@@ -138,8 +132,6 @@ void Sprite::initWithRGBA(unsigned char *data, int width, int height) {
 
 void Sprite::initWithTexture(const std::shared_ptr<Texture2D> &texture, const Rect &rect) {
     this->textures[0] = texture;
-    this->numOfTexture = 1;
-
     this->transform->size.width = this->textures[0]->width / this->textures[0]->density.value;
     this->transform->size.height = this->textures[0]->height / this->textures[0]->density.value;
     Rect _rect = rect;

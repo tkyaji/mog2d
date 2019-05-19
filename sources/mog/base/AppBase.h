@@ -70,7 +70,7 @@ namespace mog {
         std::shared_ptr<PubSub> getPubSub();
         unsigned int getSceneStackSize();
 
-        virtual void drawFrame(float delta);
+        virtual void drawFrame(float delta, unsigned char parentReRenderFlag = 0);
         
         virtual void onLoad() {};
         virtual void onDispose() {};

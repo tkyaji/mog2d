@@ -19,7 +19,6 @@ std::shared_ptr<TiledSprite> TiledSprite::create(const std::shared_ptr<Sprite> &
 
 void TiledSprite::init(const std::shared_ptr<Texture2D> texture, const Size &size, const Rect &rect) {
     this->textures[0] = texture;
-    this->numOfTexture = 1;
     this->transform->size = size;
     Rect _rect = rect;
     if (rect.size == Size::zero) {

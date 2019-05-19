@@ -20,9 +20,10 @@ void Scene::removeAll() {
     this->drawableGroup->removeAllChildren();
 }
 
-void Scene::updateFrame(const std::shared_ptr<Engine> &engine, float delta) {
+void Scene::updateFrame(const std::shared_ptr<Engine> &engine, float delta, unsigned char parentReRenderFlag) {
     this->onUpdate(delta);
     this->drawableGroup->sortChildDrawablesToDraw();
+    this->reRenderFlag |= parentReRenderFlag;
     for (auto drawable : this->drawableGroup->sortedChildDrawables) {
         drawable->reRenderFlag |= this->reRenderFlag;
         drawable->updateFrame(engine, delta, this->matrix, this->reRenderFlag);

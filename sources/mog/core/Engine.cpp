@@ -66,24 +66,26 @@ void Engine::startEngine() {
 
 void Engine::stopEngine() {
     if (!this->running) return;
-    
+
     if (this->app) {
         this->app->onPause();
-        Renderer::releaseAllBuffer();
-        BasicShader::clearShaderCache();
     }
     AudioPlayer::onPause();
     
     this->stopTimer();
     DataStore::save();
+    this->releaseAllBuffers();
 
-    glFinish();
     this->running = false;
 }
 
 void Engine::onDrawFrame(std::map<unsigned int, TouchInput> touches) {
     if (!this->running) return;
 
+    if (this->reRenderFlag == RERENDER_ALL) {
+        this->initParameters();
+    }
+    
     float elapsed = this->getTimerElapsedSec();
     float delta = elapsed - this->lastElapsedSec;
     this->lastElapsedSec = elapsed;
@@ -94,16 +96,18 @@ void Engine::onDrawFrame(std::map<unsigned int, TouchInput> touches) {
     this->stats->drawCallCount = 0;
     
     if (this->app) {
-        this->app->drawFrame(delta);
+        this->app->drawFrame(delta, this->reRenderFlag);
     }
     
-    this->stats->drawFrame(delta);
+    this->stats->drawFrame(delta, this->reRenderFlag);
     
     this->frameCount++;
     
     this->fireTouchListeners(touches);
     
     this->invokeOnUpdateFunc();
+    
+    this->reRenderFlag = 0;
 }
 
 void Engine::onLowMemory() {
@@ -274,6 +278,12 @@ bool Engine::isTouchEnable() {
 
 bool Engine::isMultiTouchEnable() {
     return this->multiTouchEnable;
+}
+
+void Engine::releaseAllBuffers() {
+    this->reRenderFlag = RERENDER_ALL;
+    Texture2D::releaseAllBufferes();
+    Renderer::releaseAllBufferes();
 }
 
 unsigned int Engine::registerOnUpdateFunc(std::function<void(unsigned int funcId)> onUpdateFunc) {

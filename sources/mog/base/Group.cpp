@@ -54,17 +54,17 @@ void Group::updateFrame(const std::shared_ptr<Engine> &engine, float delta, floa
         indicesNum += entity->renderer->indicesNum;
 
         if (auto g = dynamic_cast<Group *>(entity.get())) {
-            if (g->numOfTexture > this->numOfTexture) this->numOfTexture = g->numOfTexture;
+            if (g->enableTexture) this->enableTexture = true;
             this->reRenderFlagChildren |= (entity->reRenderFlag | g->reRenderFlagChildren);
         } else {
-            if (entity->numOfTexture > this->numOfTexture) this->numOfTexture = entity->numOfTexture;
+            if (entity->textures[0]) this->enableTexture = true;
             this->reRenderFlagChildren |= entity->reRenderFlag;
         }
     }
     if (this->renderer->setVerticesNum(verticesNum)) {
         this->renderer->newVerticesArr();
         this->renderer->newVertexColorsArr();
-        if (this->numOfTexture > 0) {
+        if (this->enableTexture) {
             this->renderer->newVertexTexCoordsArr();
         }
     }
@@ -78,16 +78,16 @@ void Group::drawFrame(float delta) {
     
     if (this->enableBatching) {
         if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
-            this->renderer->setUniformMatrix(this->renderer->matrix);
+            this->renderer->shader->setUniformMatrix(this->renderer->matrix);
         }
         if ((this->reRenderFlag & RERENDER_COLOR) == RERENDER_COLOR) {
-            this->renderer->setUniformColor(this->renderer->matrix[16], this->renderer->matrix[17], this->renderer->matrix[18], this->renderer->matrix[19]);
+            this->renderer->shader->setUniformColor(this->renderer->matrix[16], this->renderer->matrix[17], this->renderer->matrix[18], this->renderer->matrix[19]);
         }
         if ((this->reRenderFlag & RERENDER_ALL) == RERENDER_ALL) {
             this->bindVertex();
             
         } else if (this->reRenderFlagChildren > 0) {
-            if (this->numOfTexture > 0 && (this->reRenderFlagChildren & RERENDER_TEXTURE) == RERENDER_TEXTURE) {
+            if (this->enableTexture && (this->reRenderFlagChildren & RERENDER_TEXTURE) == RERENDER_TEXTURE) {
                 this->bindVertex();
             } else {
                 this->bindVertexSub();
@@ -120,7 +120,7 @@ void Group::bindVertex() {
     
     int vertexIndices[4] = {0, 0, 0, 0};
     
-    if (this->numOfTexture > 0) {
+    if (this->enableTexture) {
         this->textureAtlas = std::make_shared<TextureAtlas>();
         this->addTextureTo(this->textureAtlas);
         this->textures[0] = this->textureAtlas->createTexture();
@@ -130,8 +130,8 @@ void Group::bindVertex() {
     this->bindVertexRecursive(this->renderer, this->textureAtlas, vertexIndices, Renderer::identityMatrix);
     this->renderer->bindVertex(true);
     this->renderer->bindVertexColors(true);
-    if (this->numOfTexture > 0) {
-        this->renderer->bindVertexTexCoords(this->textures[0]->textureId, 0);
+    if (this->enableTexture) {
+        this->renderer->bindVertexTexCoords(this->textures[0], 0);
     }
 }
 
@@ -151,7 +151,7 @@ void Group::bindVertexRecursive(const std::shared_ptr<Renderer> &renderer, std::
             entity->bindVertices(renderer, &vertexIndices[VERTICES_IDX], &vertexIndices[INDICES_IDX], true);
             entity->bindVertexColors(renderer, &vertexIndices[VERTEX_COLORS_IDX]);
             std::shared_ptr<TextureAtlasCell> cell = nullptr;
-            if (this->numOfTexture > 0) {
+            if (this->enableTexture) {
                 if (entity->textures[0]) cell = textureAtlas->getCell(entity->textures[0]);
                 float x = 0;
                 float y = 0;
@@ -198,7 +198,7 @@ void Group::bindVertexSubRecursive(const std::shared_ptr<Renderer> &renderer, st
             } else {
                 vertexIndices[VERTEX_COLORS_IDX] += entity->renderer->verticesNum * 4;
             }
-            if (this->numOfTexture > 0 && entity->textures[0]) {
+            if (this->enableTexture && entity->textures[0]) {
                 if ((entity->reRenderFlag & RERENDER_TEX_COORDS) == RERENDER_TEX_COORDS) {
                     std::shared_ptr<TextureAtlasCell> cell = nullptr;
                     if (entity->textures[0]) cell = textureAtlas->getCell(entity->textures[0]);

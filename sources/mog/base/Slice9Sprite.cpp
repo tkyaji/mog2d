@@ -21,7 +21,6 @@ std::shared_ptr<Slice9Sprite> Slice9Sprite::create(const std::shared_ptr<Sprite>
 
 void Slice9Sprite::init(const std::shared_ptr<Texture2D> &texture, const Rect &centerRect, const Rect &rect) {
     this->textures[0] = texture;
-    this->numOfTexture = 1;
     this->centerRect = centerRect;
     Rect _rect = rect;
     if (rect.size == Size::zero) {

@@ -45,7 +45,7 @@ void Entity::bindVertex() {
             int vertexTexCoordsIdx = 0;
             if (!this->renderer->vertexTexCoords[0]) this->renderer->newVertexTexCoordsArr();
             this->bindVertexTexCoords(this->renderer, &vertexTexCoordsIdx, 0, 0, 0, 1.0f, 1.0f);
-            this->renderer->bindVertexTexCoords(this->textures[0]->textureId, 0);
+            this->renderer->bindVertexTexCoords(this->textures[0], 0);
         }
     }
 

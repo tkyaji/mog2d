@@ -34,6 +34,7 @@ namespace mog {
         std::shared_ptr<DrawableGroup> drawableGroup;
         bool sortOrderDirty = true;
         bool enableBatching = false;
+        bool enableTexture = false;
         unsigned char reRenderFlagChildren = 0;
         std::unordered_map<unsigned long, std::shared_ptr<TextureAtlasCell>> cellMap;
         std::shared_ptr<TextureAtlas> textureAtlas;
