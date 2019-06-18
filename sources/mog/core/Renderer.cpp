@@ -227,7 +227,6 @@ void Renderer::releaseBuffer() {
         this->vertexBuffer[0] = 0;
         this->vertexBuffer[1] = 0;
     }
-    this->shader->releaseBuffer();
     this->screenParameterInitialized = false;
 
     checkGLError("Renderer::releaseBuffer");

@@ -136,13 +136,13 @@ void AppBase::loadSceneWithFade(const std::shared_ptr<Scene> &scene, float durat
             current->matrix[16] = v;
             current->matrix[17] = v;
             current->matrix[18] = v;
-            current->reRenderFlag |= RERENDER_COLOR;
+            current->dirtyFlag |= DIRTY_COLOR;
         } else {
             float v = (value - 0.5f) / 0.5f;
             next->matrix[16] = v;
             next->matrix[17] = v;
             next->matrix[18] = v;
-            next->reRenderFlag |= RERENDER_COLOR;
+            next->dirtyFlag |= DIRTY_COLOR;
         }
     };
     this->sceneTransition = SceneTransition::create(this->engine.lock(), shared_from_this(), this->currentScene, scene,
@@ -176,7 +176,7 @@ void AppBase::loadSceneWithMoveIn(const std::shared_ptr<Scene> &scene, Transitio
         float v = 1.0f - value;
         next->matrix[12] = start.x * v;
         next->matrix[13] = start.y * v;
-        next->reRenderFlag |= RERENDER_VERTEX;
+        next->dirtyFlag |= DIRTY_VERTEX;
     };
     this->sceneTransition = SceneTransition::create(this->engine.lock(), shared_from_this(), this->currentScene, scene,
                                                     duration, easing, loadMode, 0, SceneTransition::SceneOrder::CurrentNext, f);
@@ -203,7 +203,7 @@ void AppBase::loadSceneWithMoveOut(const std::shared_ptr<Scene> &scene, Transiti
     auto f = [end](std::shared_ptr<mog::Scene> current, std::shared_ptr<mog::Scene> next, float value) {
         current->matrix[12] = end.x * value;
         current->matrix[13] = end.y * value;
-        current->reRenderFlag |= RERENDER_VERTEX;
+        current->dirtyFlag |= DIRTY_VERTEX;
     };
     this->sceneTransition = SceneTransition::create(this->engine.lock(), shared_from_this(), this->currentScene, scene,
                                                     duration, easing, loadMode, 0, SceneTransition::SceneOrder::NextCurrent, f);
@@ -238,14 +238,14 @@ void AppBase::loadSceneWithSlideIn(const std::shared_ptr<Scene> &scene, Transiti
         current->matrix[13] = currentEnd.y * value;
         next->matrix[12] = nextStart.x * v;
         next->matrix[13] = nextStart.y * v;
-        current->reRenderFlag |= RERENDER_VERTEX;
-        next->reRenderFlag |= RERENDER_VERTEX;
+        current->dirtyFlag |= DIRTY_VERTEX;
+        next->dirtyFlag |= DIRTY_VERTEX;
     };
     this->sceneTransition = SceneTransition::create(this->engine.lock(), shared_from_this(), this->currentScene, scene,
                                                     duration, easing, loadMode, 0, SceneTransition::SceneOrder::CurrentNext, f);
 }
 
-void AppBase::drawFrame(float delta, unsigned char parentReRenderFlag) {
+void AppBase::drawFrame(float delta, unsigned char parentDirtyFlag) {
     if (this->currentScene) {
         auto engine = this->engine.lock();
         
@@ -256,7 +256,7 @@ void AppBase::drawFrame(float delta, unsigned char parentReRenderFlag) {
                 this->sceneTransition = nullptr;
             }
         } else {
-            this->currentScene->updateFrame(engine, delta, parentReRenderFlag);
+            this->currentScene->updateFrame(engine, delta, parentDirtyFlag);
             this->currentScene->drawFrame(delta);
         }
         if (this->doLoadScene()) {

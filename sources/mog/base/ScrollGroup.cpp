@@ -67,17 +67,17 @@ void ScrollGroup::init(const mog::Size &scrollSize, const mog::Size &contentSize
     this->addTouchEvent(listener);
 }
 
-void ScrollGroup::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
+void ScrollGroup::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag) {
     if (!this->dragging && (abs(this->velocity.x) >= 0.00001f || abs(this->velocity.y) >= 0.00001f)) {
         this->setScrollPosition(this->contentGroup->getPosition() + this->velocity);
         this->velocity *= 0.9f;
     }
 
-    Group::updateFrame(engine, delta, parentMatrix, parentReRenderFlag);
+    Group::updateFrame(engine, delta, parentMatrix, parentDirtyFlag);
 }
 
 void ScrollGroup::drawFrame(float delta) {
-    if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
         auto pos = this->getAbsolutePosition();
         auto size = this->getAbsoluteSize();
         this->renderer->shader->setUniformParameter("u_position", pos.x, pos.y);

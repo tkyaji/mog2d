@@ -17,7 +17,10 @@ namespace mog {
         friend class Entity;
     public:
         static std::shared_ptr<Group> create(bool enableBatching = false);
-        
+
+        void setEnableBatching(bool enableBatching);
+        bool isEnableBatching();
+
         virtual void add(const std::shared_ptr<Entity> &entity);
         virtual void remove(const std::shared_ptr<Entity> &entity);
         virtual void removeAll();
@@ -27,7 +30,7 @@ namespace mog {
         std::vector<std::shared_ptr<Entity>> findChildrenByTag(std::string tag, bool recursive = true);
         std::shared_ptr<Group> clone();
 
-        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag = 0) override;
+        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag = 0) override;
         virtual void drawFrame(float delta) override;
 
     protected:
@@ -35,7 +38,7 @@ namespace mog {
         bool sortOrderDirty = true;
         bool enableBatching = false;
         bool enableTexture = false;
-        unsigned char reRenderFlagChildren = 0;
+        unsigned char dirtyFlagChildren = 0;
         std::unordered_map<unsigned long, std::shared_ptr<TextureAtlasCell>> cellMap;
         std::shared_ptr<TextureAtlas> textureAtlas;
 

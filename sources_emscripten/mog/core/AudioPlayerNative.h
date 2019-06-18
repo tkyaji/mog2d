@@ -31,8 +31,7 @@ namespace mog {
     
     class AudioChannelNative {
     public:
-        AudioChannelNative(AudioPlayerNative *audioPlayerNative);
-        ~AudioChannelNative();
+        static std::shared_ptr<AudioChannelNative> create(const std::shared_ptr<AudioPlayerNative> &audioPlayerNative);
         
         void initialize();
         void load(const char *filename, bool cache = true);
@@ -62,32 +61,31 @@ namespace mog {
             SetVolume,
         };
 
-        AudioPlayerNative *audioPlayerNative;
-        bool initialized = false;
-        bool enabled;
-        bool loaded;
-        ALuint  source;
+        AudioChannelNative() {}
+        
+        std::weak_ptr<AudioPlayerNative> audioPlayerNative;
+        bool loaded = false;
+        ALuint source = 0;
         std::shared_ptr<AudioData> audioData;
         std::vector<std::pair<Command, std::shared_ptr<mog::Data>>> commandQueue;
+        bool initialized = false;
     };
     
     
     class AudioPlayerNative {
     public:
-        AudioPlayerNative();
-        ~AudioPlayerNative();
-        
+        static std::shared_ptr<AudioPlayerNative> create();
         void initialize();
         bool isInitialized();
+        ~AudioPlayerNative();
+        
         void preload(const char *filename);
-        void registerChannel(AudioChannelNative *channel);
-        void unRegisterChannel(AudioChannelNative *channel);
         
     private:
-        bool initialized = false;
+        AudioPlayerNative();
         ALCdevice*  device;
         ALCcontext* context;
-
-        std::set<AudioChannelNative *> channels;
+        bool initialized = false;
+        std::vector<std::string> preloadFileQueue;
     };
 }

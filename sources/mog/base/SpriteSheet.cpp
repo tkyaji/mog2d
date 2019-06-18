@@ -80,9 +80,9 @@ void SpriteSheet::setMargin(unsigned int margin) {
     this->initFrames(this->frameCount, margin);
 }
 
-void SpriteSheet::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
+void SpriteSheet::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag) {
     this->updateSpriteFrame(delta);
-    Entity::updateFrame(engine, delta, parentMatrix, parentReRenderFlag);
+    Entity::updateFrame(engine, delta, parentMatrix, parentDirtyFlag);
 }
 
 void SpriteSheet::updateSpriteFrame(float delta) {
@@ -118,7 +118,7 @@ void SpriteSheet::updateSpriteFrame(float delta) {
 void SpriteSheet::selectFrame(unsigned int frame) {
     LOGD("%d\n", frame);
     this->frame = frame % this->frameCount;
-    this->reRenderFlag |= RERENDER_TEX_COORDS;
+    this->dirtyFlag |= DIRTY_TEX_COORDS;
 }
 
 void SpriteSheet::startAnimation(float timePerFrame, LoopType loopType, int loopCount, int startFrame, int endFrame) {

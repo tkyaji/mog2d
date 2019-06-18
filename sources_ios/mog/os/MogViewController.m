@@ -16,7 +16,6 @@
     self = [super init];
     if (!self) return self;
     
-    [super viewDidLoad];
     MogView *mogView = [[MogView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.view = mogView;
     _engineController = [[MogEngineController alloc] initWithMog:self view:mogView];

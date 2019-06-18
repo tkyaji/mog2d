@@ -99,7 +99,7 @@ float Circle::getRadius() {
 
 void Circle::setRadius(float radius) {
     this->init(radius);
-    this->reRenderFlag |= RERENDER_ALL;
+    this->dirtyFlag |= DIRTY_ALL;
 }
 
 std::shared_ptr<CIRCLE> Circle::getCIRCLE() {

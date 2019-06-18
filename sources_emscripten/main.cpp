@@ -21,6 +21,16 @@ extern "C" {
 
 static std::shared_ptr<mog::MogEngineController> _engineController;
 
+static void initialize_audio() {
+    if (auto audioPlayer = mog::AudioPlayer::instance.lock()) {
+        audioPlayer->audioPlayerNative->initialize();
+        auto channels = audioPlayer->getAllChannels();
+        for (auto &pair : channels) {
+            pair.second->audioChannelNative->initialize();
+        }
+    }
+}
+
 static EM_BOOL touch_callback(int eventType, const EmscriptenTouchEvent *e, void *userData) {
     mog::MogEngineController *engineController = reinterpret_cast<mog::MogEngineController *>(userData);
 
@@ -28,7 +38,7 @@ static EM_BOOL touch_callback(int eventType, const EmscriptenTouchEvent *e, void
     if (eventType == EMSCRIPTEN_EVENT_TOUCHSTART) {
         action = mog::MogEngineController::EMTouchAction::Down;
     } else if (eventType == EMSCRIPTEN_EVENT_TOUCHEND) {
-        mog::AudioPlayer::instance->audioPlayerNative->initialize();
+        initialize_audio();
         action = mog::MogEngineController::EMTouchAction::Up;
     } else if (eventType == EMSCRIPTEN_EVENT_TOUCHMOVE) {
         action = mog::MogEngineController::EMTouchAction::Move;
@@ -54,7 +64,7 @@ static EM_BOOL mouse_callback(int eventType, const EmscriptenMouseEvent *e, void
     if (eventType == EMSCRIPTEN_EVENT_MOUSEDOWN) {
         action = mog::MogEngineController::EMTouchAction::Down;
     } else if (eventType == EMSCRIPTEN_EVENT_MOUSEUP) {
-        mog::AudioPlayer::instance->audioPlayerNative->initialize();
+        initialize_audio();
         action = mog::MogEngineController::EMTouchAction::Up;
     } else if (eventType == EMSCRIPTEN_EVENT_MOUSEMOVE) {
         action = mog::MogEngineController::EMTouchAction::Move;

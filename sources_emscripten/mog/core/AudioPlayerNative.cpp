@@ -103,26 +103,16 @@ bool AudioData::loadFromAssetNative(ALuint buffer, const char *filename) {
 
 #pragma - AudioChannelNative
 
-AudioChannelNative::AudioChannelNative(AudioPlayerNative *audioPlayerNative) {
-    this->audioPlayerNative = audioPlayerNative;
-    this->loaded = false;
-
-    if (this->audioPlayerNative->isInitialized()) {
-        this->initialize();
-    } else {
-        this->audioPlayerNative->registerChannel(this);
-    }
-}
-
-AudioChannelNative::~AudioChannelNative() {
-    this->audioPlayerNative->unRegisterChannel(this);
+std::shared_ptr<AudioChannelNative> AudioChannelNative::create(const std::shared_ptr<AudioPlayerNative> &audioPlayerNative) {
+    auto audioChannelNative = std::shared_ptr<AudioChannelNative>(new AudioChannelNative());
+    audioChannelNative->audioPlayerNative = audioPlayerNative;
+    return audioChannelNative;
 }
 
 void AudioChannelNative::initialize() {
     if (this->initialized) return;
-
+    
     alGenSources(1, &this->source);
-    this->initialized = true;
 
     for (auto &pair : this->commandQueue) {
         switch (pair.first) {
@@ -170,6 +160,8 @@ void AudioChannelNative::initialize() {
             }
         }
     }
+
+    this->initialized = true;
 }
 
 void AudioChannelNative::load(const char *filename, bool cache) {
@@ -205,7 +197,7 @@ void AudioChannelNative::play() {
         this->commandQueue.emplace_back(std::pair<Command, std::shared_ptr<Data>>(Command::Play, Null::create()));
         return;
     }
-    
+
     if (!this->isLoaded()) {
         LOGE("Audio file is not loaded.\n");
         return;
@@ -234,11 +226,6 @@ void AudioChannelNative::resume() {
 }
 
 void AudioChannelNative::stop() {
-    if (!this->initialized) {
-        this->commandQueue.emplace_back(std::pair<Command, std::shared_ptr<Data>>(Command::Stop, Null::create()));
-        return;
-    }
-
     alSourceStop(this->source);
 }
 
@@ -346,18 +333,32 @@ AudioChannel::State AudioChannelNative::getState() {
 
 #pragma - AudioPlayerNative
 
+std::shared_ptr<AudioPlayerNative> AudioPlayerNative::create() {
+    auto audioPlayerNative = std::shared_ptr<AudioPlayerNative>(new AudioPlayerNative());
+    return audioPlayerNative;
+}
+
+AudioPlayerNative::AudioPlayerNative() {
+}
+
+AudioPlayerNative::~AudioPlayerNative() {
+    if (this->initialized) {
+        alcMakeContextCurrent(NULL);
+        alcDestroyContext(this->context);
+        alcCloseDevice(this->device);
+    }
+}
+
 void AudioPlayerNative::initialize() {
     if (this->initialized) return;
 
     this->device = alcOpenDevice(NULL);
     this->context = alcCreateContext(this->device, NULL);
     alcMakeContextCurrent(this->context);
-
-    for (AudioChannelNative *channel : this->channels) {
-        channel->initialize();
+    for (auto &filename : this->preloadFileQueue) {
+        AudioData::loadAudioData(filename.c_str());
     }
-    this->channels.clear();
-
+    this->preloadFileQueue.clear();
     this->initialized = true;
 }
 
@@ -365,25 +366,10 @@ bool AudioPlayerNative::isInitialized() {
     return this->initialized;
 }
 
-AudioPlayerNative::AudioPlayerNative() {
-}
-
-AudioPlayerNative::~AudioPlayerNative() {
-    if (!this->initialized) return;
-
-    alcMakeContextCurrent(NULL);
-    alcDestroyContext(this->context);
-    alcCloseDevice(this->device);
-}
-
 void AudioPlayerNative::preload(const char *filename) {
-    AudioData::loadAudioData(filename);
-}
-
-void AudioPlayerNative::registerChannel(AudioChannelNative *channel) {
-    this->channels.insert(channel);
-}
-
-void AudioPlayerNative::unRegisterChannel(AudioChannelNative *channel) {
-    this->channels.erase(channel);
+    if (this->initialized) {
+        AudioData::loadAudioData(filename);
+    } else {
+        this->preloadFileQueue.emplace_back(filename);
+    }
 }

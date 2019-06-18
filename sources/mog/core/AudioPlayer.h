@@ -39,11 +39,12 @@ namespace mog {
         bool isLoaded();
         State getState();
         
+        std::shared_ptr<AudioChannelNative> audioChannelNative;
+
     private:
         AudioChannel() {}
         void execute();
         
-        std::shared_ptr<AudioChannelNative> audioChannelNative;
         bool mute = false;
     };
     
@@ -56,6 +57,7 @@ namespace mog {
         static std::shared_ptr<AudioPlayer> create();
         static std::shared_ptr<AudioChannel> createChannel(std::string key);
         static std::shared_ptr<AudioChannel> getChannel(std::string key);
+        static std::unordered_map<std::string, std::shared_ptr<AudioChannel>> getAllChannels();
         static void removeChannel(std::string key);
 
         template<class First, class... Rest>

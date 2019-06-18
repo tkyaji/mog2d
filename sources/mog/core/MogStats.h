@@ -17,7 +17,7 @@ namespace mog {
         static int instanceCount;
 
         static std::shared_ptr<MogStats> create(bool enable);
-        void drawFrame(float delta, unsigned char parentReRenderFlag = 0);
+        void drawFrame(float delta, unsigned char parentDirtyFlag = 0);
         bool isEnabled();
         void setEnable(bool enable);
         void setAlignment(Alignment alignment);

@@ -20,27 +20,27 @@ void Scene::removeAll() {
     this->drawableGroup->removeAllChildren();
 }
 
-void Scene::updateFrame(const std::shared_ptr<Engine> &engine, float delta, unsigned char parentReRenderFlag) {
+void Scene::updateFrame(const std::shared_ptr<Engine> &engine, float delta, unsigned char parentDirtyFlag) {
     this->onUpdate(delta);
     this->drawableGroup->sortChildDrawablesToDraw();
-    this->reRenderFlag |= parentReRenderFlag;
+    this->dirtyFlag |= parentDirtyFlag;
     for (auto drawable : this->drawableGroup->sortedChildDrawables) {
-        drawable->reRenderFlag |= this->reRenderFlag;
-        drawable->updateFrame(engine, delta, this->matrix, this->reRenderFlag);
+        drawable->dirtyFlag |= this->dirtyFlag;
+        drawable->updateFrame(engine, delta, this->matrix, this->dirtyFlag);
     }
 }
 
 void Scene::drawFrame(float delta) {
     for (auto drawable : this->drawableGroup->sortedChildDrawables) {
-        if (((this->reRenderFlag | drawable->reRenderFlag) & RERENDER_VERTEX) == RERENDER_VERTEX) {
+        if (((this->dirtyFlag | drawable->dirtyFlag) & DIRTY_VERTEX) == DIRTY_VERTEX) {
             Transform::multiplyMatrix(drawable->transform->matrix, this->matrix, drawable->renderer->matrix);
         }
-        if (((this->reRenderFlag | drawable->reRenderFlag) & RERENDER_COLOR) == RERENDER_COLOR) {
+        if (((this->dirtyFlag | drawable->dirtyFlag) & DIRTY_COLOR) == DIRTY_COLOR) {
             Transform::multiplyColor(drawable->transform->matrix, this->matrix, drawable->renderer->matrix);
         }
         drawable->drawFrame(delta);
     }
-    this->reRenderFlag = 0;
+    this->dirtyFlag = 0;
 }
 
 std::shared_ptr<AppBase> Scene::getApp() {
@@ -53,5 +53,9 @@ void Scene::setApp(const std::shared_ptr<AppBase> &app) {
 
 std::shared_ptr<PubSub> Scene::getPubSub() {
     return this->pubsub;
+}
+
+std::vector<std::shared_ptr<Drawable>> Scene::getChildDrawables() {
+    return this->drawableGroup->childDrawables;
 }
 

@@ -15,17 +15,17 @@ Drawable::~Drawable() {
     MogStats::instanceCount--;
 }
 
-void Drawable::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
+void Drawable::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag) {
     this->onUpdate(delta);
     this->updateTween(delta);
     this->renderer->initScreenParameters();
-    this->reRenderFlag |= parentReRenderFlag;
-    if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
+    this->dirtyFlag |= parentDirtyFlag;
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
         this->transform->updateMatrix();
         memcpy(this->renderer->matrix, this->transform->matrix, sizeof(float) * 16);
         Transform::multiplyMatrix(this->transform->matrix, parentMatrix, this->matrix);
     }
-    if ((this->reRenderFlag & RERENDER_COLOR) == RERENDER_COLOR) {
+    if ((this->dirtyFlag & DIRTY_COLOR) == DIRTY_COLOR) {
         this->transform->updateColor();
         memcpy(&this->renderer->matrix[16], &this->transform->matrix[16], sizeof(float) * 4);
     }
@@ -33,15 +33,15 @@ void Drawable::updateFrame(const std::shared_ptr<Engine> &engine, float delta, f
 
 void Drawable::drawFrame(float delta) {
     if (!this->active) return;
-    if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
         this->renderer->shader->setUniformMatrix(this->renderer->matrix);
     }
-    if ((this->reRenderFlag & RERENDER_COLOR) == RERENDER_COLOR) {
+    if ((this->dirtyFlag & DIRTY_COLOR) == DIRTY_COLOR) {
         this->renderer->shader->setUniformColor(this->renderer->matrix[16], this->renderer->matrix[17], this->renderer->matrix[18], this->renderer->matrix[19]);
     }
     this->bindVertex();
     this->renderer->drawFrame();
-    this->reRenderFlag = 0;
+    this->dirtyFlag = 0;
 }
 
 void Drawable::updateTween(float delta) {
@@ -63,23 +63,23 @@ void Drawable::bindVertex() {
 
 void Drawable::setAnchor(const Point &anchor) {
     this->transform->anchor = anchor;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setAnchor(float x, float y) {
     this->transform->anchor.x = x;
     this->transform->anchor.y = y;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setAnchorX(float x) {
     this->transform->anchor.x = x;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setAnchorY(float y) {
     this->transform->anchor.y = y;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 Point Drawable::getAnchor() {
@@ -96,23 +96,23 @@ float Drawable::getAnchorY() {
 
 void Drawable::setPosition(const Point &position) {
     this->transform->position = position;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setPosition(float x, float y) {
     this->transform->position.x = x;
     this->transform->position.y = y;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setPositionX(float x) {
     this->transform->position.x = x;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setPositionY(float y) {
     this->transform->position.y = y;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 Point Drawable::getPosition() {
@@ -134,28 +134,28 @@ float Drawable::getPositionY() {
 
 void Drawable::setScale(float scale) {
     this->setScale(Point(scale, scale));
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setScale(float scaleX, float scaleY) {
     this->transform->scale.x = scaleX;
     this->transform->scale.y = scaleY;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setScale(const Point &scale) {
     this->transform->scale = scale;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setScaleX(float scaleX) {
     this->transform->scale.x = scaleX;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setScaleY(float scaleY) {
     this->transform->scale.y = scaleY;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 Point Drawable::getScale() {
@@ -172,7 +172,7 @@ float Drawable::getScaleY() {
 
 void Drawable::setRotation(float angle) {
     this->transform->rotation = fmod(angle, 360.0f);
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 float Drawable::getRotation() {
@@ -181,7 +181,7 @@ float Drawable::getRotation() {
 
 void Drawable::setColor(const Color &color) {
     this->transform->color = color;
-    this->reRenderFlag |= RERENDER_COLOR;
+    this->dirtyFlag |= DIRTY_COLOR;
 }
 
 void Drawable::setColor(float r, float g, float b, float a) {
@@ -189,27 +189,27 @@ void Drawable::setColor(float r, float g, float b, float a) {
     this->transform->color.g = g;
     this->transform->color.b = b;
     this->transform->color.a = a;
-    this->reRenderFlag |= RERENDER_COLOR;
+    this->dirtyFlag |= DIRTY_COLOR;
 }
 
 void Drawable::setColorR(float r) {
     this->transform->color.r = r;
-    this->reRenderFlag |= RERENDER_COLOR;
+    this->dirtyFlag |= DIRTY_COLOR;
 }
 
 void Drawable::setColorG(float g) {
     this->transform->color.g = g;
-    this->reRenderFlag |= RERENDER_COLOR;
+    this->dirtyFlag |= DIRTY_COLOR;
 }
 
 void Drawable::setColorB(float b) {
     this->transform->color.b = b;
-    this->reRenderFlag |= RERENDER_COLOR;
+    this->dirtyFlag |= DIRTY_COLOR;
 }
 
 void Drawable::setColorA(float a) {
     this->transform->color.a = a;
-    this->reRenderFlag |= RERENDER_COLOR;
+    this->dirtyFlag |= DIRTY_COLOR;
 }
 
 void Drawable::setColor(std::string hexString) {
@@ -222,22 +222,53 @@ void Drawable::setColor(std::string hexString) {
     long r = strtol(hexString.substr(0, 2).c_str(), NULL, 16);
     long g = strtol(hexString.substr(2, 2).c_str(), NULL, 16);
     long b = strtol(hexString.substr(4, 2).c_str(), NULL, 16);
-    this->setColor((r/255.0f), (g/255.0f), (b/255.0f));
+    long a = 255;
+    if (hexString.length() >= 8) {
+        a = strtol(hexString.substr(6, 2).c_str(), NULL, 16);
+    }
+    this->setColor((r/255.0f), (g/255.0f), (b/255.0f), (a/255.0f));
 }
 
 Color Drawable::getColor() {
     return this->transform->color;
 }
 
+float Drawable::getColorR() {
+    return this->transform->color.r;
+}
+
+float Drawable::getColorG() {
+    return this->transform->color.g;
+}
+
+float Drawable::getColorB() {
+    return this->transform->color.b;
+}
+
+float Drawable::getColorA() {
+    return this->transform->color.a;
+}
+
+std::string Drawable::getColorCode() {
+    int r = (int)(this->transform->color.r * 255.0f + 0.5f);
+    int g = (int)(this->transform->color.g * 255.0f + 0.5f);
+    int b = (int)(this->transform->color.b * 255.0f + 0.5f);
+    int a = (int)(this->transform->color.a * 255.0f + 0.5f);
+    
+    char colorCode[9];
+    sprintf(colorCode, "%02x%02x%02x%02x", r, g, b, a);
+    return std::string(colorCode);
+}
+
 void Drawable::setSize(const Size &size) {
     this->transform->size = size;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setSize(float width, float height) {
     this->transform->size.width = width;
     this->transform->size.height = height;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 Size Drawable::getSize() {
@@ -246,7 +277,7 @@ Size Drawable::getSize() {
 
 void Drawable::setWidth(float width) {
     this->transform->size.width = width;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 float Drawable::getWidth() {
@@ -255,7 +286,7 @@ float Drawable::getWidth() {
 
 void Drawable::setHeight(float height) {
     this->transform->size.height = height;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 float Drawable::getHeight() {
@@ -277,7 +308,7 @@ int Drawable::getZIndex() {
 
 void Drawable::setActive(bool active) {
     this->active = active;
-    this->reRenderFlag |= RERENDER_VERTEX;
+    this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 bool Drawable::isActive() {
@@ -315,8 +346,8 @@ std::shared_ptr<Transform> Drawable::getTransform() {
     return this->transform;
 }
 
-unsigned char Drawable::getReRenderFlag() {
-    return this->reRenderFlag;
+unsigned char Drawable::getDirtyFlag() {
+    return this->dirtyFlag;
 }
 
 float *Drawable::getMatrix() {

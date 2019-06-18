@@ -12,12 +12,11 @@ std::shared_ptr<MogEngineController> MogEngineController::create(float width, fl
 }
 
 void MogEngineController::init(float width, float height) {
-    this->engine = mog::Engine::create(make_shared<mog::App>());
+    this->engine = mog::Engine::create(std::make_shared<mog::App>());
 
     this->width = width;
     this->height = height;
-    this->engine->setDisplaySize(mog::Size(width, height), mog::Size(width, height));
-    this->engine->resetScreenSize();
+    this->engine->setDisplaySize(mog::Size(width, height), mog::Size(width, height), 2.0f);
 }
 
 void MogEngineController::startEngine() {

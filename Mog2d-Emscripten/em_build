@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cd "$(dirname "$0")"
+mkdir -p build
+cd build
+
+SOURCES_FILES=`find ../../sources -name "*.c*"`
+SOURCES_EM_FILES=`find ../../sources_emscripten -name "*.c*"`
+
+em++ ${SOURCES_FILES} ${SOURCES_EM_FILES} -o index.html -s WASM=0 -s EXIT_RUNTIME=1 -s FETCH=1 -I../../sources -I../../sources_emscripten -std=c++11 -lopenal --preload-file ../../assets@assets --preload-file ../../assets_emscripten@assets_emscripten --use-preload-plugins

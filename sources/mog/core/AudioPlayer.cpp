@@ -111,6 +111,13 @@ std::shared_ptr<AudioChannel> AudioPlayer::getChannel(std::string key) {
     return nullptr;
 }
 
+std::unordered_map<std::string, std::shared_ptr<AudioChannel>> AudioPlayer::getAllChannels() {
+    if (auto audioPlayer = instance.lock()) {
+        return audioPlayer->channels;
+    }
+    return std::unordered_map<std::string, std::shared_ptr<AudioChannel>>();
+}
+
 void AudioPlayer::removeChannel(std::string key) {
     if (auto audioPlayer = instance.lock()) {
         auto channel = audioPlayer->channels[key];

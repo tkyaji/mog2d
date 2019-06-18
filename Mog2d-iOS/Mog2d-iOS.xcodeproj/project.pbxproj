@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		B205EFF2228730440031B4B4 /* Screen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B205EFF0228730440031B4B4 /* Screen.cpp */; };
-		B2506FB21FFD073700237ECA /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2506FB11FFD073700237ECA /* JavaScriptCore.framework */; };
 		B254E0D31F360B16008DD68C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2A103441ED7170200A2EB8A /* AudioToolbox.framework */; };
 		B26812FA20FDF94300AC7AAB /* App.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B268127720FDF94300AC7AAB /* App.cpp */; };
 		B26812FB20FDF94300AC7AAB /* Tween.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B268127F20FDF94300AC7AAB /* Tween.cpp */; };
@@ -223,7 +222,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B2506FB21FFD073700237ECA /* JavaScriptCore.framework in Frameworks */,
 				B254E0D31F360B16008DD68C /* AudioToolbox.framework in Frameworks */,
 				B2A103411ED716D100A2EB8A /* OpenAL.framework in Frameworks */,
 			);
@@ -410,20 +408,20 @@
 		B26812DC20FDF94300AC7AAB /* core */ = {
 			isa = PBXGroup;
 			children = (
-				B26812DD20FDF94300AC7AAB /* PreferenceNative.h */,
-				B26812DE20FDF94300AC7AAB /* Texture2DNative.h */,
-				B26812DF20FDF94300AC7AAB /* PreferenceNative.mm */,
-				B26812E020FDF94300AC7AAB /* Texture2DNative.mm */,
-				B26812E220FDF94300AC7AAB /* opengl.h */,
-				B26812E320FDF94300AC7AAB /* FileUtilsNative.mm */,
-				B26812E420FDF94300AC7AAB /* mog_functions_native.mm */,
-				B26812E520FDF94300AC7AAB /* HttpNative.h */,
-				B26812E620FDF94300AC7AAB /* mog_functions_native.h */,
-				B26812E720FDF94300AC7AAB /* NativeClass.mm */,
-				B26812E820FDF94300AC7AAB /* HttpNative.mm */,
-				B26812E920FDF94300AC7AAB /* FileUtilsNative.h */,
 				B26812EB20FDF94300AC7AAB /* AudioPlayerNative.h */,
 				B26812EC20FDF94300AC7AAB /* AudioPlayerNative.mm */,
+				B26812E920FDF94300AC7AAB /* FileUtilsNative.h */,
+				B26812E320FDF94300AC7AAB /* FileUtilsNative.mm */,
+				B26812E520FDF94300AC7AAB /* HttpNative.h */,
+				B26812E820FDF94300AC7AAB /* HttpNative.mm */,
+				B26812E620FDF94300AC7AAB /* mog_functions_native.h */,
+				B26812E420FDF94300AC7AAB /* mog_functions_native.mm */,
+				B26812E720FDF94300AC7AAB /* NativeClass.mm */,
+				B26812E220FDF94300AC7AAB /* opengl.h */,
+				B26812DD20FDF94300AC7AAB /* PreferenceNative.h */,
+				B26812DF20FDF94300AC7AAB /* PreferenceNative.mm */,
+				B26812DE20FDF94300AC7AAB /* Texture2DNative.h */,
+				B26812E020FDF94300AC7AAB /* Texture2DNative.mm */,
 			);
 			path = core;
 			sourceTree = "<group>";

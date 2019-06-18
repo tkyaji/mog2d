@@ -4,10 +4,10 @@
 
 using namespace mog;
 
-void Entity::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
-    Drawable::updateFrame(engine, delta, parentMatrix, parentReRenderFlag);
+void Entity::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag) {
+    Drawable::updateFrame(engine, delta, parentMatrix, parentDirtyFlag);
     this->extractEvent(engine, delta);
-    if (((this->reRenderFlag | parentReRenderFlag) & RERENDER_VERTEX) == RERENDER_VERTEX) {
+    if (((this->dirtyFlag | parentDirtyFlag) & DIRTY_VERTEX) == DIRTY_VERTEX) {
         this->collider = nullptr;
     }
 }
@@ -28,9 +28,9 @@ void Entity::initRendererVertices(int verticesNum, int indicesNum) {
 }
 
 void Entity::bindVertex() {
-    if (this->reRenderFlag == 0) return;
+    if (this->dirtyFlag == 0) return;
     
-    if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
         int vertexIdx = 0;
         int indexIdx = 0;
         this->bindVertices(this->renderer, &vertexIdx, &indexIdx, false);
@@ -38,10 +38,10 @@ void Entity::bindVertex() {
     }
 
     if (this->textures[0]) {
-        if ((this->reRenderFlag & RERENDER_TEXTURE) == RERENDER_TEXTURE) {
+        if ((this->dirtyFlag & DIRTY_TEXTURE) == DIRTY_TEXTURE) {
             this->textures[0]->bindTexture();
         }
-        if ((this->reRenderFlag & RERENDER_TEX_COORDS) == RERENDER_TEX_COORDS) {
+        if ((this->dirtyFlag & DIRTY_TEX_COORDS) == DIRTY_TEX_COORDS) {
             int vertexTexCoordsIdx = 0;
             if (!this->renderer->vertexTexCoords[0]) this->renderer->newVertexTexCoordsArr();
             this->bindVertexTexCoords(this->renderer, &vertexTexCoordsIdx, 0, 0, 0, 1.0f, 1.0f);
@@ -49,7 +49,7 @@ void Entity::bindVertex() {
         }
     }
 
-    this->reRenderFlag = 0;
+    this->dirtyFlag = 0;
 }
 
 void Entity::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) {
@@ -120,7 +120,7 @@ void Entity::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int 
 }
 
 void Entity::updateMatrix() {
-    if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
         this->transform->updateMatrix();
     }
     if (auto parent = this->group.lock()) {

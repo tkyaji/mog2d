@@ -41,7 +41,7 @@ namespace mog {
         bool isTouchEnable();
         virtual std::shared_ptr<Collider> getCollider();
 
-        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag = 0) override;
+        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag = 0) override;
         void updateMatrix();
 
     protected:

@@ -126,6 +126,8 @@ namespace mog {
         static std::shared_ptr<Shader> createWithAsset(std::string vertexShaderSourceFilename, std::string fragmentShaderSourceFilename);
          */
         
+        static void releaseAllBufferes();
+
         ~Shader();
         
         void compileIfNeed();
@@ -165,6 +167,8 @@ namespace mog {
         GLuint glShaderProgram = 0;
         
     private:
+        static std::unordered_map<intptr_t, std::weak_ptr<Shader>> allShaders;
+        
         std::unordered_map<unsigned int, unsigned int> bufferIndexMap;
         std::unordered_map<std::string, UniformParameter> uniformParamsMap;
         std::unordered_map<std::string, bool> dirtyUniformParamsMap;

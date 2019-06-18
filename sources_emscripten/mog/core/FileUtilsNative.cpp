@@ -24,9 +24,9 @@ static std::string _readTextAsset(const char *filepath) {
 }
 
 static bool _readBytesAsset(const char *filepath, unsigned char **data, unsigned int *len) {
-    ifstream ifs;
-    ifs.exceptions(ios::failbit|ios::badbit);
-    ifs.open(filepath, ios::in|ios::binary);
+    std::ifstream ifs;
+    ifs.exceptions(std::ios::failbit|std::ios::badbit);
+    ifs.open(filepath, std::ios::in|std::ios::binary);
     ifs.seekg(0, std::ios::end);
     unsigned int size = (unsigned int)ifs.tellg();
     ifs.seekg(0, std::ios_base::beg);
@@ -46,7 +46,7 @@ static bool _readBytesAsset(const char *filepath, unsigned char **data, unsigned
     return ret;
 }
 
-bool FileUtilsNative::existAsset(string filename) {
+bool FileUtilsNative::existAsset(std::string filename) {
     char filepath[256];
     sprintf(filepath, "assets_emscripten/%s", filename.c_str());
     if (_existAsset(filepath)) return true;
@@ -56,7 +56,7 @@ bool FileUtilsNative::existAsset(string filename) {
     return _existAsset(filepath);
 }
 
-std::string FileUtilsNative::readTextAsset(string filename) {
+std::string FileUtilsNative::readTextAsset(std::string filename) {
     char filepath[256];
     sprintf(filepath, "assets_emscripten/%s", filename.c_str());
     if (_existAsset(filepath)) {
@@ -71,7 +71,7 @@ std::string FileUtilsNative::readTextAsset(string filename) {
     return "";
 }
 
-bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, unsigned int *len) {
+bool FileUtilsNative::readBytesAsset(std::string filename, unsigned char **data, unsigned int *len) {
     char filepath[256];
     sprintf(filepath, "assets_emscripten/%s", filename.c_str());
     if (_existAsset(filepath)) {
@@ -89,10 +89,10 @@ bool FileUtilsNative::readBytesAsset(string filename, unsigned char **data, unsi
     return false;
 }
 
-string FileUtilsNative::getDocumentsDirectory() {
+std::string FileUtilsNative::getDocumentsDirectory() {
     return "/";
 }
 
-string FileUtilsNative::getCachesDirectory() {
+std::string FileUtilsNative::getCachesDirectory() {
     return "/";
 }

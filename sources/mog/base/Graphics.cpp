@@ -70,18 +70,18 @@ void Graphics::setVertexPositions(const std::vector<Point> &vertexPositions, con
         this->setSize(maxPos - minPos);
     }
 
-    this->reRenderFlag |= (RERENDER_VERTEX | RERENDER_COLOR);
+    this->dirtyFlag |= (DIRTY_VERTEX | DIRTY_COLOR);
 }
 
 void Graphics::setVertexColor(const std::vector<Color> &vertexColors) {
     this->vertexColors = vertexColors;
-    this->reRenderFlag |= RERENDER_COLOR;
+    this->dirtyFlag |= DIRTY_COLOR;
 }
 
 void Graphics::bindVertex() {
-    if (this->reRenderFlag == 0) return;
+    if (this->dirtyFlag == 0) return;
     
-    if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
         for (int i = 0; i < this->vertexPositions.size(); i++) {
             auto pos = this->vertexPositions[i];
             this->renderer->indices[i] = i;
@@ -96,13 +96,13 @@ void Graphics::bindVertex() {
     
     this->bindVertexColors();
     
-    this->reRenderFlag = 0;
+    this->dirtyFlag = 0;
 }
 
 void Graphics::bindVertexColors() {
     if (this->vertexColors.size() == 0) return;
     
-    if ((this->reRenderFlag & RERENDER_COLOR) == RERENDER_COLOR) {
+    if ((this->dirtyFlag & DIRTY_COLOR) == DIRTY_COLOR) {
         this->renderer->newVertexColorsArr();
         for (int i = 0; i < this->vertexPositions.size(); i++) {
             Color color = this->transform->color;

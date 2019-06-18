@@ -23,12 +23,12 @@ std::shared_ptr<MogStats> MogStats::create(bool enable) {
     return stats;
 }
 
-void MogStats::drawFrame(float delta, unsigned char parentReRenderFlag) {
+void MogStats::drawFrame(float delta, unsigned char parentDirtyFlag) {
     if (!this->enable) return;
     
     if (!this->initialized) {
         this->init();
-    } else if (parentReRenderFlag > 0) {
+    } else if (parentDirtyFlag > 0) {
         this->bindVertex();
     }
     
@@ -37,7 +37,7 @@ void MogStats::drawFrame(float delta, unsigned char parentReRenderFlag) {
     }
 
     this->tmpDelta += delta;
-    if (this->tmpDelta >= INTERVAL || parentReRenderFlag > 0) {
+    if (this->tmpDelta >= INTERVAL || parentDirtyFlag > 0) {
         this->updateValues(delta);
         this->texture->bindTexture();
         this->tmpDelta = 0;

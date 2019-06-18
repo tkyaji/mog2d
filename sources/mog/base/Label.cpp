@@ -53,7 +53,7 @@ void Label::init(std::string text, float fontSize, std::string fontFilename, flo
     this->transform->size.height = this->textures[0]->height / this->textures[0]->density.value;
     this->initRendererVertices(4, 4);
     
-    this->reRenderFlag |= RERENDER_ALL;
+    this->dirtyFlag |= DIRTY_ALL;
 }
 
 

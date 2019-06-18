@@ -76,22 +76,24 @@ Rect Sprite::getRect() {
 
 void Sprite::init(std::string filename, const Rect &rect) {
     this->filename = filename;
-    if (Sprite::cachedTexture2d.count(filename) > 0) {
-        this->textures[0] = Sprite::cachedTexture2d[filename].lock();
-    }
-    if (this->textures[0] == nullptr) {
-        this->textures[0] = Texture2D::createWithAsset(filename);
-        if (this->textures[0]) {
-            Sprite::cachedTexture2d[filename] = this->textures[0];
+    if (filename.length() > 0) {
+        if (Sprite::cachedTexture2d.count(filename) > 0) {
+            this->textures[0] = Sprite::cachedTexture2d[filename].lock();
         }
+        if (this->textures[0] == nullptr) {
+            this->textures[0] = Texture2D::createWithAsset(filename);
+            if (this->textures[0]) {
+                Sprite::cachedTexture2d[filename] = this->textures[0];
+            }
+        }
+        
+        Rect _rect = rect;
+        if (rect.size == Size::zero) {
+            _rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
+                              this->textures[0]->height / this->textures[0]->density.value);
+        }
+        this->rect = _rect;
     }
-
-    Rect _rect = rect;
-    if (rect.size == Size::zero) {
-        _rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
-                          this->textures[0]->height / this->textures[0]->density.value);
-    }
-    this->rect = _rect;
     this->transform->size = this->rect.size;
     
     this->initRendererVertices(4, 4);

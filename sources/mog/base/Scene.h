@@ -15,13 +15,14 @@ namespace mog {
         friend class AppBase;
         friend class Drawable;
     public:
-        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, unsigned char parentReRenderFlag = 0);
+        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, unsigned char parentDirtyFlag = 0);
         virtual void drawFrame(float delta);
         void add(const std::shared_ptr<Drawable> &drawable);
         void remove(const std::shared_ptr<Drawable> &drawable);
         void removeAll();
         std::shared_ptr<AppBase> getApp();
         std::shared_ptr<PubSub> getPubSub();
+        std::vector<std::shared_ptr<Drawable>> getChildDrawables();
 
     protected:
         Scene();
@@ -43,7 +44,7 @@ namespace mog {
             0, 0, 0, 1,
             1, 1, 1, 1,
         };
-        unsigned char reRenderFlag = 0;
+        unsigned char dirtyFlag = 0;
         bool sortOrderDirty = false;
     };
 }

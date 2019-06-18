@@ -12,7 +12,7 @@ namespace mog {
         static std::shared_ptr<SpriteSheet> create(const std::shared_ptr<Sprite> &sprite, const Size &frameSize, unsigned int frameCount = 0, unsigned int margin = 0);
         void selectFrame(unsigned int frame);
         
-        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag = 0) override;
+        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag = 0) override;
         virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) override;
         
         unsigned int getCurrentFrame();

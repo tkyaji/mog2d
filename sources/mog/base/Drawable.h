@@ -50,6 +50,11 @@ namespace mog {
         virtual void setColorA(float a);
         virtual void setColor(std::string hexString);
         virtual Color getColor();
+        virtual float getColorR();
+        virtual float getColorG();
+        virtual float getColorB();
+        virtual float getColorA();
+        virtual std::string getColorCode();
         virtual void setSize(const Size &size);
         virtual void setSize(float width, float height);
         virtual Size getSize();
@@ -68,7 +73,7 @@ namespace mog {
         
         virtual std::shared_ptr<Renderer> getRenderer();
         virtual std::shared_ptr<Transform> getTransform();
-        virtual unsigned char getReRenderFlag();
+        virtual unsigned char getDirtyFlag();
         virtual float *getMatrix();
         
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
@@ -80,7 +85,7 @@ namespace mog {
             return std::static_pointer_cast<T>(this->param);
         }
 
-        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag = 0);
+        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag = 0);
         virtual void drawFrame(float delta);
         virtual void updateTween(float delta);
         std::shared_ptr<Texture2D> getTexture(int textureIdx = 0);
@@ -93,7 +98,7 @@ namespace mog {
         std::shared_ptr<Renderer> renderer = nullptr;
         std::shared_ptr<Transform> transform = nullptr;
         std::array<std::shared_ptr<Texture2D>, MULTI_TEXTURE_NUM> textures;
-        unsigned char reRenderFlag = RERENDER_ALL;
+        unsigned char dirtyFlag = DIRTY_ALL;
         
         std::weak_ptr<DrawableGroup> parentDrawableGroup;
         int zIndex = 0;

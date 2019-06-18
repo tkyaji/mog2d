@@ -32,22 +32,30 @@ Group::Group() {
 
 void Group::init(bool enableBatching) {
     this->enableBatching = enableBatching;
-    this->reRenderFlag = RERENDER_ALL;
 }
 
-void Group::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentReRenderFlag) {
+void Group::setEnableBatching(bool enableBatching) {
+    this->enableBatching = enableBatching;
+    this->dirtyFlag = DIRTY_ALL;
+}
+
+bool Group::isEnableBatching() {
+    return this->enableBatching;
+}
+
+void Group::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag) {
     this->drawableGroup->sortChildDrawablesToDraw();
-    Entity::updateFrame(engine, delta, parentMatrix, parentReRenderFlag);
+    Entity::updateFrame(engine, delta, parentMatrix, parentDirtyFlag);
     int verticesNum = 0;
     int indicesNum = 0;
     for (const auto &drawable : this->drawableGroup->sortedChildDrawables) {
         auto entity = std::static_pointer_cast<Entity>(drawable);
         if (this->enableBatching) {
-            parentReRenderFlag |= (parentReRenderFlag | this->reRenderFlag);
+            parentDirtyFlag |= (parentDirtyFlag | this->dirtyFlag);
         } else {
-            entity->reRenderFlag |= (this->reRenderFlag & (RERENDER_VERTEX | RERENDER_COLOR));
+            entity->dirtyFlag |= (this->dirtyFlag & (DIRTY_VERTEX | DIRTY_COLOR));
         }
-        entity->updateFrame(engine, delta, this->matrix, parentReRenderFlag);
+        entity->updateFrame(engine, delta, this->matrix, parentDirtyFlag);
 
         verticesNum += entity->renderer->verticesNum;
         if (indicesNum > 0) indicesNum += 2;
@@ -55,10 +63,10 @@ void Group::updateFrame(const std::shared_ptr<Engine> &engine, float delta, floa
 
         if (auto g = dynamic_cast<Group *>(entity.get())) {
             if (g->enableTexture) this->enableTexture = true;
-            this->reRenderFlagChildren |= (entity->reRenderFlag | g->reRenderFlagChildren);
+            this->dirtyFlagChildren |= (entity->dirtyFlag | g->dirtyFlagChildren);
         } else {
             if (entity->textures[0]) this->enableTexture = true;
-            this->reRenderFlagChildren |= entity->reRenderFlag;
+            this->dirtyFlagChildren |= entity->dirtyFlag;
         }
     }
     if (this->renderer->setVerticesNum(verticesNum)) {
@@ -77,22 +85,22 @@ void Group::drawFrame(float delta) {
     if (!this->active) return;
     
     if (this->enableBatching) {
-        if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
+        if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
             this->renderer->shader->setUniformMatrix(this->renderer->matrix);
         }
-        if ((this->reRenderFlag & RERENDER_COLOR) == RERENDER_COLOR) {
+        if ((this->dirtyFlag & DIRTY_COLOR) == DIRTY_COLOR) {
             this->renderer->shader->setUniformColor(this->renderer->matrix[16], this->renderer->matrix[17], this->renderer->matrix[18], this->renderer->matrix[19]);
         }
-        if ((this->reRenderFlag & RERENDER_ALL) == RERENDER_ALL) {
+        if ((this->dirtyFlag & DIRTY_ALL) == DIRTY_ALL) {
             this->bindVertex();
             
-        } else if (this->reRenderFlagChildren > 0) {
-            if (this->enableTexture && (this->reRenderFlagChildren & RERENDER_TEXTURE) == RERENDER_TEXTURE) {
+        } else if (this->dirtyFlagChildren > 0) {
+            if (this->enableTexture && (this->dirtyFlagChildren & DIRTY_TEXTURE) == DIRTY_TEXTURE) {
                 this->bindVertex();
             } else {
                 this->bindVertexSub();
             }
-            this->reRenderFlagChildren = 0;
+            this->dirtyFlagChildren = 0;
         }
         
         this->renderer->drawFrame();
@@ -100,19 +108,19 @@ void Group::drawFrame(float delta) {
     } else {
         for (const auto &drawable : this->drawableGroup->sortedChildDrawables) {
             auto entity = std::static_pointer_cast<Entity>(drawable);
-            if (((this->reRenderFlag | entity->reRenderFlag) & RERENDER_VERTEX) == RERENDER_VERTEX) {
+            if (((this->dirtyFlag | entity->dirtyFlag) & DIRTY_VERTEX) == DIRTY_VERTEX) {
                 Transform::multiplyMatrix(entity->transform->matrix, this->renderer->matrix, entity->renderer->matrix);
             }
-            if (((this->reRenderFlag | entity->reRenderFlag) & RERENDER_COLOR) == RERENDER_COLOR) {
+            if (((this->dirtyFlag | entity->dirtyFlag) & DIRTY_COLOR) == DIRTY_COLOR) {
                 Transform::multiplyColor(entity->transform->matrix, this->renderer->matrix, entity->renderer->matrix);
             }
             entity->drawFrame(delta);
         }
     }
-    if ((this->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
         this->collider = nullptr;
     }
-    this->reRenderFlag = 0;
+    this->dirtyFlag = 0;
 }
 
 void Group::bindVertex() {
@@ -138,10 +146,10 @@ void Group::bindVertex() {
 void Group::bindVertexRecursive(const std::shared_ptr<Renderer> &renderer, std::shared_ptr<TextureAtlas> &textureAtlas, int *vertexIndices, float *parentMatrix) {
     for (const auto &drawable : this->drawableGroup->sortedChildDrawables) {
         auto entity = std::static_pointer_cast<Entity>(drawable);
-        if ((this->reRenderFlagChildren & RERENDER_VERTEX) == RERENDER_VERTEX) {
+        if ((this->dirtyFlagChildren & DIRTY_VERTEX) == DIRTY_VERTEX) {
             Transform::multiplyMatrix(entity->transform->matrix, parentMatrix, entity->renderer->matrix);
         }
-        if ((this->reRenderFlagChildren & RERENDER_COLOR) == RERENDER_COLOR) {
+        if ((this->dirtyFlagChildren & DIRTY_COLOR) == DIRTY_COLOR) {
             Transform::multiplyColor(entity->transform->matrix, parentMatrix, entity->renderer->matrix);
         }
 
@@ -166,7 +174,7 @@ void Group::bindVertexRecursive(const std::shared_ptr<Renderer> &renderer, std::
                 entity->bindVertexTexCoords(renderer, &vertexIndices[VERTEX_TEX_COORDS_IDX], 0, x, y, w, h);
             }
         }
-        entity->reRenderFlag = 0;
+        entity->dirtyFlag = 0;
     }
 }
 
@@ -184,14 +192,14 @@ void Group::bindVertexSubRecursive(const std::shared_ptr<Renderer> &renderer, st
         if (auto g = dynamic_cast<Group *>(entity.get())) {
             g->bindVertexSubRecursive(renderer, textureAtlas, vertexIndices, entity->renderer->matrix);
         } else {
-            if ((entity->reRenderFlag & RERENDER_VERTEX) == RERENDER_VERTEX) {
+            if ((entity->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
                 int index = vertexIndices[VERTICES_IDX];
                 entity->bindVertices(renderer, &vertexIndices[VERTICES_IDX], &vertexIndices[INDICES_IDX], true);
                 renderer->bindVertexSub(index, entity->renderer->verticesNum);
             } else {
                 vertexIndices[VERTICES_IDX] += entity->renderer->verticesNum * 2;
             }
-            if ((entity->reRenderFlag & RERENDER_COLOR) == RERENDER_COLOR) {
+            if ((entity->dirtyFlag & DIRTY_COLOR) == DIRTY_COLOR) {
                 int index = vertexIndices[VERTEX_COLORS_IDX];
                 entity->bindVertexColors(renderer, &vertexIndices[VERTEX_COLORS_IDX]);
                 renderer->bindVertexColorsSub(index, entity->renderer->verticesNum);
@@ -199,7 +207,7 @@ void Group::bindVertexSubRecursive(const std::shared_ptr<Renderer> &renderer, st
                 vertexIndices[VERTEX_COLORS_IDX] += entity->renderer->verticesNum * 4;
             }
             if (this->enableTexture && entity->textures[0]) {
-                if ((entity->reRenderFlag & RERENDER_TEX_COORDS) == RERENDER_TEX_COORDS) {
+                if ((entity->dirtyFlag & DIRTY_TEX_COORDS) == DIRTY_TEX_COORDS) {
                     std::shared_ptr<TextureAtlasCell> cell = nullptr;
                     if (entity->textures[0]) cell = textureAtlas->getCell(entity->textures[0]);
                     float x = (cell) ? ((float)cell->x / (float)textureAtlas->width) : -1.0f;
@@ -214,23 +222,23 @@ void Group::bindVertexSubRecursive(const std::shared_ptr<Renderer> &renderer, st
                 }
             }
         }
-        entity->reRenderFlag = 0;
+        entity->dirtyFlag = 0;
     }
 }
 
 void Group::add(const std::shared_ptr<Entity> &entity) {
     this->drawableGroup->addChild(entity);
-    this->reRenderFlag |= RERENDER_ALL;
+    this->dirtyFlag |= DIRTY_ALL;
 }
 
 void Group::remove(const std::shared_ptr<Entity> &entity) {
     this->drawableGroup->removeChild(entity);
-    this->reRenderFlag |= RERENDER_ALL;
+    this->dirtyFlag |= DIRTY_ALL;
 }
 
 void Group::removeAll() {
     this->drawableGroup->removeAllChildren();
-    this->reRenderFlag |= RERENDER_ALL;
+    this->dirtyFlag |= DIRTY_ALL;
 }
 
 std::vector<std::shared_ptr<Entity>> Group::getChildEntities() {

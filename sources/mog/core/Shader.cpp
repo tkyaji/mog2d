@@ -76,8 +76,19 @@ ShaderUnit::~ShaderUnit() {
 
 #pragma - Shader
 
+std::unordered_map<intptr_t, std::weak_ptr<Shader>> Shader::allShaders;
+
+void Shader::releaseAllBufferes() {
+    for (auto &pair : allShaders) {
+        if (auto shader = pair.second.lock()) {
+            shader->releaseBuffer();
+        }
+    }
+}
+
 std::shared_ptr<Shader> Shader::create() {
     auto shader = std::shared_ptr<Shader>(new Shader());
+    allShaders[(intptr_t)shader.get()] = shader;
     shader->setUniformMatrix(Renderer::identityMatrix);
     shader->setUniformColor(1.0f, 1.0f, 1.0f, 1.0f);
     return shader;
@@ -448,6 +459,7 @@ void Shader::VertexAttributeParameter::setVertexAttribute(unsigned int location)
 
 Shader::~Shader() {
     this->releaseBuffer();
+    allShaders.erase((intptr_t)this);
 }
 
 void Shader::releaseBuffer() {
@@ -455,20 +467,25 @@ void Shader::releaseBuffer() {
         for (auto pair : this->bufferIndexMap) {
             glDeleteBuffers(1, &pair.second);
         }
-        checkGLError("Shader::releaseBuffer0");
+        checkGLError("Shader::releaseBuffer glDeleteBuffers");
     }
     this->bufferIndexMap.clear();
     
     if (this->glShaderProgram > 0) {
-        if (this->vertexShader->glShader) {
+        if (this->vertexShader && this->vertexShader->glShader) {
             glDetachShader(this->glShaderProgram, this->vertexShader->glShader);
+            this->vertexShader = nullptr;
+            checkGLError("Shader::releaseBuffer glDetachShader(vertexShader)");
         }
-        if (this->fragmentShader->glShader) {
+        if (this->fragmentShader && this->fragmentShader->glShader) {
             glDetachShader(this->glShaderProgram, this->fragmentShader->glShader);
+            this->fragmentShader = nullptr;
+            checkGLError("Shader::releaseBuffer glDetachShader(fragmentShader)");
         }
+        
         glDeleteProgram(this->glShaderProgram);
         this->glShaderProgram = 0;
-        checkGLError("Shader::releaseBuffer1");
+        checkGLError("Shader::releaseBuffer glDeleteProgram");
     }
     if (this->vertexShader) {
         this->vertexShader->releaseBuffer();

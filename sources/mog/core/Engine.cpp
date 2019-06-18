@@ -82,7 +82,7 @@ void Engine::stopEngine() {
 void Engine::onDrawFrame(std::map<unsigned int, TouchInput> touches) {
     if (!this->running) return;
 
-    if (this->reRenderFlag == RERENDER_ALL) {
+    if (this->dirtyFlag == DIRTY_ALL) {
         this->initParameters();
     }
     
@@ -96,10 +96,10 @@ void Engine::onDrawFrame(std::map<unsigned int, TouchInput> touches) {
     this->stats->drawCallCount = 0;
     
     if (this->app) {
-        this->app->drawFrame(delta, this->reRenderFlag);
+        this->app->drawFrame(delta, this->dirtyFlag);
     }
     
-    this->stats->drawFrame(delta, this->reRenderFlag);
+    this->stats->drawFrame(delta, this->dirtyFlag);
     
     this->frameCount++;
     
@@ -107,7 +107,7 @@ void Engine::onDrawFrame(std::map<unsigned int, TouchInput> touches) {
     
     this->invokeOnUpdateFunc();
     
-    this->reRenderFlag = 0;
+    this->dirtyFlag = 0;
 }
 
 void Engine::onLowMemory() {
@@ -281,9 +281,10 @@ bool Engine::isMultiTouchEnable() {
 }
 
 void Engine::releaseAllBuffers() {
-    this->reRenderFlag = RERENDER_ALL;
+    this->dirtyFlag = DIRTY_ALL;
     Texture2D::releaseAllBufferes();
     Renderer::releaseAllBufferes();
+    Shader::releaseAllBufferes();
 }
 
 unsigned int Engine::registerOnUpdateFunc(std::function<void(unsigned int funcId)> onUpdateFunc) {

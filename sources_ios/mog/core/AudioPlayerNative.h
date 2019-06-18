@@ -52,9 +52,8 @@ namespace mog {
         AudioChannelNative();
         
         std::weak_ptr<AudioPlayerNative> audioPlayerNative;
-        bool enabled;
-        bool loaded;
-        ALuint  source;
+        bool loaded = false;
+        ALuint source = 0;
         std::shared_ptr<AudioData> audioData;
     };
     
