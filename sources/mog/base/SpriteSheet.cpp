@@ -3,33 +3,44 @@
 using namespace mog;
 
 std::shared_ptr<SpriteSheet> SpriteSheet::create(std::string filename, const Size &frameSize, unsigned int frameCount, unsigned int margin, const Rect &rect) {
-    auto texture = Texture2D::createWithAsset(filename);
-    return SpriteSheet::create(texture, frameSize, frameCount, margin, rect);
-}
-
-std::shared_ptr<SpriteSheet> SpriteSheet::create(const std::shared_ptr<Texture2D> &texture, const Size &frameSize, unsigned int frameCount, unsigned int margin, const Rect &rect) {
     auto spriteSheet = std::shared_ptr<SpriteSheet>(new SpriteSheet());
-    spriteSheet->init(texture, frameSize, frameCount, margin, rect);
+    spriteSheet->frameSize = frameSize;
+    spriteSheet->frameCount = frameCount;
+    spriteSheet->margin = margin;
+    spriteSheet->rect = rect;
+    spriteSheet->init();
     return spriteSheet;
 }
 
-std::shared_ptr<SpriteSheet> SpriteSheet::create(const std::shared_ptr<Sprite> &sprite, const Size &frameSize, unsigned int frameCount, unsigned int margin) {
-    return SpriteSheet::create(sprite->getTexture(), frameSize, frameCount, margin, sprite->getRect());
+std::shared_ptr<SpriteSheet> SpriteSheet::createWithTexture(const std::shared_ptr<Texture2D> &texture, const Size &frameSize, unsigned int frameCount, unsigned int margin, const Rect &rect) {
+    auto spriteSheet = std::shared_ptr<SpriteSheet>(new SpriteSheet());
+    spriteSheet->frameSize = frameSize;
+    spriteSheet->frameCount = frameCount;
+    spriteSheet->margin = margin;
+    spriteSheet->rect = rect;
+    spriteSheet->initWithTexture(texture);
+    return spriteSheet;
 }
 
-void SpriteSheet::init(const std::shared_ptr<Texture2D> &texture, const Size &frameSize, unsigned int frameCount, unsigned int margin, const Rect &rect) {
+std::shared_ptr<SpriteSheet> SpriteSheet::createWithSprite(const std::shared_ptr<Sprite> &sprite, const Size &frameSize, unsigned int frameCount, unsigned int margin) {
+    return SpriteSheet::createWithTexture(sprite->getTexture(), frameSize, frameCount, margin, sprite->getRect());
+}
+
+void SpriteSheet::init() {
+    auto texture = Texture2D::createWithAsset(filename);
+    return this->initWithTexture(texture);
+}
+
+void SpriteSheet::initWithTexture(const std::shared_ptr<Texture2D> &texture) {
     this->textures[0] = texture;
-    Rect _rect = rect;
-    if (rect.size == Size::zero) {
-        _rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
+    if (this->rect.size == Size::zero) {
+        this->rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
                           this->textures[0]->height / this->textures[0]->density.value);
     }
-    this->rect = _rect;
     this->transform->size = this->rect.size;
-    this->frameSize = frameSize;
     
     this->initRendererVertices(4, 4);
-    this->initFrames(frameCount, margin);
+    this->initFrames(this->frameCount, this->margin);
 }
 
 Rect SpriteSheet::getRect() {
@@ -206,7 +217,7 @@ std::shared_ptr<SpriteSheet> SpriteSheet::clone() {
 }
 
 std::shared_ptr<Entity> SpriteSheet::cloneEntity() {
-    auto spriteSheet = SpriteSheet::create(this->textures[0], this->frameSize, this->frameCount, this->margin, this->rect);
+    auto spriteSheet = SpriteSheet::createWithTexture(this->textures[0], this->frameSize, this->frameCount, this->margin, this->rect);
     spriteSheet->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
     return spriteSheet;
 }

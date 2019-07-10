@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B205EFF2228730440031B4B4 /* Screen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B205EFF0228730440031B4B4 /* Screen.cpp */; };
+		B215825222D10A3700B47A57 /* EntityCreator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B215825022D10A3700B47A57 /* EntityCreator.cpp */; };
 		B254E0D31F360B16008DD68C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2A103441ED7170200A2EB8A /* AudioToolbox.framework */; };
 		B26812FA20FDF94300AC7AAB /* App.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B268127720FDF94300AC7AAB /* App.cpp */; };
 		B26812FB20FDF94300AC7AAB /* Tween.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B268127F20FDF94300AC7AAB /* Tween.cpp */; };
@@ -76,6 +77,8 @@
 		B205EFF0228730440031B4B4 /* Screen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Screen.cpp; sourceTree = "<group>"; };
 		B205EFF1228730440031B4B4 /* Screen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Screen.h; sourceTree = "<group>"; };
 		B205EFFE228B02320031B4B4 /* shader_sources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = shader_sources.h; sourceTree = "<group>"; };
+		B215825022D10A3700B47A57 /* EntityCreator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = EntityCreator.cpp; sourceTree = "<group>"; };
+		B215825122D10A3700B47A57 /* EntityCreator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EntityCreator.h; sourceTree = "<group>"; };
 		B226B3A421CB75C800A3CFCF /* mogmalloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mogmalloc.h; sourceTree = "<group>"; };
 		B2506FB11FFD073700237ECA /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		B25501F71F6D809E00D1353A /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
@@ -315,6 +318,8 @@
 				B205EFF0228730440031B4B4 /* Screen.cpp */,
 				B205EFF1228730440031B4B4 /* Screen.h */,
 				B205EFFE228B02320031B4B4 /* shader_sources.h */,
+				B215825022D10A3700B47A57 /* EntityCreator.cpp */,
+				B215825122D10A3700B47A57 /* EntityCreator.h */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -344,8 +349,6 @@
 		B26812B620FDF94300AC7AAB /* base */ = {
 			isa = PBXGroup;
 			children = (
-				B27A7ECC224B6431006FFE8D /* TiledSprite.cpp */,
-				B27A7ECB224B6431006FFE8D /* TiledSprite.h */,
 				B26812D420FDF94300AC7AAB /* AppBase.cpp */,
 				B26812C020FDF94300AC7AAB /* AppBase.h */,
 				B26812CD20FDF94300AC7AAB /* Circle.cpp */,
@@ -372,12 +375,14 @@
 				B26812B720FDF94300AC7AAB /* RoundedRectangle.h */,
 				B26812BD20FDF94300AC7AAB /* Scene.cpp */,
 				B26812D820FDF94300AC7AAB /* Scene.h */,
-				B26812C420FDF94300AC7AAB /* Slice9Sprite.cpp */,
-				B26812C320FDF94300AC7AAB /* Slice9Sprite.h */,
 				B26812C120FDF94300AC7AAB /* Sprite.cpp */,
 				B26812C720FDF94300AC7AAB /* Sprite.h */,
+				B26812C420FDF94300AC7AAB /* Slice9Sprite.cpp */,
+				B26812C320FDF94300AC7AAB /* Slice9Sprite.h */,
 				B26812BB20FDF94300AC7AAB /* SpriteSheet.cpp */,
 				B26812D020FDF94300AC7AAB /* SpriteSheet.h */,
+				B27A7ECC224B6431006FFE8D /* TiledSprite.cpp */,
+				B27A7ECB224B6431006FFE8D /* TiledSprite.h */,
 				B2ED15A5225F83E7009A7C26 /* ScrollGroup.cpp */,
 				B2ED15A6225F83E7009A7C26 /* ScrollGroup.h */,
 			);
@@ -615,6 +620,7 @@
 				B26812FD20FDF94300AC7AAB /* MogStats.cpp in Sources */,
 				B2E421882100D93A006F18A2 /* SampleScene.cpp in Sources */,
 				B268130B20FDF94300AC7AAB /* AudioPlayer.cpp in Sources */,
+				B215825222D10A3700B47A57 /* EntityCreator.cpp in Sources */,
 				B2ED15A7225F83E7009A7C26 /* ScrollGroup.cpp in Sources */,
 				B268130820FDF94300AC7AAB /* TextureAtlas.cpp in Sources */,
 				B268130020FDF94300AC7AAB /* Data.cpp in Sources */,

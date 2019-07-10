@@ -27,7 +27,7 @@ namespace mog {
         void startEngine();
         void stopEngine();
         
-        void onDrawFrame(std::map<unsigned int, TouchInput> touches);
+        void onDrawFrame(const std::map<unsigned int, TouchInput> &touches);
         void onLowMemory();
         void onKeyEvent(const KeyEvent &keyEvent);
 

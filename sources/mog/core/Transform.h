@@ -13,7 +13,8 @@ namespace mog {
         static void multiplyColor(float *matrix1, float *matrix2, float *dstMatrix);
         static bool inverseMatrix(float *matrix, float *dstMatrix);
 
-        Point anchor = Point::zero;
+        Point pivot = Point::zero;
+        Point offest = Point::zero;
         Point position = Point::zero;
         Size size = Size::zero;
         Point scale = Point::one;

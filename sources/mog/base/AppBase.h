@@ -6,6 +6,7 @@
 #include "mog/core/PubSub.h"
 #include "mog/core/Tween.h"
 #include "mog/core/KeyEvent.h"
+#include "mog/core/TouchInput.h"
 
 namespace mog {
     class Engine;
@@ -44,7 +45,6 @@ namespace mog {
     
     
     class AppBase : public std::enable_shared_from_this<AppBase> {
-        friend class Engine;
     public:
         AppBase();
         
@@ -55,6 +55,7 @@ namespace mog {
         void popScene();
         void popScene(Transition transition, float duration, Easing easing = Easing::Linear);
         
+        void setEngine(const std::shared_ptr<Engine> &engine);
         Color getBackgroundColor();
         void setBackgroundColor(const Color &color);
         std::shared_ptr<Scene> getCurrentScene();
@@ -70,7 +71,7 @@ namespace mog {
         std::shared_ptr<PubSub> getPubSub();
         unsigned int getSceneStackSize();
 
-        virtual void drawFrame(float delta, unsigned char parentDirtyFlag = 0);
+        virtual void drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches, unsigned char parentDirtyFlag = 0);
         
         virtual void onLoad() {};
         virtual void onDispose() {};
@@ -91,8 +92,6 @@ namespace mog {
         std::shared_ptr<PubSub> pubsub;
         std::vector<std::shared_ptr<Scene>> sceneStack;
         std::shared_ptr<Scene> currentScene;
-
-        void setEngine(const std::shared_ptr<Engine> &engine);
 
     private:
         struct LoadSceneParams {

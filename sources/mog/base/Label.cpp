@@ -16,78 +16,38 @@ LocalizedText::LocalizedText(std::string textKey, ...) {
 
 #pragma - Label
 
-std::shared_ptr<Label> Label::create(std::string text, float fontSize, TextDrawingMode textMode, float strokeWidth) {
-    return Label::create(text, fontSize, "", 0, textMode, strokeWidth);
-}
-
-std::shared_ptr<Label> Label::create(std::string text, float fontSize, std::string fontFilename, TextDrawingMode textMode, float strokeWidth) {
-    return Label::create(text, fontSize, fontFilename, 0, textMode, strokeWidth);
-}
-
-std::shared_ptr<Label> Label::create(std::string text, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
+std::shared_ptr<Label> Label::create(std::string text, float fontSize, std::string fontFilename, float fontHeight) {
     auto label = std::shared_ptr<Label>(new Label());
-    label->init(text, fontSize, fontFilename, height, textMode, strokeWidth);
+    label->text = text;
+    label->fontSize = fontSize;
+    label->fontFilename = fontFilename;
+    label->fontHeight = fontHeight;
+    label->init();
     return label;
 }
 
-std::shared_ptr<Label> Label::create(const LocalizedText &localizedText, float fontSize, TextDrawingMode textMode, float strokeWidth) {
-    return Label::create(localizedText, fontSize, "", 0, textMode, strokeWidth);
+std::shared_ptr<Label> Label::create(const LocalizedText &localizedText, float fontSize, std::string fontFilename, float fontHeight) {
+    return Label::create(localizedText.text, fontSize, fontFilename, fontHeight);
 }
 
-std::shared_ptr<Label> Label::create(const LocalizedText &localizedText, float fontSize, std::string fontFilename, TextDrawingMode textMode, float strokeWidth) {
-    return Label::create(localizedText, fontSize, fontFilename, 0, textMode, strokeWidth);
-}
-
-std::shared_ptr<Label> Label::create(const LocalizedText &localizedText, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
-    return Label::create(localizedText.text, fontSize, fontFilename, height, textMode, strokeWidth);
-}
-
-void Label::init(std::string text, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
-    this->textures[0] = Texture2D::createWithText(text, fontSize, fontFilename, height, textMode, strokeWidth);
-    this->text = text;
-    this->fontSize = fontSize;
-    this->fontFilename = fontFilename;
-    this->height = height;
-    this->strokeWidth = strokeWidth;
+void Label::init() {
+    this->textures[0] = Texture2D::createWithText(this->text, this->fontSize, this->fontFilename, this->fontHeight);
     this->transform->size.width = this->textures[0]->width / this->textures[0]->density.value;
     this->transform->size.height = this->textures[0]->height / this->textures[0]->density.value;
+
     this->initRendererVertices(4, 4);
-    
     this->dirtyFlag |= DIRTY_ALL;
 }
 
 
 
-void Label::setText(std::string text, TextDrawingMode textMode, float strokeWidth) {
-    this->setText(text, this->fontSize, this->fontFilename, this->height, textMode, strokeWidth);
+void Label::setText(std::string text) {
+    this->text = text;
+    this->init();
 }
 
-void Label::setText(std::string text, float fontSize, TextDrawingMode textMode, float strokeWidth) {
-    this->setText(text, fontSize, this->fontFilename, this->height, textMode, strokeWidth);
-}
-
-void Label::setText(std::string text, float fontSize, std::string fontFilename, TextDrawingMode textMode, float strokeWidth) {
-    this->setText(text, fontSize, fontFilename, this->height, textMode, strokeWidth);
-}
-
-void Label::setText(std::string text, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
-    this->init(text, fontSize, fontFilename, height, textMode, strokeWidth);
-}
-
-void Label::setText(const LocalizedText &localizedText, TextDrawingMode textMode, float strokeWidth) {
-    this->setText(localizedText.text, this->fontSize, this->fontFilename, this->height, textMode, strokeWidth);
-}
-
-void Label::setText(const LocalizedText &localizedText, float fontSize, TextDrawingMode textMode, float strokeWidth) {
-    this->setText(localizedText.text, fontSize, this->fontFilename, this->height, textMode, strokeWidth);
-}
-
-void Label::setText(const LocalizedText &localizedText, float fontSize, std::string fontFilename, TextDrawingMode textMode, float strokeWidth) {
-    this->setText(localizedText.text, fontSize, fontFilename, this->height, textMode, strokeWidth);
-}
-
-void Label::setText(const LocalizedText &localizedText, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
-    this->init(localizedText.text, fontSize, fontFilename, height, textMode, strokeWidth);
+void Label::setText(const LocalizedText &localizedText) {
+    this->setText(localizedText.text);
 }
 
 std::string Label::getText() {
@@ -95,7 +55,8 @@ std::string Label::getText() {
 }
 
 void Label::setFontSize(float fontSize) {
-    this->init(this->text, fontSize, this->fontFilename, this->height, this->textMode, this->strokeWidth);
+    this->fontSize = fontSize;
+    this->init();
 }
 
 float Label::getFontSize() {
@@ -103,35 +64,21 @@ float Label::getFontSize() {
 }
 
 void Label::setFontFilename(std::string fontFilename) {
-    this->init(this->text, this->fontSize, fontFilename, this->height, this->textMode, this->strokeWidth);
+    this->fontFilename = fontFilename;
+    this->init();
 }
 
 std::string Label::getFontFilename() {
     return this->fontFilename;
 }
 
-void Label::setFontHeight(float height) {
-    this->init(this->text, this->fontSize, this->fontFilename, height, this->textMode, this->strokeWidth);
+void Label::setFontHeight(float fontHeight) {
+    this->fontHeight = fontHeight;
+    this->init();
 }
 
 float Label::getFontHeight() {
-    return this->height;
-}
-
-void Label::setTextDrawingMode(TextDrawingMode textMode, float strokeWidth) {
-    this->init(this->text, this->fontSize, this->fontFilename, this->height, textMode, strokeWidth);
-}
-
-TextDrawingMode Label::getTextDrawingMode() {
-    return this->textMode;
-}
-
-void Label::setStrokeWidth(float strokeWidth) {
-    this->init(this->text, this->fontSize, this->fontFilename, this->height, this->textMode, strokeWidth);
-}
-
-float Label::getStrokeWidth() {
-    return this->strokeWidth;
+    return this->fontHeight;
 }
 
 std::shared_ptr<Label> Label::clone() {
@@ -140,7 +87,23 @@ std::shared_ptr<Label> Label::clone() {
 }
 
 std::shared_ptr<Entity> Label::cloneEntity() {
-    auto label = Label::create(this->text, this->fontSize, this->fontFilename, this->height, this->textMode, this->strokeWidth);
+    auto label = Label::create(this->text, this->fontSize, this->fontFilename, this->fontHeight);
     label->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
     return label;
+}
+
+std::shared_ptr<Dictionary> Label::serialize() {
+    auto dict = Entity::serialize();
+    dict->put("text", String::create(this->text));
+    dict->put("fontSize", Float::create(this->fontSize));
+    dict->put("fontFilename", String::create(this->fontFilename));
+    dict->put("fontHeight", Float::create(this->fontHeight));
+    return dict;
+}
+
+void Label::deserializeData(const std::shared_ptr<Dictionary> &dict) {
+    this->text = dict->get<String>("text")->getValue();
+    this->fontSize = dict->get<Float>("fontSize")->getValue();
+    this->fontFilename = dict->get<String>("fontFilename")->getValue();
+    this->fontHeight = dict->get<Float>("fontSize")->getValue();
 }

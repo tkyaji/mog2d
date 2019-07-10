@@ -22,24 +22,13 @@ namespace mog {
 #pragma - Label
     
     class Label : public Entity {
+        friend class EntityCreator;
     public:
-        static std::shared_ptr<Label> create(std::string text, float fontSize, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
-        static std::shared_ptr<Label> create(std::string text, float fontSize, std::string fontFilename, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
-        static std::shared_ptr<Label> create(std::string text, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        static std::shared_ptr<Label> create(std::string text, float fontSize, std::string fontFilename = "", float fontHeight = 0);
+        static std::shared_ptr<Label> create(const LocalizedText &localizedText, float fontSize, std::string fontFilename = "", float fontHeight = 0);
 
-        static std::shared_ptr<Label> create(const LocalizedText &localizedText, float fontSize, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
-        static std::shared_ptr<Label> create(const LocalizedText &localizedText, float fontSize, std::string fontFilename, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
-        static std::shared_ptr<Label> create(const LocalizedText &localizedText, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
-
-        void setText(std::string text, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
-        void setText(std::string text, float fontSize, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
-        void setText(std::string text, float fontSize, std::string fontFilename, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
-        void setText(std::string text, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
-
-        void setText(const LocalizedText &localizedText, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
-        void setText(const LocalizedText &localizedText, float fontSize, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
-        void setText(const LocalizedText &localizedText, float fontSize, std::string fontFilename, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
-        void setText(const LocalizedText &localizedText, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        void setText(std::string text);
+        void setText(const LocalizedText &localizedText);
         
         std::string getText();
         
@@ -49,29 +38,23 @@ namespace mog {
         void setFontFilename(std::string fontFilename);
         std::string getFontFilename();
         
-        void setFontHeight(float height);
+        void setFontHeight(float fontHeight);
         float getFontHeight();
         
-        void setTextDrawingMode(TextDrawingMode textMode, float strokeWidth = 0);
-        TextDrawingMode getTextDrawingMode();
-        
-        void setStrokeWidth(float strokeWidth);
-        float getStrokeWidth();
-        
         std::shared_ptr<Label> clone();
+        virtual std::shared_ptr<Dictionary> serialize() override;
 
     protected:
         Label() {}
         
-        void init(std::string text, float fontSize, std::string fontFilename = "", float height = 0, TextDrawingMode textMode = TextDrawingMode::Fill, float outlineWidth = 0);
+        virtual void init() override;
         virtual std::shared_ptr<Entity> cloneEntity() override;
+        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict) override;
         
         std::string text;
         float fontSize;
         std::string fontFilename;
-        float height;
-        TextDrawingMode textMode = TextDrawingMode::Fill;
-        float strokeWidth;
+        float fontHeight;
     };
 }
 

@@ -6,10 +6,11 @@
 
 namespace mog {
     class SpriteSheet : public Entity {
+        friend class EntityCreator;
     public:
         static std::shared_ptr<SpriteSheet> create(std::string filename, const Size &frameSize, unsigned int frameCount = 0, unsigned int margin = 0, const Rect &rect = Rect::zero);
-        static std::shared_ptr<SpriteSheet> create(const std::shared_ptr<Texture2D> &texture, const Size &frameSize, unsigned int frameCount = 0, unsigned int margin = 0, const Rect &rect = Rect::zero);
-        static std::shared_ptr<SpriteSheet> create(const std::shared_ptr<Sprite> &sprite, const Size &frameSize, unsigned int frameCount = 0, unsigned int margin = 0);
+        static std::shared_ptr<SpriteSheet> createWithTexture(const std::shared_ptr<Texture2D> &texture, const Size &frameSize, unsigned int frameCount = 0, unsigned int margin = 0, const Rect &rect = Rect::zero);
+        static std::shared_ptr<SpriteSheet> createWithSprite(const std::shared_ptr<Sprite> &sprite, const Size &frameSize, unsigned int frameCount = 0, unsigned int margin = 0);
         void selectFrame(unsigned int frame);
         
         virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag = 0) override;
@@ -32,6 +33,7 @@ namespace mog {
     protected:
         SpriteSheet() {}
         
+        std::string filename = "";
         unsigned int frame = 0;
         unsigned int frameCount = 0;
         Size frameSize = Size::zero;
@@ -51,7 +53,8 @@ namespace mog {
         std::function<void(const std::shared_ptr<SpriteSheet> &spriteSheet)> onFinishEvent;
 
         void updateSpriteFrame(float delta);
-        void init(const std::shared_ptr<Texture2D> &texture, const Size &frameSize, unsigned int frameCount, unsigned int margin, const Rect &rect);
+        virtual void init() override;
+        void initWithTexture(const std::shared_ptr<Texture2D> &texture);
         void initFrames(unsigned int frameCount, unsigned int margin);
         virtual std::shared_ptr<Entity> cloneEntity() override;
     };

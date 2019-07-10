@@ -46,7 +46,7 @@ namespace mog {
         
         static void setData(std::string key, const std::shared_ptr<Data> &value, bool immediatelySave = false);
         static void serialize(std::string filepath, const std::shared_ptr<Data> &data);
-        static void serialize(unsigned char **byteData, int *len, const std::shared_ptr<Data> &data);
+        static std::shared_ptr<ByteArray> serialize(const std::shared_ptr<Data> &data);
 
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         static std::shared_ptr<T> deserialize(std::string filepath) {

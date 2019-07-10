@@ -5,24 +5,20 @@ using namespace mog;
 void SampleScene::onLoad() {
     
     auto group = Group::create();
-    
+    group->setSize(Screen::getSize() * 0.5f);
+    group->setAnchor(1.0f, 1.0f);
+    group->setPivot(1.0f, 1.0f);
+
     
     auto sprite = Sprite::create("test.png");
     group->add(sprite);
-
     
-    auto label = Label::create("ABCDE", 30.0f, "Montserrat-Bold-Sub.otf");
-    label->setPosition(50, 100);
+    auto label = Label::create("test", 30);
     group->add(label);
-    label->setColor(Color::white);
-    
-    this->add(group);
 
-    
-    auto l = TouchEventListener::create();
-    l->setOnTapEvent([group](const Touch &t, const std::shared_ptr<Entity> &e) {
-        group->setEnableBatching(!group->isEnableBatching());
-    });
-    sprite->addTouchEvent(l);
+    sprite->setAnchor(1.0f, 1.0f);
+    sprite->setPivot(1.0f, 1.0f);
+
+    this->add(group);
     
 }

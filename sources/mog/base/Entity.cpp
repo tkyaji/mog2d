@@ -37,16 +37,19 @@ void Entity::bindVertex() {
         this->renderer->bindVertex();
     }
 
-    if (this->textures[0]) {
+    int i = 0;
+    while (this->textures[i]) {
         if ((this->dirtyFlag & DIRTY_TEXTURE) == DIRTY_TEXTURE) {
-            this->textures[0]->bindTexture();
+            this->textures[i]->bindTexture(i);
         }
         if ((this->dirtyFlag & DIRTY_TEX_COORDS) == DIRTY_TEX_COORDS) {
             int vertexTexCoordsIdx = 0;
-            if (!this->renderer->vertexTexCoords[0]) this->renderer->newVertexTexCoordsArr();
+            if (!this->renderer->vertexTexCoords[i]) this->renderer->newVertexTexCoordsArr();
             this->bindVertexTexCoords(this->renderer, &vertexTexCoordsIdx, 0, 0, 0, 1.0f, 1.0f);
-            this->renderer->bindVertexTexCoords(this->textures[0], 0);
+            this->renderer->bindVertexTexCoords(i);
+            this->renderer->bindTexture(this->textures[i], i);
         }
+        i++;
     }
 
     this->dirtyFlag = 0;
@@ -292,9 +295,17 @@ std::shared_ptr<AABB> Entity::getAABB() {
     return std::shared_ptr<AABB>(new AABB(offset.x + minP.x, offset.y + minP.y, offset.x + maxP.x, offset.y + maxP.y));
 }
 
+void Entity::updateOffset() {
+    if (auto parent = this->group.lock()) {
+        this->transform->offest = parent->getSize() * this->anchor;
+    } else {
+        Drawable::updateOffset();
+    }
+}
+
 void Entity::copyProperties(const std::shared_ptr<Entity> &entity) {
     this->setTag(entity->getTag());
-    this->setAnchor(entity->getAnchor());
+    this->setPivot(entity->getPivot());
     this->setPosition(entity->getPosition());
     this->setSize(entity->getSize());
     this->setScale(entity->getScale());
@@ -305,4 +316,36 @@ void Entity::copyProperties(const std::shared_ptr<Entity> &entity) {
     this->setZIndex(entity->getZIndex());
     this->setActive(entity->isActive());
     this->setParam(entity->getParam<Data>());
+}
+
+std::shared_ptr<Dictionary> Entity::serialize() {
+    auto dict = Dictionary::create();
+    dict->put("name", String::create(this->name));
+    dict->put("tag", String::create(this->tag));
+    dict->put("positionX", Float::create(this->transform->position.x));
+    dict->put("positionY", Float::create(this->transform->position.y));
+    dict->put("pivotX", Float::create(this->transform->pivot.x));
+    dict->put("pivotY", Float::create(this->transform->pivot.y));
+    dict->put("anchorX", Float::create(this->anchor.x));
+    dict->put("anchorY", Float::create(this->anchor.y));
+    dict->put("width", Float::create(this->transform->size.width));
+    dict->put("height", Float::create(this->transform->size.height));
+    dict->put("color", String::create(this->getColorCode()));
+    dict->put("zIndex", Int::create(this->zIndex));
+    return dict;
+}
+
+void Entity::deserializeData(const std::shared_ptr<Dictionary> &dict) {
+    this->name = dict->get<String>("name")->getValue();
+    this->tag = dict->get<String>("tag")->getValue();
+    this->transform->position.x = dict->get<Float>("positionX")->getValue();
+    this->transform->position.y =  dict->get<Float>("positionY")->getValue();
+    this->transform->pivot.x =  dict->get<Float>("pivotX")->getValue();
+    this->transform->pivot.x = dict->get<Float>("pivotX")->getValue();
+    this->anchor.x = dict->get<Float>("anchorX")->getValue();
+    this->anchor.y = dict->get<Float>("anchorY")->getValue();
+    this->transform->size.width = dict->get<Float>("width")->getValue();
+    this->transform->size.height = dict->get<Float>("height")->getValue();
+    this->transform->color = Color(dict->get<String>("color")->getValue());
+    this->zIndex = dict->get<Int>("zIndex")->getValue();
 }

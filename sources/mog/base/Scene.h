@@ -13,10 +13,9 @@ namespace mog {
     
     class Scene : public std::enable_shared_from_this<Scene> {
         friend class AppBase;
-        friend class Drawable;
     public:
         virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, unsigned char parentDirtyFlag = 0);
-        virtual void drawFrame(float delta);
+        virtual void drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches);
         void add(const std::shared_ptr<Drawable> &drawable);
         void remove(const std::shared_ptr<Drawable> &drawable);
         void removeAll();

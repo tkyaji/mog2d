@@ -43,10 +43,10 @@ std::shared_ptr<Texture2D> Texture2D::createWithImage(const std::shared_ptr<Byte
     return tex2d;
 }
 
-std::shared_ptr<Texture2D> Texture2D::createWithText(std::string text, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
+std::shared_ptr<Texture2D> Texture2D::createWithText(std::string text, float fontSize, std::string fontFilename, float height) {
     auto tex2d = std::make_shared<Texture2D>();
     allTextures[(intptr_t)tex2d.get()] = tex2d;
-    tex2d->loadFontTexture(text, fontSize, fontFilename, height, textMode, strokeWidth);
+    tex2d->loadFontTexture(text, fontSize, fontFilename, height);
     return tex2d;
 }
 
@@ -146,9 +146,9 @@ std::shared_ptr<ByteArray> Texture2D::readBytesAsset(std::string filename, Densi
     return data;
 }
 
-void Texture2D::loadFontTexture(std::string text, float fontSize, std::string fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
+void Texture2D::loadFontTexture(std::string text, float fontSize, std::string fontFilename, float height) {
     Density den = Screen::getDensity();
-    Texture2DNative::loadFontTexture(this, text.c_str(), fontSize * den.value, fontFilename.c_str(), height * den.value, textMode, strokeWidth * den.value);
+    Texture2DNative::loadFontTexture(this, text.c_str(), fontSize * den.value, fontFilename.c_str(), height * den.value);
     this->density = den;
 }
 
@@ -166,11 +166,12 @@ GLenum toGLFormat(TextureType textureType) {
     return format;
 }
 
-void Texture2D::bindTexture() {
+void Texture2D::bindTexture(int textureIdx) {
     if (this->textureId == 0) {
         glGenTextures(1, &this->textureId);
     }
     
+    glActiveTexture(getTextureEnum(textureIdx));
     glBindTexture(GL_TEXTURE_2D, this->textureId);
     
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -250,6 +251,16 @@ void Texture2D::loadImageFromBuffer(unsigned char *buffer, int len) {
     this->height = y;
     this->bitsPerPixel = n;
     this->dataLength = x * y * n;
+}
+
+GLenum Texture2D::getTextureEnum(int textureIdx) {
+    static const GLenum textureEnums[] = {
+        GL_TEXTURE0,
+        GL_TEXTURE1,
+        GL_TEXTURE2,
+        GL_TEXTURE3,
+    };
+    return textureEnums[textureIdx];
 }
 
 void Texture2D::releaseBuffer() {

@@ -18,11 +18,6 @@ namespace mog {
     };
     
 
-    enum class TextDrawingMode {
-        Fill,
-        Stroke
-    };
-
     class Texture2D {
     public:
         GLuint textureId = 0;
@@ -39,15 +34,16 @@ namespace mog {
         static std::shared_ptr<Texture2D> createWithAsset(std::string filename);
         static std::shared_ptr<Texture2D> createWithFile(std::string filepath, Density density = Density::x1_0);
         static std::shared_ptr<Texture2D> createWithImage(const std::shared_ptr<ByteArray> &bytes);
-        static std::shared_ptr<Texture2D> createWithText(std::string text, float fontSize, std::string fontFilename = "", float height = 0, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        static std::shared_ptr<Texture2D> createWithText(std::string text, float fontSize, std::string fontFilename = "", float height = 0);
         static std::shared_ptr<Texture2D> createWithColor(TextureType textureType, const Color &color, int width, int height, Density density);
         static std::shared_ptr<Texture2D> createWithRGBA(unsigned char *data, int width, int height, Density density);
         static void releaseAllBufferes();
+        static GLenum getTextureEnum(int textureIdx);
 
         Texture2D();
         ~Texture2D();
         
-        void bindTexture();
+        void bindTexture(int textureIdx = 0);
         void bindTextureSub(GLubyte* data, int x, int y, int width, int height);
         void loadImageFromBuffer(unsigned char *buffer, int len);
         
@@ -57,7 +53,7 @@ namespace mog {
         void loadTextureAsset(std::string filename);
         std::shared_ptr<ByteArray> readBytesAsset(std::string filename, Density *density);
         void loadTextureFile(std::string filepath, Density density = Density::x1_0);
-        void loadFontTexture(std::string text, float fontSize, std::string fontFilename = "", float height = 0, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        void loadFontTexture(std::string text, float fontSize, std::string fontFilename = "", float height = 0);
         void loadColorTexture(TextureType textureType, const Color &color, int width, int height, Density density = Density::x1_0);
         void releaseBuffer();
     };

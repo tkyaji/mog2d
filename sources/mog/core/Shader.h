@@ -13,6 +13,7 @@
 #define ATTR_LOCATION_IDX_UV2 4
 #define ATTR_LOCATION_IDX_UV3 5
 #define ATTR_LOCATION_IDX_UV_START 2
+#define ATTR_LOCATION_IDX_USER_START 11
 
 namespace mog {
     enum class ShaderType {
@@ -158,6 +159,9 @@ namespace mog {
         void setVertexAttributeParameter(unsigned int location, short *values, int arrSize, int size, bool dynamicDraw = false, bool normalized = false, int stride = 0);
         void bindVertexAttributePointerSub(unsigned int location, float *value, int arrSize, int offset);
         
+        unsigned int bindAttributeLocation(std::string name);
+        void bindAttributeLocation(std::string name, unsigned int location);
+
         float getMaxLineWidth();
         float getMaxPointSize();
         void releaseBuffer();
@@ -173,6 +177,8 @@ namespace mog {
         std::unordered_map<std::string, UniformParameter> uniformParamsMap;
         std::unordered_map<std::string, bool> dirtyUniformParamsMap;
         std::unordered_map<unsigned int, VertexAttributeParameter> vertexAttributeParamsMap;
+        std::unordered_map<std::string, unsigned int> attributeLocationMap;
+        unsigned int attributeLocationIndexCounter = ATTR_LOCATION_IDX_USER_START;
 
         Shader() {}
         void setUniformParameter(std::string name, const UniformParameter &param);

@@ -30,7 +30,7 @@ void Scene::updateFrame(const std::shared_ptr<Engine> &engine, float delta, unsi
     }
 }
 
-void Scene::drawFrame(float delta) {
+void Scene::drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches) {
     for (auto drawable : this->drawableGroup->sortedChildDrawables) {
         if (((this->dirtyFlag | drawable->dirtyFlag) & DIRTY_VERTEX) == DIRTY_VERTEX) {
             Transform::multiplyMatrix(drawable->transform->matrix, this->matrix, drawable->renderer->matrix);
@@ -38,7 +38,7 @@ void Scene::drawFrame(float delta) {
         if (((this->dirtyFlag | drawable->dirtyFlag) & DIRTY_COLOR) == DIRTY_COLOR) {
             Transform::multiplyColor(drawable->transform->matrix, this->matrix, drawable->renderer->matrix);
         }
-        drawable->drawFrame(delta);
+        drawable->drawFrame(delta, touches);
     }
     this->dirtyFlag = 0;
 }

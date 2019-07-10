@@ -6,6 +6,7 @@
 #include "mog/core/Engine.h"
 #include "mog/core/plain_objects.h"
 #include "mog/core/Texture2D.h"
+#include "mog/core/TouchInput.h"
 #include "mog/Constants.h"
 
 namespace mog {
@@ -17,6 +18,13 @@ namespace mog {
     public:
         ~Drawable();
         
+        virtual void setPivot(const Point &pivot);
+        virtual void setPivot(float x, float y);
+        virtual void setPivotX(float x);
+        virtual void setPivotY(float y);
+        virtual Point getPivot();
+        virtual float getPivotX();
+        virtual float getPivotY();
         virtual void setAnchor(const Point &anchor);
         virtual void setAnchor(float x, float y);
         virtual void setAnchorX(float x);
@@ -29,7 +37,7 @@ namespace mog {
         virtual void setPositionX(float x);
         virtual void setPositionY(float y);
         virtual Point getPosition();
-        virtual Point getPosition(const Point &anchor);
+        virtual Point getPosition(const Point &pivot);
         virtual float getPositionX();
         virtual float getPositionY();
         virtual void setScale(float scale);
@@ -86,17 +94,20 @@ namespace mog {
         }
 
         virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag = 0);
-        virtual void drawFrame(float delta);
+        virtual void drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches);
         virtual void updateTween(float delta);
         std::shared_ptr<Texture2D> getTexture(int textureIdx = 0);
-        
+        void setTexture(int textureIdx, const std::shared_ptr<Texture2D> &texture);
+
     protected:
         Drawable();
         virtual void bindVertex();
+        virtual void updateOffset();
         virtual void onUpdate(float delta) {};
 
         std::shared_ptr<Renderer> renderer = nullptr;
         std::shared_ptr<Transform> transform = nullptr;
+        Point anchor = Point::zero;
         std::array<std::shared_ptr<Texture2D>, MULTI_TEXTURE_NUM> textures;
         unsigned char dirtyFlag = DIRTY_ALL;
         

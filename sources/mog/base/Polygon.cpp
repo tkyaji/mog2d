@@ -5,12 +5,13 @@ using namespace mog;
 
 std::shared_ptr<Polygon> Polygon::create(const std::vector<Point> &vertexPoints) {
     auto polygon = std::shared_ptr<Polygon>(new Polygon());
-    polygon->init(vertexPoints);
+    polygon->vertexPoints = vertexPoints;
+    polygon->init();
     return polygon;
 }
 
-void Polygon::init(const std::vector<Point> &vertexPoints) {
-    this->vertexPoints = vertexPoints;
+void Polygon::init() {
+    
     this->minPosition = vertexPoints[0];
     this->maxPosition = vertexPoints[0];
     for (int i = 1; i < vertexPoints.size(); i++) {

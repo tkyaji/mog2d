@@ -5,29 +5,37 @@
 using namespace mog;
 
 std::shared_ptr<Slice9Sprite> Slice9Sprite::create(std::string filename, const Rect &centerRect, const Rect &rect) {
-    auto texture = Texture2D::createWithAsset(filename);
-    return Slice9Sprite::create(texture, centerRect, rect);
-}
-
-std::shared_ptr<Slice9Sprite> Slice9Sprite::create(const std::shared_ptr<Texture2D> &texture, const Rect &centerRect, const Rect &rect) {
     auto slice9sprite = std::shared_ptr<Slice9Sprite>(new Slice9Sprite());
-    slice9sprite->init(texture, centerRect, rect);
+    slice9sprite->filename = filename;
+    slice9sprite->centerRect = centerRect;
+    slice9sprite->rect = rect;
+    slice9sprite->init();
     return slice9sprite;
 }
 
-std::shared_ptr<Slice9Sprite> Slice9Sprite::create(const std::shared_ptr<Sprite> &sprite, const Rect &centerRect) {
-    return Slice9Sprite::create(sprite->getTexture(), centerRect, sprite->getRect());
+std::shared_ptr<Slice9Sprite> Slice9Sprite::createWithTexture(const std::shared_ptr<Texture2D> &texture, const Rect &centerRect, const Rect &rect) {
+    auto slice9sprite = std::shared_ptr<Slice9Sprite>(new Slice9Sprite());
+    slice9sprite->centerRect = centerRect;
+    slice9sprite->rect = rect;
+    slice9sprite->initWithTexture(texture);
+    return slice9sprite;
 }
 
-void Slice9Sprite::init(const std::shared_ptr<Texture2D> &texture, const Rect &centerRect, const Rect &rect) {
+std::shared_ptr<Slice9Sprite> Slice9Sprite::createWithSprite(const std::shared_ptr<Sprite> &sprite, const Rect &centerRect) {
+    return Slice9Sprite::createWithTexture(sprite->getTexture(), centerRect, sprite->getRect());
+}
+
+void Slice9Sprite::init() {
+    auto texture = Texture2D::createWithAsset(filename);
+    this->initWithTexture(texture);
+}
+
+void Slice9Sprite::initWithTexture(const std::shared_ptr<Texture2D> &texture) {
     this->textures[0] = texture;
-    this->centerRect = centerRect;
-    Rect _rect = rect;
-    if (rect.size == Size::zero) {
-        _rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
+    if (this->rect.size == Size::zero) {
+        this->rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
                           this->textures[0]->height / this->textures[0]->density.value);
     }
-    this->rect = _rect;
     this->transform->size = this->rect.size;
     this->initRendererVertices(16, 28);
 }
@@ -131,7 +139,7 @@ std::shared_ptr<Slice9Sprite> Slice9Sprite::clone() {
 }
 
 std::shared_ptr<Entity> Slice9Sprite::cloneEntity() {
-    auto sprite = Slice9Sprite::create(this->textures[0], this->centerRect, this->rect);
+    auto sprite = Slice9Sprite::createWithTexture(this->textures[0], this->centerRect, this->rect);
     sprite->copyProperties(std::static_pointer_cast<Slice9Sprite>(sprite));
     return sprite;
 }

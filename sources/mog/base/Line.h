@@ -15,20 +15,23 @@ namespace mog {
     };
     
     class Line : public Polygon {
+        friend class EntityCreator;
     public:
         static std::shared_ptr<Line> create(const std::vector<Point> &points, float lineWidth = 10.0f, LineType lineType = LineType::LineStrip);
         std::vector<Point> getPoints();
         float getLineWidth();
         std::shared_ptr<Line> clone();
+        virtual std::shared_ptr<Dictionary> serialize() override;
 
     protected:
         Line() {}
         
-        void init(const std::vector<Point> &points, float lineWidth, LineType lineType);
+        virtual void init() override;
         std::vector<Point> createLinesVertexPoints(const std::vector<Point> &points, float lineWidth);
         std::vector<Point> createLineStripVertexPoints(const std::vector<Point> &points, float lineWidth);
         std::vector<Point> createLineLoopVertexPoints(const std::vector<Point> &points, float lineWidth);
         virtual std::shared_ptr<Entity> cloneEntity() override;
+        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict) override;
 
         float lineWidth = 0;
         LineType lineType = LineType::LineStrip;

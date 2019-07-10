@@ -9,7 +9,9 @@ std::unordered_map<std::string, std::weak_ptr<Texture2D>> Sprite::globalCachedTe
 
 std::shared_ptr<Sprite> Sprite::create(std::string filename, const Rect &rect) {
     auto sprite = std::shared_ptr<Sprite>(new Sprite());
-    sprite->init(filename, rect);
+    sprite->filename = filename;
+    sprite->rect = rect;
+    sprite->init();
     return sprite;
 }
 
@@ -70,29 +72,34 @@ std::string Sprite::getFilename() {
     return this->filename;
 }
 
+void Sprite::setFilename(std::string filename) {
+    this->filename = filename;
+    this->init();
+    this->dirtyFlag = DIRTY_ALL;
+}
+
 Rect Sprite::getRect() {
     return this->rect;
 }
 
-void Sprite::init(std::string filename, const Rect &rect) {
-    this->filename = filename;
-    if (filename.length() > 0) {
-        if (Sprite::cachedTexture2d.count(filename) > 0) {
-            this->textures[0] = Sprite::cachedTexture2d[filename].lock();
-        }
-        if (this->textures[0] == nullptr) {
-            this->textures[0] = Texture2D::createWithAsset(filename);
-            if (this->textures[0]) {
-                Sprite::cachedTexture2d[filename] = this->textures[0];
-            }
-        }
-        
-        Rect _rect = rect;
-        if (rect.size == Size::zero) {
-            _rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
-                              this->textures[0]->height / this->textures[0]->density.value);
-        }
-        this->rect = _rect;
+void Sprite::setRect(const Rect &rect) {
+    this->rect = rect;
+    this->init();
+    this->dirtyFlag = DIRTY_ALL;
+}
+
+void Sprite::init() {
+    if (Sprite::cachedTexture2d.count(filename) > 0) {
+        this->textures[0] = Sprite::cachedTexture2d[filename].lock();
+    }
+    this->textures[0] = Texture2D::createWithAsset(filename);
+    if (this->textures[0]) {
+        Sprite::cachedTexture2d[filename] = this->textures[0];
+    }
+    
+    if (this->rect.size == Size::zero) {
+        this->rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
+                               this->textures[0]->height / this->textures[0]->density.value);
     }
     this->transform->size = this->rect.size;
     
@@ -164,4 +171,27 @@ std::shared_ptr<Entity> Sprite::cloneEntity() {
     auto sprite = Sprite::createWithTexture(this->textures[0], this->rect);
     sprite->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
     return sprite;
+}
+
+std::shared_ptr<Dictionary> Sprite::serialize() {
+    auto dict = Entity::serialize();
+    dict->put("filename", String::create(this->filename));
+    auto rectDict = Dictionary::create();
+    rectDict->put("x", Float::create(this->rect.position.x));
+    rectDict->put("y", Float::create(this->rect.position.x));
+    rectDict->put("width", Float::create(this->rect.size.width));
+    rectDict->put("height", Float::create(this->rect.size.height));
+    dict->put("rect", rectDict);
+    return dict;
+}
+
+void Sprite::deserializeData(const std::shared_ptr<Dictionary> &dict) {
+    this->filename = dict->get<String>("filename")->getValue();
+    Rect rect;
+    auto rectDict = dict->get<Dictionary>("rect");
+    rect.position.x = rectDict->get<Float>("x")->getValue();
+    rect.position.y = rectDict->get<Float>("y")->getValue();
+    rect.size.width = rectDict->get<Float>("width")->getValue();
+    rect.size.height = rectDict->get<Float>("height")->getValue();
+    this->rect = rect;
 }

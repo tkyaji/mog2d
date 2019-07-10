@@ -8,12 +8,12 @@ using namespace mog;
 
 std::shared_ptr<Circle> Circle::create(float radius) {
     auto circle = std::shared_ptr<Circle>(new Circle());
-    circle->init(radius);
+    circle->radius = radius;
+    circle->init();
     return circle;
 }
 
-void Circle::init(float radius) {
-    this->radius = radius;
+void Circle::init() {
     this->transform->size = Size(radius * 2, radius * 2);
     
     float density = Screen::getDensity();
@@ -98,7 +98,8 @@ float Circle::getRadius() {
 }
 
 void Circle::setRadius(float radius) {
-    this->init(radius);
+    this->radius = radius;
+    this->init();
     this->dirtyFlag |= DIRTY_ALL;
 }
 
@@ -130,4 +131,14 @@ std::shared_ptr<Entity> Circle::cloneEntity() {
     auto circle = Circle::create(this->radius);
     circle->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
     return circle;
+}
+
+std::shared_ptr<Dictionary> Circle::serialize() {
+    auto dict = Entity::serialize();
+    dict->put("radius", Float::create(this->radius));
+    return dict;
+}
+
+void Circle::deserializeData(const std::shared_ptr<Dictionary> &dict) {
+    this->radius = dict->get<Float>("radius")->getValue();
 }

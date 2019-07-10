@@ -11,6 +11,7 @@
 
 namespace mog {
     class Sprite : public Entity {
+        friend class EntityCreator;
     public:
         static std::shared_ptr<Sprite> create(std::string filename, const Rect &rect = Rect::zero);
         static std::shared_ptr<Sprite> createWithFilePath(std::string filepath, Density density = Density::x1_0);
@@ -24,8 +25,11 @@ namespace mog {
         static void clearCache();
         
         std::string getFilename();
+        void setFilename(std::string filename);
         Rect getRect();
+        void setRect(const Rect &rect);
         std::shared_ptr<Sprite> clone();
+        virtual std::shared_ptr<Dictionary> serialize() override;
 
         ~Sprite();
         
@@ -37,7 +41,7 @@ namespace mog {
         std::string filename;
         Rect rect = Rect::zero;
         
-        void init(std::string filename, const Rect &rect);
+        virtual void init() override;
         void initWithFilePath(std::string filepath, const Rect &rect, Density density);
         void initWithImage(const std::shared_ptr<ByteArray> &bytes);
         void initWithRGBA(unsigned char *data, int width, int height);
@@ -45,6 +49,7 @@ namespace mog {
 
         virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) override;
         virtual std::shared_ptr<Entity> cloneEntity() override;
+        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict) override;
     };
 }
 

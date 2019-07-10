@@ -104,14 +104,13 @@ void Shader::compileIfNeed() {
     
     glAttachShader(this->glShaderProgram, this->vertexShader->glShader);
     glAttachShader(this->glShaderProgram, this->fragmentShader->glShader);
-    
-    glBindAttribLocation(this->glShaderProgram, ATTR_LOCATION_IDX_POSITION, "a_position");
-    glBindAttribLocation(this->glShaderProgram, ATTR_LOCATION_IDX_COLOR, "a_color");
-    glBindAttribLocation(this->glShaderProgram, ATTR_LOCATION_IDX_UV0, "a_uv0");
-    glBindAttribLocation(this->glShaderProgram, ATTR_LOCATION_IDX_UV1, "a_uv1");
-    glBindAttribLocation(this->glShaderProgram, ATTR_LOCATION_IDX_UV2, "a_uv2");
-    glBindAttribLocation(this->glShaderProgram, ATTR_LOCATION_IDX_UV3, "a_uv3");
-    
+    checkGLError("Shader::glAttachShader");
+
+    for (auto pair : this->attributeLocationMap) {
+        glBindAttribLocation(this->glShaderProgram, pair.second, pair.first.c_str());
+    }
+    checkGLError("Shader::glBindAttribLocation");
+
     glLinkProgram(this->glShaderProgram);
     
 #ifdef MOG_DEBUG
@@ -258,6 +257,17 @@ void Shader::bindVertexAttributePointerSub(unsigned int location, float *value, 
 
 void Shader::setVertexAttributeParameter(unsigned int location, const VertexAttributeParameter &param) {
     this->vertexAttributeParamsMap[location] = param;
+}
+
+unsigned int Shader::bindAttributeLocation(std::string name) {
+    if (this->attributeLocationMap.count(name) == 0) {
+        this->attributeLocationMap[name] = this->attributeLocationIndexCounter++;
+    }
+    return this->attributeLocationMap[name];
+}
+
+void Shader::bindAttributeLocation(std::string name, unsigned int location) {
+    this->attributeLocationMap[name] = location;
 }
 
 unsigned int Shader::getBufferIndex(unsigned int location) {

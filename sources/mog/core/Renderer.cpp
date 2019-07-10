@@ -70,7 +70,7 @@ void Renderer::initScreenParameters() {
     auto screenSize = Screen::getSize();
     auto displaySize = Screen::getDisplaySize();
     float screenScale = Screen::getScreenScale();
-    this->shader->setUniformParameter("u_screenSize", screenSize.width,screenSize.height);
+    this->shader->setUniformParameter("u_screenSize", screenSize.width, screenSize.height);
     this->shader->setUniformParameter("u_displaySize", displaySize.width, displaySize.height);
     this->shader->setUniformParameter("u_screenScale", screenScale);
     this->screenParameterInitialized = true;
@@ -93,25 +93,34 @@ void Renderer::bindVertex(bool dynamicDraw) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     
+    this->shader->bindAttributeLocation("a_position", ATTR_LOCATION_IDX_POSITION);
+
     checkGLError("Renderer::bindVertex");
 }
 
-void Renderer::bindVertexTexCoords(const std::shared_ptr<Texture2D> &texture, int textureIdx, bool dynamicDraw) {
-    char texStr[16];
-    sprintf(texStr, "u_texture%d", textureIdx);
-    
+void Renderer::bindVertexTexCoords(int textureIdx, bool dynamicDraw) {
+    char uvStr[8];
+    sprintf(uvStr, "a_uv%d", textureIdx);
+    this->shader->bindAttributeLocation(uvStr, ATTR_LOCATION_IDX_UV_START + textureIdx);
     this->shader->setVertexAttributeParameter(ATTR_LOCATION_IDX_UV_START + textureIdx, this->vertexTexCoords[textureIdx], this->verticesNum * 2, 2, dynamicDraw);
-    this->shader->setUniformParameter(texStr, textureIdx);
-
-    this->textures[textureIdx] = texture;
-    
     checkGLError("Renderer::bindTextureVertex");
 }
 
 void Renderer::bindVertexColors(bool dynamicDraw) {
+    this->shader->bindAttributeLocation("a_color", ATTR_LOCATION_IDX_COLOR);
     this->shader->setVertexAttributeParameter(ATTR_LOCATION_IDX_COLOR, this->vertexColors, this->verticesNum * 4, 4, dynamicDraw);
     this->enableVertexColor = true;
     checkGLError("Renderer::bindColorsVertex");
+}
+
+void Renderer::bindTexture(const std::shared_ptr<Texture2D> &texture, int textureIdx) {
+    char texStr[16];
+    sprintf(texStr, "u_texture%d", textureIdx);
+    
+    this->shader->setUniformParameter(texStr, textureIdx);
+    this->textures[textureIdx] = texture;
+    
+    checkGLError("Renderer::bindTexture");
 }
 
 void Renderer::bindVertexSub(int index, int size) {
@@ -178,6 +187,8 @@ void Renderer::drawFrame() {
 
     for (int i = 0; i < MULTI_TEXTURE_NUM; i++) {
         if (auto texture = this->textures[i].lock()) {
+            GLenum textureEnum = Texture2D::getTextureEnum(i);
+            glActiveTexture(textureEnum);
             glBindTexture(GL_TEXTURE_2D, texture->textureId);
         } else {
             break;

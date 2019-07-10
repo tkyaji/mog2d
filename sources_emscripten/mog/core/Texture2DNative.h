@@ -13,7 +13,7 @@ namespace mog {
     
     class Texture2DNative {
     public:
-        static void loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFilename, float height = 0, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        static void loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFilename, float height = 0);
         static string getLocalizedTextNative(const char *textKey, va_list args);
     };
 }

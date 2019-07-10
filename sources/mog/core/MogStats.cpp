@@ -132,7 +132,8 @@ void MogStats::bindVertex() {
 
     this->renderer->bindVertex(true);
     this->texture->bindTexture();
-    this->renderer->bindVertexTexCoords(this->texture, 0, true);
+    this->renderer->bindVertexTexCoords(0, true);
+    this->renderer->bindTexture(this->texture);
 }
 
 void MogStats::init() {

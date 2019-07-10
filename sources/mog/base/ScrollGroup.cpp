@@ -1,4 +1,5 @@
 #include "mog/base/ScrollGroup.h"
+#include "mog/core/TouchEventListener.h"
 
 using namespace mog;
 
@@ -23,18 +24,19 @@ void main() {\
 }\
 ";
 
-std::shared_ptr<ScrollGroup> ScrollGroup::create(const mog::Size &scrollSize, const mog::Size &contentSize, unsigned char scrollFlag) {
+std::shared_ptr<ScrollGroup> ScrollGroup::create(const mog::Size &contentSize, unsigned char scrollFlag) {
     auto group = std::shared_ptr<ScrollGroup>(new ScrollGroup());
-    group->init(scrollSize, contentSize, scrollFlag);
+    group->contentSize = contentSize;
+    group->scrollFlag = scrollFlag;
+    group->init();
     return group;
 }
 
-void ScrollGroup::init(const mog::Size &scrollSize, const mog::Size &contentSize, unsigned char scrollFlag) {
-    this->scrollFlag = scrollFlag;
+void ScrollGroup::init() {
     this->enableBatching = true;
     this->enableTexture = true;
     this->contentGroup = Group::create();
-    this->contentGroup->setSize(contentSize);
+    this->contentGroup->setSize(this->contentSize);
     Group::add(this->contentGroup);
     
     this->renderer->shader->vertexShader = BasicShader::getShaderUnit(BasicShader::Type::VertexColorWithTexture, ShaderType::VertexShader);
@@ -76,14 +78,14 @@ void ScrollGroup::updateFrame(const std::shared_ptr<Engine> &engine, float delta
     Group::updateFrame(engine, delta, parentMatrix, parentDirtyFlag);
 }
 
-void ScrollGroup::drawFrame(float delta) {
+void ScrollGroup::drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches) {
     if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
         auto pos = this->getAbsolutePosition();
         auto size = this->getAbsoluteSize();
         this->renderer->shader->setUniformParameter("u_position", pos.x, pos.y);
         this->renderer->shader->setUniformParameter("u_size", size.width, size.height);
     }
-    Group::drawFrame(delta);
+    Group::drawFrame(delta, touches);
 }
 
 void ScrollGroup::add(const std::shared_ptr<Entity> &entity) {
@@ -131,7 +133,7 @@ std::shared_ptr<ScrollGroup> ScrollGroup::clone() {
 }
 
 std::shared_ptr<Entity> ScrollGroup::cloneEntity() {
-    auto scrollGroup = ScrollGroup::create(this->getSize(), this->contentGroup->getSize(), this->scrollFlag);
+    auto scrollGroup = ScrollGroup::create(this->contentSize, this->scrollFlag);
     auto clonedContentGroup = std::static_pointer_cast<ScrollGroup>(shared_from_this())->contentGroup->clone();
     scrollGroup->contentGroup = clonedContentGroup;
     scrollGroup->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));

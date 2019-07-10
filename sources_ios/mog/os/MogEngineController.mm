@@ -104,23 +104,26 @@
 
 - (void)fireTouchEvent:(unsigned int)touchId location:(CGPoint)location action:(TouchAction)action {
     @synchronized (self) {
+        auto screenSize = mog::Screen::getSize();
+        float x = location.x * (screenSize.width / _mogView.frame.size.width);
+        float y = location.y * (screenSize.height / _mogView.frame.size.height);
         switch (action) {
             case TouchActionDown:
-                _touches[touchId] = mog::TouchInput(mog::TouchAction::TouchDown, touchId, location.x, location.y);
+                _touches[touchId] = mog::TouchInput(mog::TouchAction::TouchDown, touchId, x, y);
                 break;
                 
             case TouchActionMove:
                 if (_touches.count(touchId) == 0 || _touches[touchId].action == mog::TouchAction::TouchMove) {
-                    _touches[touchId] = mog::TouchInput(mog::TouchAction::TouchMove, touchId, location.x, location.y);
+                    _touches[touchId] = mog::TouchInput(mog::TouchAction::TouchMove, touchId, x, y);
                 }
                 break;
                 
             case TouchActionUp:
                 if (_touches.count(touchId) > 0 &&
                     (_touches[touchId].action == mog::TouchAction::TouchDown || _touches[touchId].action == mog::TouchAction::TouchDownUp)) {
-                    _touches[touchId] = mog::TouchInput(mog::TouchAction::TouchDownUp, touchId, location.x, location.y);
+                    _touches[touchId] = mog::TouchInput(mog::TouchAction::TouchDownUp, touchId, x, y);
                 } else {
-                    _touches[touchId] = mog::TouchInput(mog::TouchAction::TouchUp, touchId, location.x, location.y);
+                    _touches[touchId] = mog::TouchInput(mog::TouchAction::TouchUp, touchId, x, y);
                 }
                 break;
         }

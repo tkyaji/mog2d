@@ -44,7 +44,7 @@ std::string Texture2DNative::registerCustomFont(const char *fontFilename) {
     return fontNameStr;
 }
 
-void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
+void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFilename, float fontHeight) {
     UIFont* font = nil;
     
     NSString *textStr = [NSString stringWithUTF8String:text];
@@ -68,8 +68,8 @@ void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float 
     CGSize textSize = [textStr sizeWithAttributes:@{NSFontAttributeName:font}];
     int textWidth  = (int)(textSize.width + 0.5f);
     int textHeight = (int)(textSize.height + 0.5f);
-    if (height > 0) {
-        textHeight = (int)(height + 0.5f);
+    if (fontHeight > 0) {
+        textHeight = (int)(fontHeight + 0.5f);
     }
 
     GLubyte *bitmap = (GLubyte *)mogcalloc(textWidth * textHeight * 4, sizeof(GLubyte));
@@ -83,14 +83,8 @@ void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float 
     
     NSMutableDictionary<NSAttributedStringKey, id> *attrs = [NSMutableDictionary<NSAttributedStringKey, id> new];
     [attrs setObject:font forKey:NSFontAttributeName];
-    if (textMode == TextDrawingMode::Fill) {
-        CGContextSetTextDrawingMode(context, kCGTextFill);
-        [attrs setObject:[UIColor whiteColor] forKey:NSForegroundColorAttributeName];
-    } else {
-        CGContextSetTextDrawingMode(context, kCGTextStroke);
-        [attrs setObject:[UIColor whiteColor] forKey:NSStrokeColorAttributeName];
-        [attrs setObject:@(strokeWidth) forKey:NSStrokeWidthAttributeName];
-    }
+    CGContextSetTextDrawingMode(context, kCGTextFill);
+    [attrs setObject:[UIColor whiteColor] forKey:NSForegroundColorAttributeName];
     [textStr drawAtPoint:CGPointZero withAttributes:attrs];
     
     UIGraphicsPopContext();

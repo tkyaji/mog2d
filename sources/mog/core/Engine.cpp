@@ -79,7 +79,7 @@ void Engine::stopEngine() {
     this->running = false;
 }
 
-void Engine::onDrawFrame(std::map<unsigned int, TouchInput> touches) {
+void Engine::onDrawFrame(const std::map<unsigned int, TouchInput> &touches) {
     if (!this->running) return;
 
     if (this->dirtyFlag == DIRTY_ALL) {
@@ -96,7 +96,7 @@ void Engine::onDrawFrame(std::map<unsigned int, TouchInput> touches) {
     this->stats->drawCallCount = 0;
     
     if (this->app) {
-        this->app->drawFrame(delta, this->dirtyFlag);
+        this->app->drawFrame(delta, touches, this->dirtyFlag);
     }
     
     this->stats->drawFrame(delta, this->dirtyFlag);
@@ -194,20 +194,17 @@ float Engine::getTimerElapsedSec() {
 }
 
 void Engine::fireTouchListeners(std::map<unsigned int, TouchInput> touches) {
-    float scale = Screen::getSize().width / Screen::getViewSize().width;
     float uptime = this->getTimerElapsedSec();
     
     for (auto pair : touches) {
         unsigned int touchId = pair.first;
         auto touchInput = pair.second;
-        auto vp = Point(touchInput.x, touchInput.y);
-        auto p = vp * scale;
-        auto touch = Touch(touchId, p, vp, uptime);
+        auto p = Point(touchInput.x, touchInput.y);
+        auto touch = Touch(touchId, p, uptime);
         
         if (this->prevTouches.count(touchId) == 0) {
             touch.startTime = uptime;
             touch.startPosition = p;
-            touch.startViewPosition = vp;
             
             if (!this->multiTouchEnable && this->prevTouches.size() > 0) {
                 continue;
@@ -217,9 +214,7 @@ void Engine::fireTouchListeners(std::map<unsigned int, TouchInput> touches) {
             touch.startTime = prevTouch.startTime;
             touch.deltaTime = uptime - prevTouch.uptime;
             touch.startPosition = prevTouch.startPosition;
-            touch.startViewPosition = prevTouch.startViewPosition;
             touch.deltaPosition = p - prevTouch.position;
-            touch.deltaViewPosition = vp - prevTouch.viewPosition;
         }
         
         if (this->touchEnable) {

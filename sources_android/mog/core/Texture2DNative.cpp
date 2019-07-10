@@ -8,7 +8,7 @@
 
 using namespace mog;
 
-void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFace, float height, TextDrawingMode textMode, float strokeWidth) {
+void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFace, float fontHeight) {
     if (strlen(text) == 0) return;
 
     JNIEnv* env = AndroidHelper::getEnv();
@@ -18,11 +18,11 @@ void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float 
     auto lf0 = JNILocalFrame::create(env, 16);
 
     jclass jcls = env->FindClass("org/mog2d/TextBitmap");
-    jmethodID methodId = env->GetStaticMethodID(jcls, "createFontTexture", "(Landroid/app/Activity;Ljava/lang/String;FLjava/lang/String;ZZIIF)Lorg/mog2d/TextBitmap$Result;");
+    jmethodID methodId = env->GetStaticMethodID(jcls, "createFontTexture", "(Landroid/app/Activity;Ljava/lang/String;FLjava/lang/String;ZZI)Lorg/mog2d/TextBitmap$Result;");
     jstring textStr = env->NewStringUTF(text);
     jobject result = env->CallStaticObjectMethod(jcls, methodId, activity, textStr,
                                                  (jfloat)fontSize, env->NewStringUTF(fontFace),
-                                                 JNI_FALSE, JNI_FALSE, (int)(height + 0.5f), textMode, strokeWidth);
+                                                 JNI_FALSE, JNI_FALSE, (int)(fontHeight + 0.5f));
 
     jclass jrcls = env->GetObjectClass(result);
     jfieldID bytesId = env->GetFieldID(jrcls, "bytes", "[B");

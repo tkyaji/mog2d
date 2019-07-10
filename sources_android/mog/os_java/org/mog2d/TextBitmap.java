@@ -29,8 +29,8 @@ public class TextBitmap {
         }
     }
 
-    public static Result createFontTexture(Activity activity, String text, float fontSize, String fontFilename, boolean isBold, boolean isItalic, int height, int textDrawingMode, float strokeWidth) {
-        Paint forePaint = getFontPaint(activity, fontSize, fontFilename, isBold, isItalic, textDrawingMode, strokeWidth);
+    public static Result createFontTexture(Activity activity, String text, float fontSize, String fontFilename, boolean isBold, boolean isItalic, int fontHeight) {
+        Paint forePaint = getFontPaint(activity, fontSize, fontFilename, isBold, isItalic);
         Paint.FontMetrics metrics = forePaint.getFontMetrics();
 
         Paint backPaint = new Paint();
@@ -45,8 +45,8 @@ public class TextBitmap {
         }
         float lineHeight = metrics.bottom - metrics.top;
         int textHeight = (int)Math.ceil(lineHeight * lines.length);
-        if (height > 0) {
-            textHeight = height;
+        if (fontHeight > 0) {
+            textHeight = fontHeight;
         }
 
         Bitmap bitmap = Bitmap.createBitmap(textWidth, textHeight, Bitmap.Config.ARGB_8888);
@@ -65,7 +65,7 @@ public class TextBitmap {
         return new Result(buffer.array(), textWidth, textHeight);
     }
 
-    private static Paint getFontPaint(Activity activity, float fontSize, String fontFilename, boolean isBold, boolean isItalic, int textDrawingMode, float strokeWidth) {
+    private static Paint getFontPaint(Activity activity, float fontSize, String fontFilename, boolean isBold, boolean isItalic) {
         Paint paint = new Paint();
         Typeface typeface = getTypeFace(activity, fontFilename);
         if (isBold && isItalic) {
@@ -77,12 +77,7 @@ public class TextBitmap {
         }
         paint.setColor(Color.WHITE);
         paint.setAntiAlias(true);
-        if (textDrawingMode == 1) {
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(strokeWidth);
-        } else {
-            paint.setStyle(Paint.Style.FILL);
-        }
+        paint.setStyle(Paint.Style.FILL);
         if (fontSize > 0) {
             paint.setTextSize(fontSize);
         }

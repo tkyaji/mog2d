@@ -80,8 +80,9 @@ namespace mog {
         void setBlendFunc(BlendingFactor blendingFactorSrc, BlendingFactor blendingFactorDest);
         
         void bindVertex(bool dynamicDraw = false);
-        void bindVertexTexCoords(const std::shared_ptr<Texture2D> &texture, int textureIdx, bool dynamicDraw = false);
+        void bindVertexTexCoords(int textureIdx = 0, bool dynamicDraw = false);
         void bindVertexColors(bool dynamicDraw = false);
+        void bindTexture(const std::shared_ptr<Texture2D> &texture, int textureIdx = 0);
 
         void bindVertexSub(int index, int size);
         void bindVertexTexCoordsSub(int index, int size, int textureIdx = 0);

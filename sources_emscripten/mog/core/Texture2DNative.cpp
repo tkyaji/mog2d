@@ -6,7 +6,7 @@
 
 using namespace mog;
 
-void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFilename, float height, TextDrawingMode textMode, float strokeWidth) {
+void Texture2DNative::loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFilename, float height) {
     auto byteArr = FileUtils::readBytesAsset(fontFilename);
     unsigned char *fontBuffer;
     unsigned int length;

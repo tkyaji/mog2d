@@ -21,6 +21,7 @@ void Drawable::updateFrame(const std::shared_ptr<Engine> &engine, float delta, f
     this->renderer->initScreenParameters();
     this->dirtyFlag |= parentDirtyFlag;
     if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
+        this->updateOffset();
         this->transform->updateMatrix();
         memcpy(this->renderer->matrix, this->transform->matrix, sizeof(float) * 16);
         Transform::multiplyMatrix(this->transform->matrix, parentMatrix, this->matrix);
@@ -31,7 +32,7 @@ void Drawable::updateFrame(const std::shared_ptr<Engine> &engine, float delta, f
     }
 }
 
-void Drawable::drawFrame(float delta) {
+void Drawable::drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches) {
     if (!this->active) return;
     if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
         this->renderer->shader->setUniformMatrix(this->renderer->matrix);
@@ -61,37 +62,70 @@ void Drawable::updateTween(float delta) {
 void Drawable::bindVertex() {
 }
 
+void Drawable::setPivot(const Point &pivot) {
+    this->transform->pivot = pivot;
+    this->dirtyFlag |= DIRTY_VERTEX;
+}
+
+void Drawable::setPivot(float x, float y) {
+    this->transform->pivot.x = x;
+    this->transform->pivot.y = y;
+    this->dirtyFlag |= DIRTY_VERTEX;
+}
+
+void Drawable::setPivotX(float x) {
+    this->transform->pivot.x = x;
+    this->dirtyFlag |= DIRTY_VERTEX;
+}
+
+void Drawable::setPivotY(float y) {
+    this->transform->pivot.y = y;
+    this->dirtyFlag |= DIRTY_VERTEX;
+}
+
+Point Drawable::getPivot() {
+    return this->transform->pivot;
+}
+
+float Drawable::getPivotX() {
+    return this->transform->pivot.x;
+}
+
+float Drawable::getPivotY() {
+    return this->transform->pivot.y;
+}
+
 void Drawable::setAnchor(const Point &anchor) {
-    this->transform->anchor = anchor;
+    this->anchor = anchor;
     this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setAnchor(float x, float y) {
-    this->transform->anchor.x = x;
-    this->transform->anchor.y = y;
+    this->anchor.x = x;
+    this->anchor.y = y;
     this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setAnchorX(float x) {
-    this->transform->anchor.x = x;
+    this->anchor.x = x;
     this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 void Drawable::setAnchorY(float y) {
-    this->transform->anchor.y = y;
+    this->anchor.y = y;
     this->dirtyFlag |= DIRTY_VERTEX;
 }
 
 Point Drawable::getAnchor() {
-    return this->transform->anchor;
+    return this->anchor;
 }
 
 float Drawable::getAnchorX() {
-    return this->transform->anchor.x;
+    return this->anchor.x;
 }
 
 float Drawable::getAnchorY() {
-    return this->transform->anchor.y;
+    return this->anchor.y;
 }
 
 void Drawable::setPosition(const Point &position) {
@@ -119,9 +153,9 @@ Point Drawable::getPosition() {
     return this->transform->position;
 }
 
-Point Drawable::getPosition(const Point &anchor) {
-    Point basePosition = this->transform->position - this->transform->size * this->transform->scale * this->transform->anchor;
-    return basePosition + this->transform->size * this->transform->scale * anchor;
+Point Drawable::getPosition(const Point &pivot) {
+    Point basePosition = this->transform->position - this->transform->size * this->transform->scale * this->transform->pivot;
+    return basePosition + this->transform->size * this->transform->scale * pivot;
 }
 
 float Drawable::getPositionX() {
@@ -222,11 +256,7 @@ void Drawable::setColor(std::string hexString) {
     long r = strtol(hexString.substr(0, 2).c_str(), NULL, 16);
     long g = strtol(hexString.substr(2, 2).c_str(), NULL, 16);
     long b = strtol(hexString.substr(4, 2).c_str(), NULL, 16);
-    long a = 255;
-    if (hexString.length() >= 8) {
-        a = strtol(hexString.substr(6, 2).c_str(), NULL, 16);
-    }
-    this->setColor((r/255.0f), (g/255.0f), (b/255.0f), (a/255.0f));
+    this->setColor((r/255.0f), (g/255.0f), (b/255.0f));
 }
 
 Color Drawable::getColor() {
@@ -357,4 +387,13 @@ float *Drawable::getMatrix() {
 std::shared_ptr<Texture2D> Drawable::getTexture(int textureIdx) {
     if (textureIdx >= this->textures.size()) return nullptr;
     return this->textures[textureIdx];
+}
+
+void Drawable::setTexture(int textureIdx, const std::shared_ptr<Texture2D> &texture) {
+    this->textures[textureIdx] = texture;
+    this->dirtyFlag |= (DIRTY_TEXTURE | DIRTY_TEX_COORDS);
+}
+
+void Drawable::updateOffset() {
+    this->transform->offest = Screen::getSize() * this->anchor;
 }

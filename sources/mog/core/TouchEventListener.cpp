@@ -77,8 +77,11 @@ void TouchEventListener::touchEnd(const Touch &touch, const std::shared_ptr<Enti
             this->onTouchEndEvent(touch, entity);
         }
         
-        if (abs(touch.viewPosition.x - touch.startViewPosition.x) < ON_TAP_THRESHOLD &&
-            abs(touch.viewPosition.y - touch.startViewPosition.y) < ON_TAP_THRESHOLD) {
+        float viewScale = Screen::getViewSize().width / Screen::getSize().width;
+        auto viewPosition = touch.position * viewScale;
+        auto startViewPosition = touch.startPosition * viewScale;
+        if (abs(viewPosition.x - startViewPosition.x) < ON_TAP_THRESHOLD &&
+            abs(viewPosition.y - startViewPosition.y) < ON_TAP_THRESHOLD) {
             if (entity->contains(touch.position)) {
                 if (this->onTapEvent) {
                     this->onTapEvent(touch, entity);

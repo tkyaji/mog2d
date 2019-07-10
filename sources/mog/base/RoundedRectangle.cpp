@@ -6,9 +6,12 @@
 using namespace mog;
 
 std::shared_ptr<RoundedRectangle> RoundedRectangle::create(const Size &size, float cornerRadius, unsigned char cornerFlag) {
-    auto rectangle = std::shared_ptr<RoundedRectangle>(new RoundedRectangle());
-    rectangle->init(size, cornerRadius, cornerFlag);
-    return rectangle;
+    auto roundedRectangle = std::shared_ptr<RoundedRectangle>(new RoundedRectangle());
+    roundedRectangle->cornerRadius = cornerRadius;
+    roundedRectangle->cornerFlag = cornerFlag;
+    roundedRectangle->transform->size = size;
+    roundedRectangle->init();
+    return roundedRectangle;
 }
 
 std::shared_ptr<RoundedRectangle> RoundedRectangle::create(float width, float height, float cornerRadius, unsigned char cornerFlag) {
@@ -19,13 +22,9 @@ float RoundedRectangle::getCornerRadius() {
     return this->cornerRadius;
 }
 
-void RoundedRectangle::init(const Size &size, float cornerRadius, unsigned char cornerFlag) {
-    this->cornerRadius = cornerRadius;
-    this->cornerFlag = cornerFlag;
-    this->transform->size = size;
-    
+void RoundedRectangle::init() {
     float scale = Screen::getScreenScale();
-    int texWidth = (int)(cornerRadius * scale + 0.5f) + 2.0f;
+    int texWidth = (int)(this->cornerRadius * scale + 0.5f) + 2.0f;
     int texHeight = texWidth;
     unsigned char *data = (unsigned char *)mogmalloc(sizeof(char) * texWidth * texHeight * 4);
     for (int y = 0; y < texHeight; y++) {
@@ -41,7 +40,7 @@ void RoundedRectangle::init(const Size &size, float cornerRadius, unsigned char 
                 if (_y < 0) _y = 0;
                 
                 float l = Point::length(Point(_x, _y));
-                a = (cornerRadius * scale) - l;
+                a = (this->cornerRadius * scale) - l;
             }
             
             if (a > 1.0f) a = 1.0f;
@@ -188,4 +187,16 @@ std::shared_ptr<Entity> RoundedRectangle::cloneEntity() {
     auto rectangle = RoundedRectangle::create(this->getSize(), this->getCornerRadius());
     rectangle->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
     return rectangle;
+}
+
+std::shared_ptr<Dictionary> RoundedRectangle::serialize() {
+    auto dict = Entity::serialize();
+    dict->put("cornerRadius", Float::create(this->cornerRadius));
+    dict->put("cornerFlag", Int::create(this->cornerFlag));
+    return dict;
+}
+
+void RoundedRectangle::deserializeData(const std::shared_ptr<Dictionary> &dict) {
+    this->cornerRadius = dict->get<Float>("cornerRadius")->getValue();
+    this->cornerFlag = (unsigned char)dict->get<Float>("cornerFlag")->getValue();
 }

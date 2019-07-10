@@ -245,7 +245,7 @@ void AppBase::loadSceneWithSlideIn(const std::shared_ptr<Scene> &scene, Transiti
                                                     duration, easing, loadMode, 0, SceneTransition::SceneOrder::CurrentNext, f);
 }
 
-void AppBase::drawFrame(float delta, unsigned char parentDirtyFlag) {
+void AppBase::drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches, unsigned char parentDirtyFlag) {
     if (this->currentScene) {
         auto engine = this->engine.lock();
         
@@ -257,7 +257,7 @@ void AppBase::drawFrame(float delta, unsigned char parentDirtyFlag) {
             }
         } else {
             this->currentScene->updateFrame(engine, delta, parentDirtyFlag);
-            this->currentScene->drawFrame(delta);
+            this->currentScene->drawFrame(delta, touches);
         }
         if (this->doLoadScene()) {
             return;
@@ -360,21 +360,22 @@ bool AppBase::SceneTransition::update(float delta) {
     }
     this->onModify(this->currentScene, this->nextScene, value);
     
+    std::map<unsigned int, TouchInput> touches;
     if (this->loaded) {
         if (this->sceneOrder == SceneOrder::CurrentNext) {
             this->currentScene->updateFrame(engine, 0);
-            this->currentScene->drawFrame(0);
+            this->currentScene->drawFrame(0, touches);
             this->nextScene->updateFrame(engine, 0);
-            this->nextScene->drawFrame(0);
+            this->nextScene->drawFrame(0, touches);
         } else {
             this->nextScene->updateFrame(engine, 0);
-            this->nextScene->drawFrame(0);
+            this->nextScene->drawFrame(0, touches);
             this->currentScene->updateFrame(engine, 0);
-            this->currentScene->drawFrame(0);
+            this->currentScene->drawFrame(0, touches);
         }
     } else {
         this->currentScene->updateFrame(engine, 0);
-        this->currentScene->drawFrame(0);
+        this->currentScene->drawFrame(0, touches);
     }
     if (this->elapsedTime >= this->duration) {
         this->nextScene->onEnable();

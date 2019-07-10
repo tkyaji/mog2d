@@ -65,6 +65,7 @@ public:
     }
     
     void onSurfaceChanged(JNIEnv* env, jobject obj, jint w, jint h, int vw, int vh, float scaleFactor) {
+        this->scaleFactor = scaleFactor;
         this->engine->setDisplaySize(Size(w, h), Size(vw, vh), scaleFactor);
         this->engine->startEngine();
     }
@@ -105,6 +106,7 @@ private:
     std::map<unsigned int, TouchInput> touches;
     std::vector<unsigned int> removeTouchIds;
     bool surfaceCreated = false;
+    float scaleFactor = 1.0f;
 };
 MogRenderer *MogRenderer::instance;
 

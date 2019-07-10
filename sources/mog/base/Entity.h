@@ -16,6 +16,7 @@ namespace mog {
 
     class Entity : public Drawable {
         friend class Group;
+        friend class EntityCreator;
     public:
         std::string getName();
         void setName(std::string name);
@@ -40,20 +41,24 @@ namespace mog {
         void setTouchEnable(bool enable);
         bool isTouchEnable();
         virtual std::shared_ptr<Collider> getCollider();
-
+        virtual std::shared_ptr<Dictionary> serialize();
+        
         virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag = 0) override;
         void updateMatrix();
 
     protected:
         Entity() {}
         
+        virtual void init() = 0;
         virtual void extractEvent(const std::shared_ptr<Engine> &engine, float delta);
         virtual void bindVertex() override;
         virtual void bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform);
         virtual void bindVertexColors(const std::shared_ptr<Renderer> &renderer, int *idx);
         virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h);
+        virtual void updateOffset() override;
         virtual void copyProperties(const std::shared_ptr<Entity> &entity);
         virtual std::shared_ptr<Entity> cloneEntity() = 0;
+        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict);
         void initRendererVertices(int verticesNum, int indicesNum);
 
         virtual std::shared_ptr<OBB> getOBB();

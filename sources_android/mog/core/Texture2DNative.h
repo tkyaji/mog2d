@@ -12,7 +12,7 @@ namespace mog {
     public:
 //        static void loadPvrImage(Texture2D *tex2d, const char *filename);
         
-        static void loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFace, float height = 0, TextDrawingMode textMode = TextDrawingMode::Fill, float strokeWidth = 0);
+        static void loadFontTexture(Texture2D *tex2d, const char *text, float fontSize, const char *fontFace, float height = 0);
         static std::string getLocalizedTextNative(const char *textKey, va_list args);
     };
 }

@@ -18,12 +18,14 @@
 
 namespace mog {
     class RoundedRectangle : public Sprite {
+        friend class EntityCreator;
     public:
         static std::shared_ptr<RoundedRectangle> create(const Size &size, float cornerRadius, unsigned char cornerFlag = CORNER_ALL);
         static std::shared_ptr<RoundedRectangle> create(float width, float height, float cornerRadius, unsigned char cornerFlag = CORNER_ALL);
         
         float getCornerRadius();
         std::shared_ptr<RoundedRectangle> clone();
+        virtual std::shared_ptr<Dictionary> serialize() override;
 
     protected:
         float cornerRadius = 0;
@@ -31,10 +33,11 @@ namespace mog {
         
         RoundedRectangle() {}
         
-        void init(const Size &size, float cornerRadius, unsigned char cornerFlag);
+        void init() override;
         virtual void bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) override;
         virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) override;
         virtual std::shared_ptr<Entity> cloneEntity() override;
+        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict) override;
     };
 }
 

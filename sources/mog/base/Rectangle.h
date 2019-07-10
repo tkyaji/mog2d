@@ -7,18 +7,19 @@
 
 namespace mog {
     class Rectangle : public Polygon {
+        friend class EntityCreator;
     public:
         static std::shared_ptr<Rectangle> create(const Size &size);
         static std::shared_ptr<Rectangle> create(float width, float height);
         std::shared_ptr<Rectangle> clone();
+        virtual std::shared_ptr<Collider> getCollider() override;
 
     protected:
         Rectangle() {}
         
-        void init(const Size &size);
+        virtual void init() override;
         virtual std::shared_ptr<Entity> cloneEntity() override;
     };
 }
 
 #endif /* Rectangle_h */
-

@@ -3,6 +3,7 @@
 #include "mog/base/Group.h"
 #include "mog/base/Sprite.h"
 #include "mog/core/Engine.h"
+#include "mog/core/EntityCreator.h"
 #include <algorithm>
 
 #define VERTICES_IDX 0
@@ -14,7 +15,8 @@ using namespace mog;
 
 std::shared_ptr<Group> Group::create(bool enableBatching) {
     auto group = std::shared_ptr<Group>(new Group());
-    group->init(enableBatching);
+    group->enableBatching = enableBatching;
+    group->init();
     return group;
 }
 
@@ -30,8 +32,8 @@ Group::Group() {
     };
 }
 
-void Group::init(bool enableBatching) {
-    this->enableBatching = enableBatching;
+void Group::init() {
+    this->dirtyFlag = DIRTY_ALL;
 }
 
 void Group::setEnableBatching(bool enableBatching) {
@@ -81,7 +83,7 @@ void Group::updateFrame(const std::shared_ptr<Engine> &engine, float delta, floa
     }
 }
 
-void Group::drawFrame(float delta) {
+void Group::drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches) {
     if (!this->active) return;
     
     if (this->enableBatching) {
@@ -114,7 +116,7 @@ void Group::drawFrame(float delta) {
             if (((this->dirtyFlag | entity->dirtyFlag) & DIRTY_COLOR) == DIRTY_COLOR) {
                 Transform::multiplyColor(entity->transform->matrix, this->renderer->matrix, entity->renderer->matrix);
             }
-            entity->drawFrame(delta);
+            entity->drawFrame(delta, touches);
         }
     }
     if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
@@ -139,7 +141,8 @@ void Group::bindVertex() {
     this->renderer->bindVertex(true);
     this->renderer->bindVertexColors(true);
     if (this->enableTexture) {
-        this->renderer->bindVertexTexCoords(this->textures[0], 0);
+        this->renderer->bindVertexTexCoords();
+        this->renderer->bindTexture(this->textures[0]);
     }
 }
 
@@ -329,4 +332,31 @@ std::shared_ptr<Entity> Group::cloneEntity() {
     }
     group->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
     return group;
+}
+
+std::shared_ptr<Dictionary> Group::serialize() {
+    auto dict = Entity::serialize();
+    dict->put("enableBatching", Bool::create(this->enableBatching));
+    
+    auto childEntityDataList = List::create();
+    auto childEntities = this->getChildEntities();
+    for (auto &entity : childEntities) {
+        auto entityData = entity->serialize();
+        childEntityDataList->append(entityData);
+    }
+    dict->put("childEntities", childEntityDataList);
+    
+    return dict;
+}
+
+void Group::deserializeData(const std::shared_ptr<Dictionary> &dict) {
+    Entity::deserializeData(dict);
+    this->enableBatching = dict->get<Bool>("enableBatching")->getValue();
+    auto childEntityDataList = dict->get<List>("childEntities");
+    for (int i = 0; i < childEntityDataList->size(); i++) {
+        auto entityData = childEntityDataList->at<Dictionary>(i);
+        auto entityType = (EntityType)entityData->get<Int>("entityType")->getValue();
+        auto entity = EntityCreator::create(entityType, entityData);
+        this->add(entity);
+    }
 }

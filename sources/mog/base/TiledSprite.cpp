@@ -3,30 +3,37 @@
 using namespace mog;
 
 std::shared_ptr<TiledSprite> TiledSprite::create(std::string filename, const Size &size, const Rect &rect) {
-    auto texture = Texture2D::createWithAsset(filename);
-    return TiledSprite::create(texture, size, rect);
-}
-
-std::shared_ptr<TiledSprite> TiledSprite::create(const std::shared_ptr<Texture2D> &texture, const Size &size, const Rect &rect) {
     auto tiledSprite = std::shared_ptr<TiledSprite>(new TiledSprite());
-    tiledSprite->init(texture, size, rect);
+    tiledSprite->filename = filename;
+    tiledSprite->transform->size = size;
+    tiledSprite->rect = rect;
+    tiledSprite->init();
     return tiledSprite;
 }
 
-std::shared_ptr<TiledSprite> TiledSprite::create(const std::shared_ptr<Sprite> &sprite, const Size &size) {
-    return TiledSprite::create(sprite->getTexture(), size, sprite->getRect());
+std::shared_ptr<TiledSprite> TiledSprite::createWithTexture(const std::shared_ptr<Texture2D> &texture, const Size &size, const Rect &rect) {
+    auto tiledSprite = std::shared_ptr<TiledSprite>(new TiledSprite());
+    tiledSprite->transform->size = size;
+    tiledSprite->rect = rect;
+    tiledSprite->initWithTexture(texture);
+    return tiledSprite;
 }
 
-void TiledSprite::init(const std::shared_ptr<Texture2D> texture, const Size &size, const Rect &rect) {
+std::shared_ptr<TiledSprite> TiledSprite::createWithSprite(const std::shared_ptr<Sprite> &sprite, const Size &size) {
+    return TiledSprite::createWithTexture(sprite->getTexture(), size, sprite->getRect());
+}
+
+void TiledSprite::init() {
+    auto texture = Texture2D::createWithAsset(this->filename);
+    this->initWithTexture(texture);
+}
+
+void TiledSprite::initWithTexture(const std::shared_ptr<Texture2D> texture) {
     this->textures[0] = texture;
-    this->transform->size = size;
-    Rect _rect = rect;
-    if (rect.size == Size::zero) {
-        _rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
+    if (this->rect.size == Size::zero) {
+        this->rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
                           this->textures[0]->height / this->textures[0]->density.value);
     }
-    this->rect = _rect;
-
     this->texSize = Size(this->textures[0]->width, this->textures[0]->height) / this->textures[0]->density.value;
     this->xCount = ceil(this->transform->size.width / texSize.width);
     this->yCount = ceil(this->transform->size.height / texSize.height);
@@ -164,7 +171,7 @@ std::shared_ptr<TiledSprite> TiledSprite::clone() {
 }
 
 std::shared_ptr<Entity> TiledSprite::cloneEntity() {
-    auto sprite = TiledSprite::create(this->textures[0], this->transform->size, this->rect);
+    auto sprite = TiledSprite::createWithTexture(this->textures[0], this->transform->size, this->rect);
     this->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
     return sprite;
 }

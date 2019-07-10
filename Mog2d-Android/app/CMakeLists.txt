@@ -22,6 +22,7 @@ add_library(
     ${PROJ_DIR}/sources/mog/core/Screen.cpp
     ${PROJ_DIR}/sources/mog/core/MogUILoader.cpp
     ${PROJ_DIR}/sources/mog/core/FileUtils.cpp
+    ${PROJ_DIR}/sources/mog/core/EntityCreator.cpp
     ${PROJ_DIR}/sources/mog/core/Data.cpp
     ${PROJ_DIR}/sources/mog/core/Shader.cpp
     ${PROJ_DIR}/sources/mog/core/DataStore.cpp
