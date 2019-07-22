@@ -19,6 +19,44 @@ static std::unordered_map<int, std::string> entityTypeMap = {
     { (int)EntityType::ScrollGroup,      "ScrollGroup"},
 };
 
+MogUILoader::Param::Param(std::string name, std::string propertyKey, const std::shared_ptr<Data> &propertyValue) {
+    this->init(name, propertyKey, propertyValue);
+}
+
+MogUILoader::Param::Param(std::string name, std::string propertyKey, int value) {
+    this->init(name, propertyKey, Int::create(value));
+}
+
+MogUILoader::Param::Param(std::string name, std::string propertyKey, long value) {
+    this->init(name, propertyKey, Long::create(value));
+}
+
+MogUILoader::Param::Param(std::string name, std::string propertyKey, float value) {
+    this->init(name, propertyKey, Float::create(value));
+}
+
+MogUILoader::Param::Param(std::string name, std::string propertyKey, double value) {
+    this->init(name, propertyKey, Double::create(value));
+}
+
+MogUILoader::Param::Param(std::string name, std::string propertyKey, bool value) {
+    this->init(name, propertyKey, Bool::create(value));
+}
+
+MogUILoader::Param::Param(std::string name, std::string propertyKey, std::string value) {
+    this->init(name, propertyKey, String::create(value));
+}
+
+MogUILoader::Param::Param(std::string name, std::string propertyKey, const char *value) {
+    this->init(name, propertyKey, String::create(value));
+}
+
+void MogUILoader::Param::init(std::string name, std::string propertyKey, const std::shared_ptr<Data> &propertyValue) {
+    this->name = name;
+    this->propertyKey = propertyKey;
+    this->propertyValue = propertyValue;
+
+}
 
 std::shared_ptr<Group> MogUILoader::load(std::string filename) {
     std::vector<Param> params;

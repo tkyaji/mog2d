@@ -190,7 +190,7 @@ std::shared_ptr<Dictionary> Sprite::serialize() {
 
 void Sprite::deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) {
     Entity::deserializeData(dict, params);
-    this->filename = dict->get<String>(PROP_KEY_FILENAME)->getValue();
+    this->filename = getPropertyData<String>(dict, PROP_KEY_FILENAME, params)->getValue();
     this->rect.position.x = this->getPropertyData<Float>(dict, PROP_KEY_RECT_X, params)->getValue();
     this->rect.position.y = this->getPropertyData<Float>(dict, PROP_KEY_RECT_Y, params)->getValue();
     this->rect.size.width = this->getPropertyData<Float>(dict, PROP_KEY_RECT_WIDTH, params)->getValue();
