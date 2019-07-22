@@ -49,7 +49,7 @@ namespace mog {
         
         virtual void init() override;
         virtual std::shared_ptr<Entity> cloneEntity() override;
-        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict) override;
+        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) override;
         
         std::string text;
         float fontSize;

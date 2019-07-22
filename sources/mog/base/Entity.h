@@ -13,6 +13,20 @@ namespace mog {
     class TouchEventListener;
     class Tween;
     class Collider;
+    
+    enum class EntityType {
+        Rectangle,
+        RoundedRectangle,
+        Circle,
+        Label,
+        Line,
+        Sprite,
+        SpriteSheet,
+        Slice9Sprite,
+        TiledSprite,
+        Group,
+        ScrollGroup,
+    };
 
     class Entity : public Drawable {
         friend class Group;
@@ -55,10 +69,10 @@ namespace mog {
         virtual void bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform);
         virtual void bindVertexColors(const std::shared_ptr<Renderer> &renderer, int *idx);
         virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h);
-        virtual void updateOffset() override;
+        virtual void updateTransform() override;
         virtual void copyProperties(const std::shared_ptr<Entity> &entity);
         virtual std::shared_ptr<Entity> cloneEntity() = 0;
-        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict);
+        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params);
         void initRendererVertices(int verticesNum, int indicesNum);
 
         virtual std::shared_ptr<OBB> getOBB();
@@ -72,6 +86,20 @@ namespace mog {
         bool touchEnable = true;
         bool swallowTouches = false;
         std::unordered_map<unsigned int, std::shared_ptr<TouchEventListener>> touchListeners;
+        
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        std::shared_ptr<T> getPropertyData(const std::shared_ptr<Dictionary> &dict, std::string propKey, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) {
+            std::unordered_map<std::string, std::shared_ptr<Data>> paramMap;
+            if (params.count(this->name) > 0) {
+                paramMap = params.at(this->name);
+                if (paramMap.count(propKey) > 0) {
+                    auto data = paramMap.at(propKey);
+                    return data->cast<T>();
+                }
+            }
+            
+            return dict->get<T>(propKey);
+        }
     };
 }
 

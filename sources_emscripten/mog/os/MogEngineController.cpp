@@ -38,6 +38,10 @@ void MogEngineController::fireTouchEvent(unsigned int touchId, float x, float y,
     if (y < 0) y = 0;
     if (y > this->height) y = this->height;
     
+    auto screenSize = mog::Screen::getSize();
+    x = x * (screenSize.width / this->width);
+    y = y * (screenSize.height / this->height);
+
     switch (action) {
         case EMTouchAction::Down:
             this->touches[touchId] = mog::TouchInput(mog::TouchAction::TouchDown, touchId, x, y);

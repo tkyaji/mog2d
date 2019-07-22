@@ -5,7 +5,7 @@ using namespace mog;
 std::shared_ptr<TiledSprite> TiledSprite::create(std::string filename, const Size &size, const Rect &rect) {
     auto tiledSprite = std::shared_ptr<TiledSprite>(new TiledSprite());
     tiledSprite->filename = filename;
-    tiledSprite->transform->size = size;
+    tiledSprite->size = size;
     tiledSprite->rect = rect;
     tiledSprite->init();
     return tiledSprite;

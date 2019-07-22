@@ -188,29 +188,31 @@ std::shared_ptr<Entity> Line::cloneEntity() {
 
 std::shared_ptr<Dictionary> Line::serialize() {
     auto dict = Entity::serialize();
+    dict->put(PROP_KEY_ENTITY_TYPE, Int::create((int)EntityType::Line));
     auto pointList = List::create();
     for (auto &p : this->points) {
         auto pointDict = Dictionary::create();
-        pointDict->put("x", Float::create(p.x));
-        pointDict->put("y", Float::create(p.y));
+        pointDict->put(PROP_KEY_POINT_X, Float::create(p.x));
+        pointDict->put(PROP_KEY_POINT_Y, Float::create(p.y));
         pointList->append(pointDict);
     }
-    dict->put("points", pointList);
-    dict->put("lineWidth", Float::create(this->lineWidth));
-    dict->put("lineType", Int::create((int)this->lineType));
+    dict->put(PROP_KEY_POINTS, pointList);
+    dict->put(PROP_KEY_LINE_WIDTH, Float::create(this->lineWidth));
+    dict->put(PROP_KEY_LINE_TYPE, Int::create((int)this->lineType));
     return dict;
 }
 
-void Line::deserializeData(const std::shared_ptr<Dictionary> &dict) {
+void Line::deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) {
+    Entity::deserializeData(dict, params);
     std::vector<Point> points;
-    auto pointList = dict->get<List>("points");
+    auto pointList = this->getPropertyData<List>(dict, PROP_KEY_POINTS, params);
     for (int i = 0; i < pointList->size(); i++) {
         auto pointDict = pointList->at<Dictionary>(i);
-        float x = pointDict->get<Float>("x")->getValue();
-        float y = pointDict->get<Float>("y")->getValue();
+        float x = pointDict->get<Float>(PROP_KEY_POINT_X)->getValue();
+        float y = pointDict->get<Float>(PROP_KEY_POINT_Y)->getValue();
         points.emplace_back(Point(x, y));
     }
     this->points = points;
-    this->lineWidth = dict->get<Float>("lineWidth")->getValue();
-    this->lineType = (LineType)dict->get<Int>("lineType")->getValue();
+    this->lineWidth = dict->get<Float>(PROP_KEY_LINE_WIDTH)->getValue();
+    this->lineType = (LineType)dict->get<Int>(PROP_KEY_LINE_TYPE)->getValue();
 }

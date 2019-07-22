@@ -37,8 +37,10 @@ void SpriteSheet::initWithTexture(const std::shared_ptr<Texture2D> &texture) {
         this->rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
                           this->textures[0]->height / this->textures[0]->density.value);
     }
-    this->transform->size = this->rect.size;
-    
+    if (this->size == Size::zero) {
+        this->size = this->rect.size;
+    }
+
     this->initRendererVertices(4, 4);
     this->initFrames(this->frameCount, this->margin);
 }

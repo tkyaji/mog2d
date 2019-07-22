@@ -20,8 +20,8 @@ void Polygon::init() {
         this->maxPosition.x = fmax(this->vertexPoints[i].x, this->maxPosition.x);
         this->maxPosition.y = fmax(this->vertexPoints[i].y, this->maxPosition.y);
     }
-    this->transform->size.width = this->maxPosition.x - this->minPosition.x;
-    this->transform->size.height = this->maxPosition.y - this->minPosition.y;
+    this->size.width = this->maxPosition.x - this->minPosition.x;
+    this->size.height = this->maxPosition.y - this->minPosition.y;
     this->initRendererVertices((int)vertexPoints.size(), (int)vertexPoints.size());
 }
 

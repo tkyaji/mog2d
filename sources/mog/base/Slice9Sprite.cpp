@@ -4,25 +4,27 @@
 
 using namespace mog;
 
-std::shared_ptr<Slice9Sprite> Slice9Sprite::create(std::string filename, const Rect &centerRect, const Rect &rect) {
+std::shared_ptr<Slice9Sprite> Slice9Sprite::create(std::string filename, const Rect &centerRect, const Size &size, const Rect &rect) {
     auto slice9sprite = std::shared_ptr<Slice9Sprite>(new Slice9Sprite());
     slice9sprite->filename = filename;
     slice9sprite->centerRect = centerRect;
     slice9sprite->rect = rect;
+    slice9sprite->size = size;
     slice9sprite->init();
     return slice9sprite;
 }
 
-std::shared_ptr<Slice9Sprite> Slice9Sprite::createWithTexture(const std::shared_ptr<Texture2D> &texture, const Rect &centerRect, const Rect &rect) {
+std::shared_ptr<Slice9Sprite> Slice9Sprite::createWithTexture(const std::shared_ptr<Texture2D> &texture, const Rect &centerRect, const Size &size, const Rect &rect) {
     auto slice9sprite = std::shared_ptr<Slice9Sprite>(new Slice9Sprite());
     slice9sprite->centerRect = centerRect;
     slice9sprite->rect = rect;
+    slice9sprite->size = size;
     slice9sprite->initWithTexture(texture);
     return slice9sprite;
 }
 
-std::shared_ptr<Slice9Sprite> Slice9Sprite::createWithSprite(const std::shared_ptr<Sprite> &sprite, const Rect &centerRect) {
-    return Slice9Sprite::createWithTexture(sprite->getTexture(), centerRect, sprite->getRect());
+std::shared_ptr<Slice9Sprite> Slice9Sprite::createWithSprite(const std::shared_ptr<Sprite> &sprite, const Rect &centerRect, const Size &size, const Rect &rect) {
+    return Slice9Sprite::createWithTexture(sprite->getTexture(), centerRect, size, sprite->getRect());
 }
 
 void Slice9Sprite::init() {
@@ -36,16 +38,42 @@ void Slice9Sprite::initWithTexture(const std::shared_ptr<Texture2D> &texture) {
         this->rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
                           this->textures[0]->height / this->textures[0]->density.value);
     }
-    this->transform->size = this->rect.size;
+    if (this->size == Size::zero) {
+        this->size = this->rect.size;
+    }
     this->initRendererVertices(16, 28);
+}
+
+std::string Slice9Sprite::getFilename() {
+    return this->filename;
+}
+
+void Slice9Sprite::setFilename(std::string filename) {
+    this->filename = filename;
+    this->rect = Rect::zero;
+    this->size = Size::zero;
+    this->init();
+    this->dirtyFlag = DIRTY_ALL;
+}
+
+Rect Slice9Sprite::getRect() {
+    return this->rect;
+}
+
+void Slice9Sprite::setRect(const Rect &rect) {
+    this->rect = rect;
+    this->init();
+    this->dirtyFlag = DIRTY_ALL;
 }
 
 Rect Slice9Sprite::getCenterRect() {
     return this->centerRect;
 }
 
-Rect Slice9Sprite::getRect() {
-    return this->rect;
+void Slice9Sprite::setCenterRect(const Rect &centerRect) {
+    this->centerRect = centerRect;
+    this->init();
+    this->dirtyFlag = DIRTY_ALL;
 }
 
 void Slice9Sprite::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) {
@@ -139,7 +167,35 @@ std::shared_ptr<Slice9Sprite> Slice9Sprite::clone() {
 }
 
 std::shared_ptr<Entity> Slice9Sprite::cloneEntity() {
-    auto sprite = Slice9Sprite::createWithTexture(this->textures[0], this->centerRect, this->rect);
+    auto sprite = Slice9Sprite::createWithTexture(this->textures[0], this->centerRect, this->size, this->rect);
     sprite->copyProperties(std::static_pointer_cast<Slice9Sprite>(sprite));
     return sprite;
+}
+
+std::shared_ptr<Dictionary> Slice9Sprite::serialize() {
+    auto dict = Entity::serialize();
+    dict->put(PROP_KEY_ENTITY_TYPE, Int::create((int)EntityType::Slice9Sprite));
+    dict->put(PROP_KEY_FILENAME, String::create(this->filename));
+    dict->put(PROP_KEY_RECT_X, Float::create(this->rect.position.x));
+    dict->put(PROP_KEY_RECT_Y, Float::create(this->rect.position.x));
+    dict->put(PROP_KEY_RECT_WIDTH, Float::create(this->rect.size.width));
+    dict->put(PROP_KEY_RECT_HEIGHT, Float::create(this->rect.size.height));
+    dict->put(PROP_KEY_CENTER_RECT_X, Float::create(this->centerRect.position.x));
+    dict->put(PROP_KEY_CENTER_RECT_Y, Float::create(this->centerRect.position.x));
+    dict->put(PROP_KEY_CENTER_RECT_WIDTH, Float::create(this->centerRect.size.width));
+    dict->put(PROP_KEY_CENTER_RECT_HEIGHT, Float::create(this->centerRect.size.height));
+    return dict;
+}
+
+void Slice9Sprite::deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) {
+    Entity::deserializeData(dict, params);
+    this->filename = dict->get<String>(PROP_KEY_FILENAME)->getValue();
+    this->rect.position.x = this->getPropertyData<Float>(dict, PROP_KEY_RECT_X, params)->getValue();
+    this->rect.position.y = this->getPropertyData<Float>(dict, PROP_KEY_RECT_Y, params)->getValue();
+    this->rect.size.width = this->getPropertyData<Float>(dict, PROP_KEY_RECT_WIDTH, params)->getValue();
+    this->rect.size.height = this->getPropertyData<Float>(dict, PROP_KEY_RECT_HEIGHT, params)->getValue();
+    this->centerRect.position.x = this->getPropertyData<Float>(dict, PROP_KEY_CENTER_RECT_X, params)->getValue();
+    this->centerRect.position.y = this->getPropertyData<Float>(dict, PROP_KEY_CENTER_RECT_Y, params)->getValue();
+    this->centerRect.size.width = this->getPropertyData<Float>(dict, PROP_KEY_CENTER_RECT_WIDTH, params)->getValue();
+    this->centerRect.size.height = this->getPropertyData<Float>(dict, PROP_KEY_CENTER_RECT_HEIGHT, params)->getValue();
 }

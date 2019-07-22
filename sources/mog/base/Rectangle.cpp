@@ -4,7 +4,7 @@ using namespace mog;
 
 std::shared_ptr<Rectangle> Rectangle::create(const Size &size) {
     auto rectangle = std::shared_ptr<Rectangle>(new Rectangle());
-    rectangle->transform->size = size;
+    rectangle->size = size;
     rectangle->init();
     return rectangle;
 }
@@ -16,9 +16,9 @@ std::shared_ptr<Rectangle> Rectangle::create(float width, float height) {
 void Rectangle::init() {
     std::vector<Point> vertexPoints;
     vertexPoints.emplace_back(Point(0, 0));
-    vertexPoints.emplace_back(Point(0, this->transform->size.height));
-    vertexPoints.emplace_back(Point(this->transform->size.width, 0));
-    vertexPoints.emplace_back(this->transform->size);
+    vertexPoints.emplace_back(Point(0, this->size.height));
+    vertexPoints.emplace_back(Point(this->size.width, 0));
+    vertexPoints.emplace_back(this->size);
     this->vertexPoints = vertexPoints;
     Polygon::init();
 }
@@ -40,4 +40,10 @@ std::shared_ptr<Entity> Rectangle::cloneEntity() {
     auto rectangle = Rectangle::create(this->getSize());
     rectangle->copyProperties(std::static_pointer_cast<Entity>(shared_from_this()));
     return rectangle;
+}
+
+std::shared_ptr<Dictionary> Rectangle::serialize() {
+    auto dict = Entity::serialize();
+    dict->put(PROP_KEY_ENTITY_TYPE, Int::create((int)EntityType::Rectangle));
+    return dict;
 }

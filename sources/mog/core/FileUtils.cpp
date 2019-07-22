@@ -31,7 +31,7 @@ std::shared_ptr<ByteArray> FileUtils::readFile(std::string filename, Directory d
     }
     
     std::string filepath = fileDir + "/" + filename;
-    return FileUtils::readDataFromFile(filepath);
+    return FileUtils::readBytesFromFile(filepath);
 }
 
 bool FileUtils::writeFile(std::string filename, const std::shared_ptr<ByteArray> &bytes, Directory dir) {
@@ -43,10 +43,10 @@ bool FileUtils::writeFile(std::string filename, const std::shared_ptr<ByteArray>
     }
     
     std::string filepath = fileDir + "/" + filename;
-    return FileUtils::writeDataToFile(filepath, bytes);
+    return FileUtils::writeBytesToFile(filepath, bytes);
 }
 
-std::shared_ptr<ByteArray> FileUtils::readDataFromFile(std::string filepath) {
+std::shared_ptr<ByteArray> FileUtils::readBytesFromFile(std::string filepath) {
     std::ifstream ifs;
     ifs.open(filepath, std::ios::in | std::ios_base::binary);
     if (ifs.fail()) {
@@ -73,7 +73,7 @@ std::shared_ptr<ByteArray> FileUtils::readDataFromFile(std::string filepath) {
     return data;
 }
 
-bool FileUtils::writeDataToFile(std::string filepath, const std::shared_ptr<ByteArray> &bytes) {
+bool FileUtils::writeBytesToFile(std::string filepath, const std::shared_ptr<ByteArray> &bytes) {
     std::ofstream ofs;
     ofs.open(filepath, std::ios::out | std::ios_base::binary);
     if (ofs.fail()) {

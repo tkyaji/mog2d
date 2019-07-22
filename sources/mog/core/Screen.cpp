@@ -14,8 +14,8 @@ const Density Density::x4_0 = Density(Type::x4_0);
 std::vector<Density> Density::allDensities = {Density::x1_0, Density::x2_0, Density::x3_0};
 #elif defined(MOG_ANDROID)
 std::vector<Density> Density::allDensities = {Density::x1_0, Density::x1_5, Density::x2_0, Density::x3_0, Density::x4_0};
-#elif defined(PLATFORM_EMSCRIPTEN)
-std::vector<Density> Density::allDensities = {Density::x1_0, Density::x2_0};
+#elif defined(MOG_EMSCRIPTEN)
+std::vector<Density> Density::allDensities = {Density::x1_0, Density::x1_5, Density::x2_0, Density::x3_0, Density::x4_0};
 #else
 std::vector<Density> Density::allDensities = {Density::x1_0};
 #endif
@@ -122,53 +122,27 @@ void Screen::setDisplaySize(const Size &displaySize, const Size &viewSize, float
     this->viewSize = viewSize;
     this->deviceDensity = deviceDensity;
     this->density = Density::getDensity(deviceDensity);
-    this->resetScreenSize();
+    this->setScreenSize(BASE_SCREEN_WIDTH, BASE_SCREEN_HEIGHT);
 }
 
 
-void Screen::setSizeBasedOnHeight(float height) {
+void Screen::setSize(float width, float height) {
     if (auto screen = instance.lock()) {
-        screen->setSizeBasedOnHeight(height);
+        screen->setScreenSize(width, height);
     }
 }
 
-void Screen::setSizeBasedOnWidth(float width) {
-    if (auto screen = instance.lock()) {
-        screen->setScreenSizeBasedOnWidth(width);
+void Screen::setScreenSize(float width, float height) {
+    if (width == 0) {
+        float scale = height / this->displaySize.height;
+        width = this->displaySize.width * scale;
     }
-}
-
-void Screen::setScreenSizeBasedOnHeight(float height) {
-    float scale = height / this->displaySize.height;
-    float width = this->displaySize.width * scale;
+    if (height == 0) {
+        float scale = width / this->displaySize.width;
+        height = this->displaySize.height * scale;
+    }
     this->screenSize = Size(width, height);
-    this->baseScreenSides = 'h';
-    this->baseScreenSize = height;
     this->invokeCallback();
-}
-
-void Screen::setScreenSizeBasedOnWidth(float width) {
-    float scale = width / this->displaySize.width;
-    float height = this->displaySize.height * scale;
-    this->screenSize = Size(width, height);
-    this->baseScreenSides = 'w';
-    this->baseScreenSize = width;
-    this->invokeCallback();
-}
-
-void Screen::resetScreenSize() {
-    if (this->baseScreenSides == '_') {
-#ifdef BASE_SCREEN_WIDTH
-        this->setScreenSizeBasedOnWidth(BASE_SCREEN_WIDTH);
-#endif
-#ifdef BASE_SCREEN_HEIGHT
-        this->setScreenSizeBasedOnHeight(BASE_SCREEN_HEIGHT);
-#endif
-    } else if (this->baseScreenSides == 'w') {
-        this->setScreenSizeBasedOnWidth(this->baseScreenSize);
-    } else {
-        this->setScreenSizeBasedOnHeight(this->baseScreenSize);
-    }
 }
 
 void Screen::setResizeCallback(std::function<void()> callback) {

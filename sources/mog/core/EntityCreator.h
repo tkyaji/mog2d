@@ -6,23 +6,10 @@
 #include "mog/base/Entity.h"
 
 namespace mog {
-    enum class EntityType {
-        Rectangle,
-        RoundedRectangle,
-        Circle,
-        Label,
-        Line,
-        Sprite,
-        SpriteSheet,
-        Slice9Sprite,
-        TiledSprite,
-        Group,
-        ScrollGroup,
-    };
-    
     class EntityCreator {
     public:
         static std::shared_ptr<Entity> create(EntityType entityType, const std::shared_ptr<Dictionary> &dict);
+        static std::shared_ptr<Entity> create(EntityType entityType, const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params);
     };
 }
 

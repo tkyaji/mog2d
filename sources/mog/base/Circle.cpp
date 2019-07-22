@@ -14,7 +14,7 @@ std::shared_ptr<Circle> Circle::create(float radius) {
 }
 
 void Circle::init() {
-    this->transform->size = Size(radius * 2, radius * 2);
+    this->size = Size(this->radius * 2, this->radius * 2);
     
     float density = Screen::getDensity();
     int texWidth = (int)(radius * density + 0.5f);
@@ -33,7 +33,7 @@ void Circle::init() {
         }
     }
     this->textures[0] = Texture2D::createWithRGBA(data, texWidth, texHeight, Screen::getDensity());
-    this->rect = Rect(Point::zero, this->transform->size);
+    this->rect = Rect(Point::zero, this->size);
     this->initRendererVertices(9, 12);
 }
 
@@ -135,10 +135,12 @@ std::shared_ptr<Entity> Circle::cloneEntity() {
 
 std::shared_ptr<Dictionary> Circle::serialize() {
     auto dict = Entity::serialize();
-    dict->put("radius", Float::create(this->radius));
+    dict->put(PROP_KEY_ENTITY_TYPE, Int::create((int)EntityType::Circle));
+    dict->put(PROP_KEY_RADIUS, Float::create(this->radius));
     return dict;
 }
 
-void Circle::deserializeData(const std::shared_ptr<Dictionary> &dict) {
-    this->radius = dict->get<Float>("radius")->getValue();
+void Circle::deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) {
+    Entity::deserializeData(dict, params);
+    this->radius = this->getPropertyData<Float>(dict, PROP_KEY_RADIUS, params)->getValue();
 }

@@ -234,6 +234,11 @@ void Group::add(const std::shared_ptr<Entity> &entity) {
     this->dirtyFlag |= DIRTY_ALL;
 }
 
+void Group::insertBefore(const std::shared_ptr<Entity> &entity, const std::shared_ptr<Entity> &baseEntity) {
+    this->drawableGroup->insertChildBefore(entity, baseEntity);
+    this->dirtyFlag |= DIRTY_ALL;
+}
+
 void Group::remove(const std::shared_ptr<Entity> &entity) {
     this->drawableGroup->removeChild(entity);
     this->dirtyFlag |= DIRTY_ALL;
@@ -336,7 +341,8 @@ std::shared_ptr<Entity> Group::cloneEntity() {
 
 std::shared_ptr<Dictionary> Group::serialize() {
     auto dict = Entity::serialize();
-    dict->put("enableBatching", Bool::create(this->enableBatching));
+    dict->put(PROP_KEY_ENTITY_TYPE, Int::create((int)EntityType::Group));
+    dict->put(PROP_KEY_ENABLE_BATCHING, Bool::create(this->enableBatching));
     
     auto childEntityDataList = List::create();
     auto childEntities = this->getChildEntities();
@@ -344,19 +350,19 @@ std::shared_ptr<Dictionary> Group::serialize() {
         auto entityData = entity->serialize();
         childEntityDataList->append(entityData);
     }
-    dict->put("childEntities", childEntityDataList);
+    dict->put(PROP_KEY_CHILD_ENTITIES, childEntityDataList);
     
     return dict;
 }
 
-void Group::deserializeData(const std::shared_ptr<Dictionary> &dict) {
-    Entity::deserializeData(dict);
-    this->enableBatching = dict->get<Bool>("enableBatching")->getValue();
-    auto childEntityDataList = dict->get<List>("childEntities");
+void Group::deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) {
+    Entity::deserializeData(dict, params);
+    this->enableBatching = this->getPropertyData<Bool>(dict, PROP_KEY_ENABLE_BATCHING, params)->getValue();
+    auto childEntityDataList = dict->get<List>(PROP_KEY_CHILD_ENTITIES);
     for (int i = 0; i < childEntityDataList->size(); i++) {
         auto entityData = childEntityDataList->at<Dictionary>(i);
-        auto entityType = (EntityType)entityData->get<Int>("entityType")->getValue();
-        auto entity = EntityCreator::create(entityType, entityData);
+        auto entityType = (EntityType)entityData->get<Int>(PROP_KEY_ENTITY_TYPE)->getValue();
+        auto entity = EntityCreator::create(entityType, entityData, params);
         this->add(entity);
     }
 }

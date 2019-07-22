@@ -13,6 +13,7 @@ namespace mog {
         static std::shared_ptr<Rectangle> create(float width, float height);
         std::shared_ptr<Rectangle> clone();
         virtual std::shared_ptr<Collider> getCollider() override;
+        virtual std::shared_ptr<Dictionary> serialize() override;
 
     protected:
         Rectangle() {}

@@ -14,7 +14,7 @@ namespace mog {
         static bool inverseMatrix(float *matrix, float *dstMatrix);
 
         Point pivot = Point::zero;
-        Point offest = Point::zero;
+        Point offset = Point::zero;
         Point position = Point::zero;
         Size size = Size::zero;
         Point scale = Point::one;

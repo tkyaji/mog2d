@@ -97,7 +97,7 @@ void Texture2D::loadTextureAsset(std::string filename) {
 
 void Texture2D::loadTextureFile(std::string filepath, Density density) {
     this->density = density;
-    auto buffer = FileUtils::readDataFromFile(filepath);
+    auto buffer = FileUtils::readBytesFromFile(filepath);
     unsigned char *value = nullptr;
     unsigned int length = 0;
     buffer->getValue(&value, &length);
@@ -231,7 +231,7 @@ void Texture2D::loadImageFromBuffer(unsigned char *buffer, int len) {
     int n = 4;  // fixed RGBA
     unsigned char *data = stbi_load_from_memory(buffer, len, &x, &y, &_n, n);
     if (data == nullptr) {
-        LOGE("Texture2D::loadImageFromBuffer: This image format is not supported.");
+        LOGE("Texture2D::loadImageFromBuffer: This image format is not supported.\n");
         LOGE(filename.c_str());
         return;
     };
@@ -241,7 +241,7 @@ void Texture2D::loadImageFromBuffer(unsigned char *buffer, int len) {
     } else if (n == 3) {
         this->textureType = TextureType::RGB;
     } else {
-        LOGE("Texture2D::loadImageFromBuffer: This image format is not supported.");
+        LOGE("Texture2D::loadImageFromBuffer: This image format is not supported.\n");
         LOGE(filename.c_str());
         return;
     }

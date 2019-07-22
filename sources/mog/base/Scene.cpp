@@ -12,6 +12,10 @@ void Scene::add(const std::shared_ptr<Drawable> &drawable) {
     this->drawableGroup->addChild(drawable);
 }
 
+void Scene::insertChildBefore(const std::shared_ptr<Drawable> &drawable, const std::shared_ptr<Drawable> &baseDrawable) {
+    this->drawableGroup->insertChildBefore(drawable, baseDrawable);
+}
+
 void Scene::remove(const std::shared_ptr<Drawable> &drawable) {
     this->drawableGroup->removeChild(drawable);
 }

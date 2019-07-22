@@ -432,6 +432,10 @@ std::pair<std::string, std::shared_ptr<Data>> Dictionary::getKeyValue(int idx) {
     return std::pair<std::string, std::shared_ptr<Data>>(itr->first, itr->second);
 }
 
+bool Dictionary::hasKey(std::string key) {
+    return this->datum.count(key) > 0;
+}
+
 DataType Dictionary::getType(std::string key) const {
     return this->datum.at(key)->type;
 }

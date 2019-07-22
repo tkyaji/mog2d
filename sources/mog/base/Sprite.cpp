@@ -74,6 +74,8 @@ std::string Sprite::getFilename() {
 
 void Sprite::setFilename(std::string filename) {
     this->filename = filename;
+    this->rect = Rect::zero;
+    this->size = Size::zero;
     this->init();
     this->dirtyFlag = DIRTY_ALL;
 }
@@ -101,8 +103,10 @@ void Sprite::init() {
         this->rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
                                this->textures[0]->height / this->textures[0]->density.value);
     }
-    this->transform->size = this->rect.size;
-    
+    if (this->size == Size::zero) {
+        this->size = this->rect.size;
+    }
+
     this->initRendererVertices(4, 4);
 }
 
@@ -116,33 +120,33 @@ void Sprite::initWithFilePath(std::string filepath, const Rect &rect, Density de
                           this->textures[0]->height / this->textures[0]->density.value);
     }
     this->rect = _rect;
-    this->transform->size = this->rect.size;
+    this->size = this->rect.size;
     
     this->initRendererVertices(4, 4);
 }
 
 void Sprite::initWithImage(const std::shared_ptr<ByteArray> &bytes) {
     this->textures[0] = Texture2D::createWithImage(bytes);
-    this->transform->size.width = this->textures[0]->width / this->textures[0]->density.value;
-    this->transform->size.height = this->textures[0]->height / this->textures[0]->density.value;
-    this->rect = Rect(Point::zero, this->transform->size);
+    this->size.width = this->textures[0]->width / this->textures[0]->density.value;
+    this->size.height = this->textures[0]->height / this->textures[0]->density.value;
+    this->rect = Rect(Point::zero, this->size);
     
     this->initRendererVertices(4, 4);
 }
 
 void Sprite::initWithRGBA(unsigned char *data, int width, int height) {
     this->textures[0] = Texture2D::createWithRGBA(data, width, height, Screen::getDensity());
-    this->transform->size.width = this->textures[0]->width / this->textures[0]->density.value;
-    this->transform->size.height = this->textures[0]->height / this->textures[0]->density.value;
-    this->rect = Rect(Point::zero, this->transform->size);
+    this->size.width = this->textures[0]->width / this->textures[0]->density.value;
+    this->size.height = this->textures[0]->height / this->textures[0]->density.value;
+    this->rect = Rect(Point::zero, this->size);
     
     this->initRendererVertices(4, 4);
 }
 
 void Sprite::initWithTexture(const std::shared_ptr<Texture2D> &texture, const Rect &rect) {
     this->textures[0] = texture;
-    this->transform->size.width = this->textures[0]->width / this->textures[0]->density.value;
-    this->transform->size.height = this->textures[0]->height / this->textures[0]->density.value;
+    this->size.width = this->textures[0]->width / this->textures[0]->density.value;
+    this->size.height = this->textures[0]->height / this->textures[0]->density.value;
     Rect _rect = rect;
     if (rect.size == Size::zero) {
         _rect.size = Size(this->textures[0]->width / this->textures[0]->density.value,
@@ -175,23 +179,20 @@ std::shared_ptr<Entity> Sprite::cloneEntity() {
 
 std::shared_ptr<Dictionary> Sprite::serialize() {
     auto dict = Entity::serialize();
-    dict->put("filename", String::create(this->filename));
-    auto rectDict = Dictionary::create();
-    rectDict->put("x", Float::create(this->rect.position.x));
-    rectDict->put("y", Float::create(this->rect.position.x));
-    rectDict->put("width", Float::create(this->rect.size.width));
-    rectDict->put("height", Float::create(this->rect.size.height));
-    dict->put("rect", rectDict);
+    dict->put(PROP_KEY_ENTITY_TYPE, Int::create((int)EntityType::Sprite));
+    dict->put(PROP_KEY_FILENAME, String::create(this->filename));
+    dict->put(PROP_KEY_RECT_X, Float::create(this->rect.position.x));
+    dict->put(PROP_KEY_RECT_Y, Float::create(this->rect.position.x));
+    dict->put(PROP_KEY_RECT_WIDTH, Float::create(this->rect.size.width));
+    dict->put(PROP_KEY_RECT_HEIGHT, Float::create(this->rect.size.height));
     return dict;
 }
 
-void Sprite::deserializeData(const std::shared_ptr<Dictionary> &dict) {
-    this->filename = dict->get<String>("filename")->getValue();
-    Rect rect;
-    auto rectDict = dict->get<Dictionary>("rect");
-    rect.position.x = rectDict->get<Float>("x")->getValue();
-    rect.position.y = rectDict->get<Float>("y")->getValue();
-    rect.size.width = rectDict->get<Float>("width")->getValue();
-    rect.size.height = rectDict->get<Float>("height")->getValue();
-    this->rect = rect;
+void Sprite::deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) {
+    Entity::deserializeData(dict, params);
+    this->filename = dict->get<String>(PROP_KEY_FILENAME)->getValue();
+    this->rect.position.x = this->getPropertyData<Float>(dict, PROP_KEY_RECT_X, params)->getValue();
+    this->rect.position.y = this->getPropertyData<Float>(dict, PROP_KEY_RECT_Y, params)->getValue();
+    this->rect.size.width = this->getPropertyData<Float>(dict, PROP_KEY_RECT_WIDTH, params)->getValue();
+    this->rect.size.height = this->getPropertyData<Float>(dict, PROP_KEY_RECT_HEIGHT, params)->getValue();
 }

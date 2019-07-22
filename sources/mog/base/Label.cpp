@@ -32,8 +32,8 @@ std::shared_ptr<Label> Label::create(const LocalizedText &localizedText, float f
 
 void Label::init() {
     this->textures[0] = Texture2D::createWithText(this->text, this->fontSize, this->fontFilename, this->fontHeight);
-    this->transform->size.width = this->textures[0]->width / this->textures[0]->density.value;
-    this->transform->size.height = this->textures[0]->height / this->textures[0]->density.value;
+    this->size.width = this->textures[0]->width / this->textures[0]->density.value;
+    this->size.height = this->textures[0]->height / this->textures[0]->density.value;
 
     this->initRendererVertices(4, 4);
     this->dirtyFlag |= DIRTY_ALL;
@@ -94,16 +94,18 @@ std::shared_ptr<Entity> Label::cloneEntity() {
 
 std::shared_ptr<Dictionary> Label::serialize() {
     auto dict = Entity::serialize();
-    dict->put("text", String::create(this->text));
-    dict->put("fontSize", Float::create(this->fontSize));
-    dict->put("fontFilename", String::create(this->fontFilename));
-    dict->put("fontHeight", Float::create(this->fontHeight));
+    dict->put(PROP_KEY_ENTITY_TYPE, Int::create((int)EntityType::Label));
+    dict->put(PROP_KEY_TEXT, String::create(this->text));
+    dict->put(PROP_KEY_FONT_SIZE, Float::create(this->fontSize));
+    dict->put(PROP_KEY_FONT_FILENAME, String::create(this->fontFilename));
+    dict->put(PROP_KEY_FONT_HEIGHT, Float::create(this->fontHeight));
     return dict;
 }
 
-void Label::deserializeData(const std::shared_ptr<Dictionary> &dict) {
-    this->text = dict->get<String>("text")->getValue();
-    this->fontSize = dict->get<Float>("fontSize")->getValue();
-    this->fontFilename = dict->get<String>("fontFilename")->getValue();
-    this->fontHeight = dict->get<Float>("fontSize")->getValue();
+void Label::deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) {
+    Entity::deserializeData(dict, params);
+    this->text = this->getPropertyData<String>(dict, PROP_KEY_TEXT, params)->getValue();
+    this->fontSize = this->getPropertyData<Float>(dict, PROP_KEY_FONT_SIZE, params)->getValue();
+    this->fontFilename = this->getPropertyData<String>(dict, PROP_KEY_FONT_FILENAME, params)->getValue();
+    this->fontHeight = this->getPropertyData<Float>(dict, PROP_KEY_FONT_HEIGHT, params)->getValue();
 }

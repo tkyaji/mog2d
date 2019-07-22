@@ -1,171 +1,85 @@
 #include "mog/core/MogUILoader.h"
 #include "mog/core/FileUtils.h"
 #include "mog/core/DataStore.h"
+#include "mog/core/EntityCreator.h"
 
 using namespace mog;
 
-/*
-const std::string MogUILoader::PropertyNames::EntityType = "entity_type";
-const std::string MogUILoader::PropertyNames::Name = "name";
-const std::string MogUILoader::PropertyNames::Tag = "tag";
-const std::string MogUILoader::PropertyNames::PositionX = "position_x";
-const std::string MogUILoader::PropertyNames::PositionY = "position_y";
-const std::string MogUILoader::PropertyNames::Width = "width";
-const std::string MogUILoader::PropertyNames::Height = "height";
-const std::string MogUILoader::PropertyNames::Rotation = "rotation";
-const std::string MogUILoader::PropertyNames::ScaleX = "scale_x";
-const std::string MogUILoader::PropertyNames::ScaleY = "scale_y";
-const std::string MogUILoader::PropertyNames::AnchorX = "anchor_x";
-const std::string MogUILoader::PropertyNames::AnchorY = "anchor_y";
-const std::string MogUILoader::PropertyNames::OriginX = "origin_x";
-const std::string MogUILoader::PropertyNames::OriginY = "origin_y";
-const std::string MogUILoader::PropertyNames::ZIndex = "z_index";
-const std::string MogUILoader::PropertyNames::ColorR = "color_r";
-const std::string MogUILoader::PropertyNames::ColorG = "color_g";
-const std::string MogUILoader::PropertyNames::ColorB = "color_b";
-const std::string MogUILoader::PropertyNames::ColorA = "color_a";
-const std::string MogUILoader::PropertyNames::CornerRadius = "corner_radius";
-const std::string MogUILoader::PropertyNames::Radius = "radius";
-const std::string MogUILoader::PropertyNames::Text = "text";
-const std::string MogUILoader::PropertyNames::FontFilename = "font_filename";
-const std::string MogUILoader::PropertyNames::FontSize = "font_size";
-const std::string MogUILoader::PropertyNames::FontHeight = "font_height";
-const std::string MogUILoader::PropertyNames::Filename = "filename";
-const std::string MogUILoader::PropertyNames::RectX = "rect_x";
-const std::string MogUILoader::PropertyNames::RectY = "rect_y";
-const std::string MogUILoader::PropertyNames::RectWidth = "rect_width";
-const std::string MogUILoader::PropertyNames::RectHeight = "rect_height";
-const std::string MogUILoader::PropertyNames::CenterRectX = "center_rect_x";
-const std::string MogUILoader::PropertyNames::CenterRectY = "center_rect_y";
-const std::string MogUILoader::PropertyNames::CenterRectWidth = "center_rect_width";
-const std::string MogUILoader::PropertyNames::CenterRectHeight = "center_rect_height";
-const std::string MogUILoader::PropertyNames::FrameWidth = "frame_width";
-const std::string MogUILoader::PropertyNames::FrameHeight = "frame_height";
-const std::string MogUILoader::PropertyNames::FrameCount = "frame_count";
-const std::string MogUILoader::PropertyNames::Margin = "margin";
-const std::string MogUILoader::PropertyNames::EnableBatching = "enableBatching";
-const std::string MogUILoader::PropertyNames::ChildEntities = "childEntities";
-*/
+static std::unordered_map<int, std::string> entityTypeMap = {
+    { (int)EntityType::Rectangle,        "Rectangle"},
+    { (int)EntityType::RoundedRectangle, "RoundedRectangle"},
+    { (int)EntityType::Circle,           "Circle"},
+    { (int)EntityType::Label,            "Label"},
+    { (int)EntityType::Line,             "Line"},
+    { (int)EntityType::Sprite,           "Sprite"},
+    { (int)EntityType::SpriteSheet,      "SpriteSheet"},
+    { (int)EntityType::Slice9Sprite,     "Slice9Sprite"},
+    { (int)EntityType::TiledSprite,      "TiledSprite"},
+    { (int)EntityType::Group,            "Group"},
+    { (int)EntityType::ScrollGroup,      "ScrollGroup"},
+};
+
 
 std::shared_ptr<Group> MogUILoader::load(std::string filename) {
+    std::vector<Param> params;
+    return load(filename, params);
+}
+
+std::shared_ptr<Group> MogUILoader::load(std::string filename, const std::vector<Param> &params) {
     auto bytes = FileUtils::readBytesAsset(filename);
-    auto dataList = DataStore::deserialize<List>(bytes);
-    return deserialize(dataList);
+    auto dict = DataStore::deserialize<Dictionary>(bytes);
+    std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> paramMap;
+    for (auto &p : params) {
+        if (paramMap.count(p.name) == 0) {
+            std::unordered_map<std::string, std::shared_ptr<Data>> map;
+            paramMap[p.name] = map;
+        }
+        paramMap[p.name][p.propertyKey] = p.propertyValue;
+    }
+    auto entity = EntityCreator::create(EntityType::Group, dict, paramMap);
+    return std::static_pointer_cast<Group>(entity);
 }
 
-std::shared_ptr<List> MogUILoader::serialize(const std::shared_ptr<Group> &group) {
-    std::shared_ptr<List> dataList = List::create();
-//    group->setSerializeData(dataList);
-    return dataList;
+std::string MogUILoader::toJsonString(const std::shared_ptr<Dictionary> &dict) {
+    std::string jsonStr;
+    jsonStr.reserve(1024);
+    dictToGroupJsonString(dict, jsonStr);
+    return jsonStr;
 }
 
-std::shared_ptr<Group> MogUILoader::deserialize(const std::shared_ptr<List> &dataList) {
-    
-    /*
-    EntityType entityType = (EntityType)(uiDict.get<Int>(PropertyNames::EntityType).value);
-    
-    string name = uiDict.get<String>(PropertyNames::Name).value;
-    string tag = uiDict.get<String>(PropertyNames::Tag).value;
-    float positionX = uiDict.get<Float>(PropertyNames::PositionX).value;
-    float positionY = uiDict.get<Float>(PropertyNames::PositionY).value;
-    float width = uiDict.get<Float>(PropertyNames::Width).value;
-    float height = uiDict.get<Float>(PropertyNames::Height).value;
-    float rotation = uiDict.get<Float>(PropertyNames::Rotation).value;
-    float scaleX = uiDict.get<Float>(PropertyNames::ScaleX).value;
-    float scaleY = uiDict.get<Float>(PropertyNames::ScaleY).value;
-    float anchorX = uiDict.get<Float>(PropertyNames::AnchorX).value;
-    float anchorY = uiDict.get<Float>(PropertyNames::AnchorY).value;
-    float originX = uiDict.get<Float>(PropertyNames::OriginX).value;
-    float originY = uiDict.get<Float>(PropertyNames::OriginY).value;
-    int zIndex = uiDict.get<Int>(PropertyNames::ZIndex).value;
-    float colorR = uiDict.get<Float>(PropertyNames::ColorR).value;
-    float colorG = uiDict.get<Float>(PropertyNames::ColorG).value;
-    float colorB = uiDict.get<Float>(PropertyNames::ColorB).value;
-    float colorA = uiDict.get<Float>(PropertyNames::ColorA).value;
+void MogUILoader::dictToGroupJsonString(const std::shared_ptr<Dictionary> &dict, std::string &jsonStr) {
+    auto groupEntityType = (EntityType)dict->get<Int>("entityType")->getValue();
+    auto groupEntityTypeStr = entityTypeMap[(int)groupEntityType];
+    auto groupName = dict->get<String>("name")->getValue();
 
-    shared_ptr<Entity> entity = nullptr;
-    switch (entityType) {
-        case EntityType::Rectangle: {
-            entity = Rectangle::create(Size(width, height));
-            break;
-        }
-        case EntityType::RoundedRectangle: {
-            float cornerRadius = uiDict.get<Float>(PropertyNames::CornerRadius).value;
-            entity = RoundedRectangle::create(Size(width, height), cornerRadius);
-            break;
-        }
-        case EntityType::Circle: {
-            float radius = uiDict.get<Float>(PropertyNames::Radius).value;
-            entity = Circle::create(radius);
-            break;
-        }
-        case EntityType::Label: {
-            string text = uiDict.get<String>(PropertyNames::Text).value;
-            string fontFilename = uiDict.get<String>(PropertyNames::FontFilename).value;
-            float fontSize = uiDict.get<Float>(PropertyNames::FontSize).value;
-            float height = uiDict.get<Float>(PropertyNames::FontHeight).value;
-            entity = Label::create(text, fontSize, fontFilename, height);
-            break;
-        }
-        case EntityType::Sprite:
-        case EntityType::Slice9Sprite:
-        case EntityType::SpriteSheet: {
-            string filename = uiDict.get<String>(PropertyNames::Filename).value;
-            float rectX = uiDict.get<Float>(PropertyNames::RectX).value;
-            float rectY = uiDict.get<Float>(PropertyNames::RectY).value;
-            float rectWidth = uiDict.get<Float>(PropertyNames::RectWidth).value;
-            float rectHeight = uiDict.get<Float>(PropertyNames::RectHeight).value;
-            auto sprite = Sprite::create(filename, Rect(rectX, rectY, rectWidth, rectHeight));
+    jsonStr.append("{");
+    jsonStr.append("\"name\":\"").append(groupName).append("\",");
+    jsonStr.append("\"entityType\":\"").append(groupEntityTypeStr).append("\",");
+    jsonStr.append("\"childEntities\":[");
+
+    auto childEntityList = dict->get<List>("childEntities");
+    int len = childEntityList->size();
+    for (int i = 0; i < len; i++) {
+        auto entityDict = childEntityList->at<Dictionary>(i);
+        auto entityType = (EntityType)entityDict->get<Int>("entityType")->getValue();
+        
+        if (entityType == EntityType::Group) {
+            dictToGroupJsonString(entityDict, jsonStr);
             
-            if (entityType == EntityType::Slice9Sprite) {
-                float centerRectX = uiDict.get<Float>(PropertyNames::CenterRectX).value;
-                float centerRectY = uiDict.get<Float>(PropertyNames::CenterRectY).value;
-                float centerRectWidth = uiDict.get<Float>(PropertyNames::CenterRectWidth).value;
-                float centerRectHeight = uiDict.get<Float>(PropertyNames::CenterRectHeight).value;
-                entity = Slice9Sprite::create(sprite, Rect(centerRectX, centerRectY, centerRectWidth, centerRectHeight));
-                
-            } else if (entityType == EntityType::SpriteSheet) {
-                auto spriteSheet = static_pointer_cast<SpriteSheet>(entity);
-                float frameWidth = uiDict.get<Float>(PropertyNames::FrameWidth).value;
-                float frameHeight = uiDict.get<Float>(PropertyNames::FrameHeight).value;
-                unsigned int frameCount = (unsigned int )(uiDict.get<Long>(PropertyNames::FrameCount).value);
-                unsigned int margin = (unsigned int )(uiDict.get<Long>(PropertyNames::Margin).value);
-                entity = SpriteSheet::create(sprite, Size(frameWidth, frameHeight), frameCount, margin);
-                
-            } else {
-                entity = sprite;
-            }
-            break;
+        } else {
+            auto entityTypeStr = entityTypeMap[(int)entityType];
+            auto name = entityDict->get<String>("name")->getValue();
+            
+            jsonStr.append("{");
+            jsonStr.append("\"name\":\"").append(name).append("\",");
+            jsonStr.append("\"entityType\":\"").append(entityTypeStr).append("\"");
+            jsonStr.append("}");
         }
-        case EntityType::Group: {
-            bool enableBatching = uiDict.get<Bool>(PropertyNames::EnableBatching).value;
-            shared_ptr<Group> group = Group::create(enableBatching);
-            auto arr = uiDict.get<Array>(PropertyNames::ChildEntities);
-            for (int i = 0; i < arr.size(); i++) {
-                auto childDict = arr.at<Dictionary>(i);
-                auto childEntity = deserialize(childDict);
-                group->add(childEntity);
-            }
-            entity = group;
-            break;
+        
+        if (i < len - 1) {
+            jsonStr.append(",");
         }
-        default:
-            break;
     }
     
-    entity->setName(name);
-    entity->setTag(tag);
-    entity->setPosition(positionX, positionY);
-    entity->setSize(width, height);
-    entity->setRotation(rotation);
-    entity->setScale(scaleX, scaleY);
-    entity->setAnchor(anchorX, anchorY);
-    entity->setOrigin(originX, originY);
-    entity->setZIndex(zIndex);
-    entity->setColor(colorR, colorG, colorB, colorA);
-    
-    return entity;
-    */
-    return nullptr;
+    jsonStr.append("]}");
 }
-

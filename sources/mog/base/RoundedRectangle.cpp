@@ -9,7 +9,7 @@ std::shared_ptr<RoundedRectangle> RoundedRectangle::create(const Size &size, flo
     auto roundedRectangle = std::shared_ptr<RoundedRectangle>(new RoundedRectangle());
     roundedRectangle->cornerRadius = cornerRadius;
     roundedRectangle->cornerFlag = cornerFlag;
-    roundedRectangle->transform->size = size;
+    roundedRectangle->size = size;
     roundedRectangle->init();
     return roundedRectangle;
 }
@@ -20,6 +20,22 @@ std::shared_ptr<RoundedRectangle> RoundedRectangle::create(float width, float he
 
 float RoundedRectangle::getCornerRadius() {
     return this->cornerRadius;
+}
+
+void RoundedRectangle::setCornerRadius(float cornerRadius) {
+    this->cornerRadius = cornerRadius;
+    this->init();
+    this->dirtyFlag |= DIRTY_ALL;
+}
+
+unsigned char RoundedRectangle::getCornerFlag() {
+    return this->cornerFlag;
+}
+
+void RoundedRectangle::setCornerFlag(unsigned char cornerFlag) {
+    this->cornerFlag = cornerFlag;
+    this->init();
+    this->dirtyFlag |= DIRTY_ALL;
 }
 
 void RoundedRectangle::init() {
@@ -53,7 +69,7 @@ void RoundedRectangle::init() {
     }
     
     this->textures[0] = Texture2D::createWithRGBA(data, texWidth, texHeight, Screen::getDensity());
-    this->rect = Rect(Point::zero, this->transform->size);
+    this->rect = Rect(Point::zero, this->size);
     this->initRendererVertices(25, 40);
 }
 
@@ -191,12 +207,14 @@ std::shared_ptr<Entity> RoundedRectangle::cloneEntity() {
 
 std::shared_ptr<Dictionary> RoundedRectangle::serialize() {
     auto dict = Entity::serialize();
-    dict->put("cornerRadius", Float::create(this->cornerRadius));
-    dict->put("cornerFlag", Int::create(this->cornerFlag));
+    dict->put(PROP_KEY_ENTITY_TYPE, Int::create((int)EntityType::RoundedRectangle));
+    dict->put(PROP_KEY_CORNER_RADIUS, Float::create(this->cornerRadius));
+    dict->put(PROP_KEY_CORNER_FLAG, Int::create(this->cornerFlag));
     return dict;
 }
 
-void RoundedRectangle::deserializeData(const std::shared_ptr<Dictionary> &dict) {
-    this->cornerRadius = dict->get<Float>("cornerRadius")->getValue();
-    this->cornerFlag = (unsigned char)dict->get<Float>("cornerFlag")->getValue();
+void RoundedRectangle::deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) {
+    Entity::deserializeData(dict, params);
+    this->cornerRadius = this->getPropertyData<Float>(dict, PROP_KEY_CORNER_RADIUS, params)->getValue();
+    this->cornerFlag = (unsigned char)this->getPropertyData<Int>(dict, PROP_KEY_CORNER_FLAG, params)->getValue();
 }

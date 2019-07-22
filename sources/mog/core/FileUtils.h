@@ -19,8 +19,8 @@ namespace mog {
 
         static std::shared_ptr<ByteArray> readFile(std::string filename, Directory dir = Directory::Documents);
         static bool writeFile(std::string filename, const std::shared_ptr<ByteArray> &bytes, Directory dir = Directory::Documents);
-        static std::shared_ptr<ByteArray> readDataFromFile(std::string filepath);
-        static bool writeDataToFile(std::string filepath, const std::shared_ptr<ByteArray> &bytes);
+        static std::shared_ptr<ByteArray> readBytesFromFile(std::string filepath);
+        static bool writeBytesToFile(std::string filepath, const std::shared_ptr<ByteArray> &bytes);
 
         static std::string getDocumentsDirectory();
         static std::string getCachesDirectory();

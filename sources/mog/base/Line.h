@@ -31,7 +31,7 @@ namespace mog {
         std::vector<Point> createLineStripVertexPoints(const std::vector<Point> &points, float lineWidth);
         std::vector<Point> createLineLoopVertexPoints(const std::vector<Point> &points, float lineWidth);
         virtual std::shared_ptr<Entity> cloneEntity() override;
-        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict) override;
+        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) override;
 
         float lineWidth = 0;
         LineType lineType = LineType::LineStrip;

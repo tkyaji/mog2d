@@ -12,7 +12,7 @@
 #include "mog/core/DataStore.h"
 #include "mog/core/PubSub.h"
 #include "mog/core/Http.h"
-//#include "mog/core/MogUILoader.h"
+#include "mog/core/MogUILoader.h"
 #include "mog/base/Drawable.h"
 #include "mog/base/Graphics.h"
 #include "mog/base/Sprite.h"

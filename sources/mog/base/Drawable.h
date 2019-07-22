@@ -9,6 +9,8 @@
 #include "mog/core/TouchInput.h"
 #include "mog/Constants.h"
 
+extern void *enabler;
+
 namespace mog {
     class DrawableGroup;
     
@@ -63,13 +65,17 @@ namespace mog {
         virtual float getColorB();
         virtual float getColorA();
         virtual std::string getColorCode();
-        virtual void setSize(const Size &size);
-        virtual void setSize(float width, float height);
+        virtual void setSize(const Size &size, unsigned char setInRatioFlag = SET_IN_FIXED_VALUE);
+        virtual void setSize(float width, float height, unsigned char setInRatioFlag = SET_IN_FIXED_VALUE);
         virtual Size getSize();
-        virtual void setWidth(float width);
+        virtual Size getRealSize();
+        virtual unsigned char getSizeSetInRatioFlag();
+        virtual void setWidth(float width, bool setInRatio = false);
         virtual float getWidth();
-        virtual void setHeight(float height);
+        virtual float getRealWidth();
+        virtual void setHeight(float height, bool setInRatio = false);
         virtual float getHeight();
+        virtual float getRealHeight();
         virtual void setZIndex(int zIndex);
         virtual int getZIndex();
         virtual void setActive(bool active);
@@ -78,6 +84,11 @@ namespace mog {
         void cancelTween(unsigned int tweenId);
         void cancelAllTweens();
         void removeFromParent();
+        
+        template <class T, typename std::enable_if<std::is_base_of<Drawable, T>::value>::type*& = enabler>
+        std::shared_ptr<T> cast() {
+            return std::static_pointer_cast<T>(shared_from_this());
+        }
         
         virtual std::shared_ptr<Renderer> getRenderer();
         virtual std::shared_ptr<Transform> getTransform();
@@ -102,12 +113,14 @@ namespace mog {
     protected:
         Drawable();
         virtual void bindVertex();
-        virtual void updateOffset();
+        virtual void updateTransform();
         virtual void onUpdate(float delta) {};
 
         std::shared_ptr<Renderer> renderer = nullptr;
         std::shared_ptr<Transform> transform = nullptr;
+        Size size = Size::zero;
         Point anchor = Point::zero;
+        unsigned char sizeSetInRatioFlag = SET_IN_FIXED_VALUE;
         std::array<std::shared_ptr<Texture2D>, MULTI_TEXTURE_NUM> textures;
         unsigned char dirtyFlag = DIRTY_ALL;
         

@@ -6,12 +6,12 @@
 
 using namespace mog;
 
-#define FPS 0
-#define DELTA 1
-#define DRAW_CALL 2
-#define INSTANTS 3
-#define ALPHA 150
-#define INTERVAL 0.2f
+#define MOG_STATS_FPS 0
+#define MOG_STATS_DELTA 1
+#define MOG_STATS_DRAW_CALL 2
+#define MOG_STATS_INSTANTS 3
+#define MOG_STATS_ALPHA 150
+#define MOG_STATS_INTERVAL 0.2f
 
 int MogStats::drawCallCount = 0;
 int MogStats::instanceCount = 0;
@@ -37,7 +37,7 @@ void MogStats::drawFrame(float delta, unsigned char parentDirtyFlag) {
     }
 
     this->tmpDelta += delta;
-    if (this->tmpDelta >= INTERVAL || parentDirtyFlag > 0) {
+    if (this->tmpDelta >= MOG_STATS_INTERVAL || parentDirtyFlag > 0) {
         this->updateValues(delta);
         this->texture->bindTexture();
         this->tmpDelta = 0;
@@ -169,31 +169,31 @@ void MogStats::init() {
         fmax(instantsLabel->height, instants->height) + padding * 2;
     this->data = (unsigned char *)mogcalloc(this->width * this->height * 4, sizeof(unsigned char));
     for (int i = 0; i < this->width * this->height; i++) {
-        this->data[i * 4 + 3] = ALPHA;
+        this->data[i * 4 + 3] = MOG_STATS_ALPHA;
     }
     this->texture = Texture2D::createWithRGBA(this->data, this->width, this->height, Screen::getDensity());
 
     this->setTextToData(fps, x, y);
-    this->positions[FPS] = std::pair<int, int>(x, y);
+    this->positions[MOG_STATS_FPS] = std::pair<int, int>(x, y);
     x += fps->width + xMargin;
     this->setTextToData(separator, x, y);
     x += separator->width + xMargin;
     this->setTextToData(delta, x, y);
-    this->positions[DELTA] = std::pair<int, int>(x, y);
+    this->positions[MOG_STATS_DELTA] = std::pair<int, int>(x, y);
 
     x = startX;
     y += fps->height + yMargin;
     this->setTextToData(drawCallLabel, x, y);
     x += drawCallLabel->width + xMargin;
     this->setTextToData(drawCall, x, y);
-    this->positions[DRAW_CALL] = std::pair<int, int>(x, y);
+    this->positions[MOG_STATS_DRAW_CALL] = std::pair<int, int>(x, y);
 
     x = startX;
     y += drawCallLabel->height + yMargin;
     this->setTextToData(instantsLabel, x, y);
     x += instantsLabel->width + xMargin;
     this->setTextToData(instants, x, y);
-    this->positions[INSTANTS] = std::pair<int, int>(x, y);
+    this->positions[MOG_STATS_INSTANTS] = std::pair<int, int>(x, y);
 
     this->bindVertex();
     this->initialized = true;
@@ -261,7 +261,7 @@ std::shared_ptr<Texture2D> MogStats::createLabelTexture(std::string text) {
             int i = yi * tex2d->width + xi;
             int ii = yr * tex2d->width + xi;
             unsigned char alpha = tmpData[i * 4 + 3];
-            unsigned char data[4] = {alpha, alpha, alpha, ALPHA};
+            unsigned char data[4] = {alpha, alpha, alpha, MOG_STATS_ALPHA};
             memcpy(&tex2d->data[ii * 4], data, 4 * sizeof(unsigned char));
         }
     }
@@ -278,8 +278,8 @@ void MogStats::updateValues(float delta) {
     if (delta >= 100) {
         delta = 99.9999f;
     }
-    this->setNumberToData(fps, 3, 2, this->positions[FPS].first, this->positions[FPS].second);
-    this->setNumberToData(delta, 2, 4, this->positions[DELTA].first, this->positions[DELTA].second);
-    this->setNumberToData(drawCallCount, 3, 0, this->positions[DRAW_CALL].first, this->positions[DRAW_CALL].second);
-    this->setNumberToData((instanceCount), 3, 0, this->positions[INSTANTS].first, this->positions[INSTANTS].second);
+    this->setNumberToData(fps, 3, 2, this->positions[MOG_STATS_FPS].first, this->positions[MOG_STATS_FPS].second);
+    this->setNumberToData(delta, 2, 4, this->positions[MOG_STATS_DELTA].first, this->positions[MOG_STATS_DELTA].second);
+    this->setNumberToData(drawCallCount, 3, 0, this->positions[MOG_STATS_DRAW_CALL].first, this->positions[MOG_STATS_DRAW_CALL].second);
+    this->setNumberToData((instanceCount), 3, 0, this->positions[MOG_STATS_INSTANTS].first, this->positions[MOG_STATS_INSTANTS].second);
 }

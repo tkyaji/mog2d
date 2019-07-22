@@ -21,7 +21,8 @@ void Drawable::updateFrame(const std::shared_ptr<Engine> &engine, float delta, f
     this->renderer->initScreenParameters();
     this->dirtyFlag |= parentDirtyFlag;
     if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
-        this->updateOffset();
+        this->dirtyFlag |= (DIRTY_SIZE | DIRTY_ANCHOR);
+        this->updateTransform();
         this->transform->updateMatrix();
         memcpy(this->renderer->matrix, this->transform->matrix, sizeof(float) * 16);
         Transform::multiplyMatrix(this->transform->matrix, parentMatrix, this->matrix);
@@ -97,23 +98,23 @@ float Drawable::getPivotY() {
 
 void Drawable::setAnchor(const Point &anchor) {
     this->anchor = anchor;
-    this->dirtyFlag |= DIRTY_VERTEX;
+    this->dirtyFlag |= (DIRTY_VERTEX | DIRTY_ANCHOR);
 }
 
 void Drawable::setAnchor(float x, float y) {
     this->anchor.x = x;
     this->anchor.y = y;
-    this->dirtyFlag |= DIRTY_VERTEX;
+    this->dirtyFlag |= (DIRTY_VERTEX | DIRTY_ANCHOR);
 }
 
 void Drawable::setAnchorX(float x) {
     this->anchor.x = x;
-    this->dirtyFlag |= DIRTY_VERTEX;
+    this->dirtyFlag |= (DIRTY_VERTEX | DIRTY_ANCHOR);
 }
 
 void Drawable::setAnchorY(float y) {
     this->anchor.y = y;
-    this->dirtyFlag |= DIRTY_VERTEX;
+    this->dirtyFlag |= (DIRTY_VERTEX | DIRTY_ANCHOR);
 }
 
 Point Drawable::getAnchor() {
@@ -290,37 +291,68 @@ std::string Drawable::getColorCode() {
     return std::string(colorCode);
 }
 
-void Drawable::setSize(const Size &size) {
-    this->transform->size = size;
-    this->dirtyFlag |= DIRTY_VERTEX;
+void Drawable::setSize(const Size &size, unsigned char setInRatioFlag) {
+    this->size = size;
+    this->sizeSetInRatioFlag = setInRatioFlag;
+    this->dirtyFlag |= (DIRTY_VERTEX | DIRTY_SIZE);
 }
 
-void Drawable::setSize(float width, float height) {
-    this->transform->size.width = width;
-    this->transform->size.height = height;
-    this->dirtyFlag |= DIRTY_VERTEX;
+void Drawable::setSize(float width, float height, unsigned char setInRatioFlag) {
+    this->size.width = width;
+    this->size.height = height;
+    this->sizeSetInRatioFlag = setInRatioFlag;
+    this->dirtyFlag |= (DIRTY_VERTEX | DIRTY_SIZE);
 }
 
 Size Drawable::getSize() {
+    return this->size;
+}
+
+Size Drawable::getRealSize() {
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
+        this->updateTransform();
+    }
     return this->transform->size;
 }
 
-void Drawable::setWidth(float width) {
-    this->transform->size.width = width;
-    this->dirtyFlag |= DIRTY_VERTEX;
+unsigned char Drawable::getSizeSetInRatioFlag() {
+    return this->sizeSetInRatioFlag;
+}
+
+void Drawable::setWidth(float width, bool setInRatio) {
+    this->size.width = width;
+    if (setInRatio) {
+        this->sizeSetInRatioFlag |= SET_IN_RATIO_WIDTH;
+    } else {
+        this->sizeSetInRatioFlag = (this->sizeSetInRatioFlag & ~SET_IN_RATIO_WIDTH);
+    }
+    this->dirtyFlag |= (DIRTY_VERTEX | DIRTY_SIZE);
 }
 
 float Drawable::getWidth() {
-    return this->transform->size.width;
+    return this->size.width;
 }
 
-void Drawable::setHeight(float height) {
-    this->transform->size.height = height;
-    this->dirtyFlag |= DIRTY_VERTEX;
+float Drawable::getRealWidth() {
+    return this->getRealSize().width;
+}
+
+void Drawable::setHeight(float height, bool setInRatio) {
+    this->size.height = height;
+    if (setInRatio) {
+        this->sizeSetInRatioFlag |= SET_IN_RATIO_HEIGHT;
+    } else {
+        this->sizeSetInRatioFlag = (this->sizeSetInRatioFlag & ~SET_IN_RATIO_HEIGHT);
+    }
+    this->dirtyFlag |= (DIRTY_VERTEX | DIRTY_SIZE);
 }
 
 float Drawable::getHeight() {
-    return this->transform->size.height;
+    return this->size.height;
+}
+
+float Drawable::getRealHeight() {
+    return this->getRealSize().height;
 }
 
 void Drawable::setZIndex(int zIndex) {
@@ -394,6 +426,21 @@ void Drawable::setTexture(int textureIdx, const std::shared_ptr<Texture2D> &text
     this->dirtyFlag |= (DIRTY_TEXTURE | DIRTY_TEX_COORDS);
 }
 
-void Drawable::updateOffset() {
-    this->transform->offest = Screen::getSize() * this->anchor;
+void Drawable::updateTransform() {
+    if ((this->dirtyFlag & DIRTY_ANCHOR) == DIRTY_ANCHOR) {
+        this->transform->offset = Screen::getSize() * this->anchor;
+    }
+    
+    if ((this->dirtyFlag & DIRTY_SIZE) == DIRTY_SIZE) {
+        auto size = this->size;
+        if ((this->sizeSetInRatioFlag & SET_IN_RATIO_WIDTH) == SET_IN_RATIO_WIDTH) {
+            size.width = Screen::getSize().width * size.width;
+        }
+        if ((this->sizeSetInRatioFlag & SET_IN_RATIO_HEIGHT) == SET_IN_RATIO_HEIGHT) {
+            size.height = Screen::getSize().height * size.height;
+        }
+        this->transform->size = size;
+    }
+    
+    this->dirtyFlag = (this->dirtyFlag & ~(DIRTY_ANCHOR | DIRTY_SIZE));
 }

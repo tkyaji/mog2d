@@ -24,6 +24,10 @@ namespace mog {
         static std::shared_ptr<RoundedRectangle> create(float width, float height, float cornerRadius, unsigned char cornerFlag = CORNER_ALL);
         
         float getCornerRadius();
+        void setCornerRadius(float cornerRadius);
+        unsigned char getCornerFlag();
+        void setCornerFlag(unsigned char cornerFlag);
+
         std::shared_ptr<RoundedRectangle> clone();
         virtual std::shared_ptr<Dictionary> serialize() override;
 
@@ -37,7 +41,7 @@ namespace mog {
         virtual void bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) override;
         virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) override;
         virtual std::shared_ptr<Entity> cloneEntity() override;
-        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict) override;
+                virtual void deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) override;
     };
 }
 

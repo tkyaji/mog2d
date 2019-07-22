@@ -124,6 +124,7 @@ void Entity::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int 
 
 void Entity::updateMatrix() {
     if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
+        this->updateTransform();
         this->transform->updateMatrix();
     }
     if (auto parent = this->group.lock()) {
@@ -295,11 +296,27 @@ std::shared_ptr<AABB> Entity::getAABB() {
     return std::shared_ptr<AABB>(new AABB(offset.x + minP.x, offset.y + minP.y, offset.x + maxP.x, offset.y + maxP.y));
 }
 
-void Entity::updateOffset() {
+void Entity::updateTransform() {
     if (auto parent = this->group.lock()) {
-        this->transform->offest = parent->getSize() * this->anchor;
+        if ((this->dirtyFlag & DIRTY_ANCHOR) == DIRTY_ANCHOR) {
+            this->transform->offset = parent->getRealSize() * this->anchor;
+        }
+        
+        if ((this->dirtyFlag & DIRTY_SIZE) == DIRTY_SIZE) {
+            auto size = this->size;
+            if ((this->sizeSetInRatioFlag & SET_IN_RATIO_WIDTH) == SET_IN_RATIO_WIDTH) {
+                size.width = parent->getRealSize().width * size.width;
+            }
+            if ((this->sizeSetInRatioFlag & SET_IN_RATIO_HEIGHT) == SET_IN_RATIO_HEIGHT) {
+                size.height = parent->getRealSize().height * size.height;
+            }
+            this->transform->size = size;
+        }
+        
+        this->dirtyFlag = (this->dirtyFlag & ~(DIRTY_ANCHOR | DIRTY_SIZE));
+        
     } else {
-        Drawable::updateOffset();
+        Drawable::updateTransform();
     }
 }
 
@@ -320,32 +337,34 @@ void Entity::copyProperties(const std::shared_ptr<Entity> &entity) {
 
 std::shared_ptr<Dictionary> Entity::serialize() {
     auto dict = Dictionary::create();
-    dict->put("name", String::create(this->name));
-    dict->put("tag", String::create(this->tag));
-    dict->put("positionX", Float::create(this->transform->position.x));
-    dict->put("positionY", Float::create(this->transform->position.y));
-    dict->put("pivotX", Float::create(this->transform->pivot.x));
-    dict->put("pivotY", Float::create(this->transform->pivot.y));
-    dict->put("anchorX", Float::create(this->anchor.x));
-    dict->put("anchorY", Float::create(this->anchor.y));
-    dict->put("width", Float::create(this->transform->size.width));
-    dict->put("height", Float::create(this->transform->size.height));
-    dict->put("color", String::create(this->getColorCode()));
-    dict->put("zIndex", Int::create(this->zIndex));
+    dict->put(PROP_KEY_NAME, String::create(this->name));
+    dict->put(PROP_KEY_TAG, String::create(this->tag));
+    dict->put(PROP_KEY_POSITION_X, Float::create(this->transform->position.x));
+    dict->put(PROP_KEY_POSITION_Y, Float::create(this->transform->position.y));
+    dict->put(PROP_KEY_PIVOT_X, Float::create(this->transform->pivot.x));
+    dict->put(PROP_KEY_PIVOT_Y, Float::create(this->transform->pivot.y));
+    dict->put(PROP_KEY_ANCHOR_X, Float::create(this->anchor.x));
+    dict->put(PROP_KEY_ANCHOR_Y, Float::create(this->anchor.y));
+    dict->put(PROP_KEY_SIZE_WIDTH, Float::create(this->size.width));
+    dict->put(PROP_KEY_SIZE_HEIGHT, Float::create(this->size.height));
+    dict->put(PROP_KEY_SIZE_SET_IN_RATIO, Int::create((int)this->sizeSetInRatioFlag));
+    dict->put(PROP_KEY_COLOR, String::create(this->getColorCode()));
+    dict->put(PROP_KEY_Z_INDEX, Int::create(this->zIndex));
     return dict;
 }
 
-void Entity::deserializeData(const std::shared_ptr<Dictionary> &dict) {
-    this->name = dict->get<String>("name")->getValue();
-    this->tag = dict->get<String>("tag")->getValue();
-    this->transform->position.x = dict->get<Float>("positionX")->getValue();
-    this->transform->position.y =  dict->get<Float>("positionY")->getValue();
-    this->transform->pivot.x =  dict->get<Float>("pivotX")->getValue();
-    this->transform->pivot.x = dict->get<Float>("pivotX")->getValue();
-    this->anchor.x = dict->get<Float>("anchorX")->getValue();
-    this->anchor.y = dict->get<Float>("anchorY")->getValue();
-    this->transform->size.width = dict->get<Float>("width")->getValue();
-    this->transform->size.height = dict->get<Float>("height")->getValue();
-    this->transform->color = Color(dict->get<String>("color")->getValue());
-    this->zIndex = dict->get<Int>("zIndex")->getValue();
+void Entity::deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) {
+    this->name = dict->get<String>(PROP_KEY_NAME)->getValue();
+    this->tag = this->getPropertyData<String>(dict, PROP_KEY_TAG, params)->getValue();
+    this->transform->position.x = this->getPropertyData<Float>(dict, PROP_KEY_POSITION_X, params)->getValue();
+    this->transform->position.y = this->getPropertyData<Float>(dict, PROP_KEY_POSITION_Y, params)->getValue();
+    this->transform->pivot.x =  this->getPropertyData<Float>(dict, PROP_KEY_PIVOT_X, params)->getValue();
+    this->transform->pivot.y = this->getPropertyData<Float>(dict, PROP_KEY_PIVOT_Y, params)->getValue();
+    this->anchor.x = this->getPropertyData<Float>(dict, PROP_KEY_ANCHOR_X, params)->getValue();
+    this->anchor.y = this->getPropertyData<Float>(dict, PROP_KEY_ANCHOR_Y, params)->getValue();
+    this->size.width = this->getPropertyData<Float>(dict, PROP_KEY_SIZE_WIDTH, params)->getValue();
+    this->size.height = this->getPropertyData<Float>(dict, PROP_KEY_SIZE_HEIGHT, params)->getValue();
+    this->sizeSetInRatioFlag = (unsigned char)this->getPropertyData<Int>(dict, PROP_KEY_SIZE_SET_IN_RATIO, params)->getValue();
+    this->transform->color = Color(this->getPropertyData<String>(dict, PROP_KEY_COLOR, params)->getValue());
+    this->zIndex = this->getPropertyData<Int>(dict, PROP_KEY_Z_INDEX, params)->getValue();
 }

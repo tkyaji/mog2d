@@ -14,6 +14,11 @@
 using namespace mog;
 
 std::shared_ptr<Entity> EntityCreator::create(EntityType entityType, const std::shared_ptr<Dictionary> &dict) {
+    std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> emptyParams;
+    return create(entityType, dict, emptyParams);
+}
+
+std::shared_ptr<Entity> EntityCreator::create(EntityType entityType, const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) {
     std::shared_ptr<Entity> entity = nullptr;
     switch (entityType) {
         case EntityType::Rectangle:
@@ -61,7 +66,7 @@ std::shared_ptr<Entity> EntityCreator::create(EntityType entityType, const std::
             break;
     }
     
-    entity->deserializeData(dict);
+    entity->deserializeData(dict, params);
     entity->init();
     
     return entity;

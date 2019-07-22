@@ -14,6 +14,17 @@ void DrawableGroup::addChild(const std::shared_ptr<Drawable> &drawable) {
     }
 }
 
+void DrawableGroup::insertChildBefore(const std::shared_ptr<Drawable> &drawable, const std::shared_ptr<Drawable> &baseDrawable) {
+    if (this->drawableIdSet.count((uintptr_t)drawable.get()) > 0) return;
+    auto it = std::find(this->childDrawables.begin(), this->childDrawables.end(), baseDrawable);
+    this->childDrawables.insert(it, drawable);
+    this->sortOrderDirty = true;
+    drawable->parentDrawableGroup = shared_from_this();
+    if (this->addChildListener) {
+        this->addChildListener(drawable);
+    }
+}
+
 void DrawableGroup::removeChild(const std::shared_ptr<Drawable> &drawable) {
     this->childDrawables.erase(std::remove(this->childDrawables.begin(), this->childDrawables.end(), drawable), this->childDrawables.end());
     this->drawableIdSet.erase((uintptr_t)drawable.get());

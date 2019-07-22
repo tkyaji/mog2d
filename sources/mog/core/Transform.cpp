@@ -35,8 +35,8 @@ void Transform::updateMatrix(float *parentMatrix) {
     Transform::multiplyMatrix(&tmpMatrix[0], &tmpMatrix[16], &tmpMatrix[32]);
 
     memcpy(&this->tmpMatrix[16], Renderer::identityMatrix, sizeof(float) * 16);
-    tmpMatrix[16+12] = this->position.x + this->offest.x;
-    tmpMatrix[16+13] = this->position.y + this->offest.y;
+    tmpMatrix[16+12] = this->position.x + this->offset.x;
+    tmpMatrix[16+13] = this->position.y + this->offset.y;
     Transform::multiplyMatrix(&tmpMatrix[32], &tmpMatrix[16], &tmpMatrix[0]);
 
     memcpy(this->matrix, &tmpMatrix[0], sizeof(float) * 16);

@@ -23,6 +23,7 @@ namespace mog {
         bool isEnableBatching();
 
         virtual void add(const std::shared_ptr<Entity> &entity);
+        virtual void insertBefore(const std::shared_ptr<Entity> &entity, const std::shared_ptr<Entity> &baseEntity);
         virtual void remove(const std::shared_ptr<Entity> &entity);
         virtual void removeAll();
         std::vector<std::shared_ptr<Entity>> getChildEntities();
@@ -52,7 +53,7 @@ namespace mog {
         virtual void bindVertex() override;
         virtual void bindVertexSub();
         virtual std::shared_ptr<Entity> cloneEntity() override;
-        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict) override;
+        virtual void deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) override;
         
         void bindVertexRecursive(const std::shared_ptr<Renderer> &renderer, std::shared_ptr<TextureAtlas> &textureAtlas, int *vertexIndices, float *parentMatrix);
         void bindVertexSubRecursive(const std::shared_ptr<Renderer> &renderer, std::shared_ptr<TextureAtlas> &textureAtlas, int *vertexIndices, float *parentMatrix);

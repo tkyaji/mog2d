@@ -15,6 +15,7 @@ namespace mog {
         
     public:
         void addChild(const std::shared_ptr<Drawable> &drawable);
+        void insertChildBefore(const std::shared_ptr<Drawable> &drawable, const std::shared_ptr<Drawable> &baseDrawable);
         void removeChild(const std::shared_ptr<Drawable> &drawable);
         void removeAllChildren();
         void sortChildDrawablesToDraw();

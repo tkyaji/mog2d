@@ -33,6 +33,11 @@ namespace mog {
         
         virtual void write(std::ostream &out) = 0;
         virtual void read(std::istream &in) = 0;
+        
+        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
+        std::shared_ptr<T> cast() {
+            return std::static_pointer_cast<T>(shared_from_this());
+        }
     };
     
 
@@ -220,6 +225,7 @@ namespace mog {
         unsigned int size() const;
         std::vector<std::string> getKeys() const;
         std::pair<std::string, std::shared_ptr<Data>> getKeyValue(int idx);
+        bool hasKey(std::string key);
         
         virtual void write(std::ostream &out) override;
         virtual void read(std::istream &in) override;

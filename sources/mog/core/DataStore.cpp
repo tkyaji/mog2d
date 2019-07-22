@@ -42,12 +42,9 @@ std::shared_ptr<ByteArray> DataStore::serialize(const std::shared_ptr<Data> &dat
     std::ostringstream sout(std::ios::binary);
     sout.exceptions(std::ios::failbit|std::ios::badbit);
     data->write(sout);
-    const char *sdata = sout.str().data();
-    size_t size = sout.str().size();
-    int len = (int)size;
-    unsigned char *byteData = (unsigned char *)malloc(size);
-    memcpy(byteData, sdata, size);
-    return ByteArray::create(byteData, len);
+    unsigned char *byteData = (unsigned char *)malloc(sout.str().size());
+    memcpy(byteData, sout.str().data(), sout.str().size());
+    return ByteArray::create(byteData, (unsigned int)sout.str().size());
 }
 
 void DataStore::_serialize(std::string key, const std::shared_ptr<Data> &data) {

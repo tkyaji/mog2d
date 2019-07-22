@@ -46,8 +46,7 @@ namespace mog {
         static Density getDensity();
         static float getDeviceDensityValue();
         static float getScreenScale();
-        static void setSizeBasedOnHeight(float height);
-        static void setSizeBasedOnWidth(float width);
+        static void setSize(float width, float height);
 
         void setDisplaySize(const Size &displaySize, const Size &viewSize, float deviceDensity);
         void setResizeCallback(std::function<void()> callback);
@@ -59,8 +58,6 @@ namespace mog {
         
         Density density = Density::x1_0;
         std::function<void()> resizeCallback;
-        char baseScreenSides = '_';
-        float baseScreenSize = 0.0f;
         Size screenSize;
         Size displaySize;
         Size viewSize;
@@ -68,8 +65,7 @@ namespace mog {
         
         void resetScreenSize();
         void invokeCallback();
-        void setScreenSizeBasedOnHeight(float height);
-        void setScreenSizeBasedOnWidth(float width);
+        void setScreenSize(float width, float height);
     };
 }
 
