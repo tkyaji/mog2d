@@ -32,7 +32,6 @@
 		B268130D20FDF94300AC7AAB /* plain_objects.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812A320FDF94300AC7AAB /* plain_objects.cpp */; };
 		B268130E20FDF94300AC7AAB /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812A420FDF94300AC7AAB /* Renderer.cpp */; };
 		B268130F20FDF94300AC7AAB /* mog_functions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812A620FDF94300AC7AAB /* mog_functions.cpp */; };
-		B268131020FDF94300AC7AAB /* json.c in Sources */ = {isa = PBXBuildFile; fileRef = B26812AB20FDF94300AC7AAB /* json.c */; };
 		B268131120FDF94300AC7AAB /* aes.c in Sources */ = {isa = PBXBuildFile; fileRef = B26812AC20FDF94300AC7AAB /* aes.c */; };
 		B268131320FDF94300AC7AAB /* sha256.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812B220FDF94300AC7AAB /* sha256.cpp */; };
 		B268131420FDF94300AC7AAB /* Line.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812B820FDF94300AC7AAB /* Line.cpp */; };
@@ -136,12 +135,10 @@
 		B26812A620FDF94300AC7AAB /* mog_functions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mog_functions.cpp; sourceTree = "<group>"; };
 		B26812A720FDF94300AC7AAB /* TouchEventListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchEventListener.h; sourceTree = "<group>"; };
 		B26812A920FDF94300AC7AAB /* plugins.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plugins.h; sourceTree = "<group>"; };
-		B26812AB20FDF94300AC7AAB /* json.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = json.c; sourceTree = "<group>"; };
 		B26812AC20FDF94300AC7AAB /* aes.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = aes.c; sourceTree = "<group>"; };
 		B26812AE20FDF94300AC7AAB /* sha256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sha256.h; sourceTree = "<group>"; };
 		B26812AF20FDF94300AC7AAB /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
 		B26812B020FDF94300AC7AAB /* aes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aes.h; sourceTree = "<group>"; };
-		B26812B120FDF94300AC7AAB /* json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = json.h; sourceTree = "<group>"; };
 		B26812B220FDF94300AC7AAB /* sha256.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sha256.cpp; sourceTree = "<group>"; };
 		B26812B420FDF94300AC7AAB /* Constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
 		B26812B520FDF94300AC7AAB /* mog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mog.h; sourceTree = "<group>"; };
@@ -349,8 +346,6 @@
 			children = (
 				B26812AC20FDF94300AC7AAB /* aes.c */,
 				B26812B020FDF94300AC7AAB /* aes.h */,
-				B26812AB20FDF94300AC7AAB /* json.c */,
-				B26812B120FDF94300AC7AAB /* json.h */,
 				B26812B220FDF94300AC7AAB /* sha256.cpp */,
 				B26812AE20FDF94300AC7AAB /* sha256.h */,
 				B26812AF20FDF94300AC7AAB /* stb_image.h */,
@@ -661,7 +656,6 @@
 				B268130A20FDF94300AC7AAB /* Preference.cpp in Sources */,
 				B268130C20FDF94300AC7AAB /* Collision.cpp in Sources */,
 				B2A783AF22E5EB4900F6F9CA /* VerticalGroup.cpp in Sources */,
-				B268131020FDF94300AC7AAB /* json.c in Sources */,
 				B268132220FDF94400AC7AAB /* AppBase.cpp in Sources */,
 				B2A783B322E69E1500F6F9CA /* AlignmentGroup.cpp in Sources */,
 				B268131720FDF94300AC7AAB /* Entity.cpp in Sources */,

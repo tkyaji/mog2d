@@ -9,6 +9,8 @@
 #include "mog/core/AudioPlayer.h"
 #include "mog/core/FileUtils.h"
 #include "mog/core/Preference.h"
+#include "mog/core/Data.h"
+#include "mog/core/Json.h"
 #include "mog/core/DataStore.h"
 #include "mog/core/PubSub.h"
 #include "mog/core/Http.h"

@@ -6,18 +6,32 @@
 using namespace mog;
 
 
-Http::Request::Request(std::string url, Method method, int timeout) {
+Http::Request::Request(std::string url, Method method) {
     this->url = url;
     this->method = method;
+}
+
+void Http::Request::setHeaders(const std::unordered_map<std::string, std::string> &headers) {
+    this->headers = headers;
+}
+
+void Http::Request::addHeader(std::string name, std::string value) {
+    this->headers[name] = value;
+}
+
+void Http::Request::setTimeout(int timeout) {
     this->timeout = timeout;
 }
 
-Http::Request::Request(std::string url, std::unordered_map<std::string, std::string> params, Method method, int timeout) {
-    this->url = url;
-    this->params = params;
-    this->method = method;
-    this->timeout = timeout;
-};
+void Http::Request::setBody(std::string body) {
+    auto byteArr = String::create(body)->toByteArray();
+    this->setBody(byteArr);
+}
+
+void Http::Request::setBody(const std::shared_ptr<ByteArray> &body) {
+    this->body = body;
+}
+
 
 void Http::request(const Http::Request &req, std::function<void(const Http::Response &res)> callback) {
     HttpNative::request(req, callback);

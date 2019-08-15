@@ -1,10 +1,10 @@
 #include "mog/Constants.h"
 #include "mog/core/Data.h"
-#include "mog/libs/json.h"
 #include "mog/core/mog_functions.h"
 #include <vector>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
 
 using namespace mog;
 
@@ -287,6 +287,13 @@ void String::read(std::istream &in) {
     mogfree(str);
 }
 
+std::shared_ptr<ByteArray> String::toByteArray() {
+    unsigned char *byteArr = new unsigned char[this->value.size()];
+    const char *str = this->value.c_str();
+    memcpy(byteArr, str, this->value.size());
+    return ByteArray::create(byteArr, (unsigned int)this->value.size());
+}
+
 
 #pragma - List
 
@@ -513,153 +520,3 @@ void Dictionary::read(std::istream &in) {
         this->put(key, data);
     }
 }
-
-
-static std::shared_ptr<Data> jsonValueToData(json_value_s *value) {
-    switch (value->type) {
-        case json_type_object: {
-            auto dict = Dictionary::create();
-            json_object_s *obj = (json_object_s *)value->payload;
-            json_object_element_s *elm = obj->start;
-            while (elm != NULL) {
-                json_string_s *name = elm->name;
-                std::string key = std::string(name->string);
-                auto value = jsonValueToData(elm->value);
-                dict->put(key, value);
-                elm = elm->next;
-            }
-            return dict;
-        }
-        case json_type_array: {
-            auto list = List::create();
-            json_array_s *arr = (json_array_s *)value->payload;
-            json_array_element_s *elm = arr->start;
-            while (elm != NULL) {
-                auto value = jsonValueToData(elm->value);
-                list->append(value);
-                elm = elm->next;
-            }
-            return list;
-        }
-        case json_type_string: {
-            json_string_s *str = (json_string_s *)value->payload;
-            return String::create(str->string);
-        }
-        case json_type_number: {
-            json_number_s *number = (json_number_s *)value->payload;
-            double d = atof(number->number);
-            int i = atoi(number->number);
-            if (d == i) {
-                return Int::create(i);
-            } else {
-                return Double::create(d);
-            }
-        }
-        case json_type_true: {
-            return Bool::create(true);
-        }
-        case json_type_false: {
-            return Bool::create(false);
-        }
-        default: {
-            return nullptr;
-        }
-    }
-}
-
-static void dataTojsonString(std::stringstream &ss, const std::shared_ptr<Data> &data) {
-    switch (data->type) {
-        case DataType::Int:
-            ss << std::static_pointer_cast<Int>(data)->getValue();
-            break;
-            
-        case DataType::Long:
-            ss << std::static_pointer_cast<Long>(data)->getValue();
-            break;
-            
-        case DataType::Float:
-            ss << std::static_pointer_cast<Float>(data)->getValue();
-            break;
-            
-        case DataType::Double:
-            ss << std::static_pointer_cast<Double>(data)->getValue();
-            break;
-            
-        case DataType::Bool: {
-            bool b = std::static_pointer_cast<Bool>(data)->getValue();
-            if (b) {
-                ss << "true";
-            } else {
-                ss << "false";
-            }
-            break;
-        }
-            
-        case DataType::String: {
-            std::string str = std::static_pointer_cast<String>(data)->getValue();
-            if (!str.empty()) {
-                std::string::size_type pos = 0;
-                while ((pos = str.find('"', pos)) != std::string::npos) {
-                    str.replace(pos, 1, "\\\"");
-                    pos += 2;
-                }
-            }
-            ss << "\"" << str << "\"";
-            break;
-        }
-            
-        case DataType::ByteArray: {
-            auto bytes = std::static_pointer_cast<ByteArray>(data);
-            ss << "[";
-            for (int i = 0; i < bytes->getLength(); i++) {
-                if (i > 0) ss << ",";
-                unsigned char b = bytes->getByte(i);
-                ss << (int)b;
-            }
-            ss << "]";
-            break;
-        }
-            
-        case DataType::Dictionary: {
-            auto dict = std::static_pointer_cast<Dictionary>(data);
-            ss << "{";
-            for (int i = 0; i < dict->size(); i++) {
-                if (i > 0) ss << ",";
-                auto pair = dict->getKeyValue(i);
-                dataTojsonString(ss, String::create(pair.first));
-                ss << ":";
-                dataTojsonString(ss, pair.second);
-            }
-            ss << "}";
-            break;
-        }
-            
-        case DataType::List: {
-            auto list = std::static_pointer_cast<List>(data);
-            ss << "[";
-            for (int i = 0; i < list->size(); i++) {
-                if (i > 0) ss << ",";
-                dataTojsonString(ss, list->at<Data>(i));
-            }
-            ss << "]";
-            break;
-        }
-            
-        case DataType::NativeObject:
-        case DataType::Void:
-            break;
-    }
-}
-
-
-std::shared_ptr<Data> Json::_parse(std::string jsonText) {
-    json_value_s *root = json_parse(jsonText.c_str(), jsonText.size());
-    return jsonValueToData(root);
-}
-
-std::string Json::toJson(const std::shared_ptr<Data> &data) {
-    std::stringstream ss;
-    dataTojsonString(ss, data);
-    return ss.str();
-}
-

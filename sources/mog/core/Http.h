@@ -23,13 +23,19 @@ namespace mog {
 
         class Request {
         public:
+            Request(std::string url, Method method = Method::Get);
+            
+            void setHeaders(const std::unordered_map<std::string, std::string> &headers);
+            void addHeader(std::string name, std::string value);
+            void setTimeout(int timeout);
+            void setBody(std::string body);
+            void setBody(const std::shared_ptr<ByteArray> &body);
+
             std::string url;
             Method method = Method::Get;
             int timeout = 0;
-            std::unordered_map<std::string, std::string> params;
-
-            Request(std::string url, Method method = Method::Get, int timeout = 0);
-            Request(std::string url, std::unordered_map<std::string, std::string> params, Method method = Method::Get, int timeout = 0);
+            std::shared_ptr<ByteArray> body = nullptr;
+            std::unordered_map<std::string, std::string> headers;
         };
 
         static void request(const Http::Request &req, std::function<void(const Http::Response &res)> callback = nullptr);

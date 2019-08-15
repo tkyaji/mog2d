@@ -27,8 +27,17 @@ using namespace mog;
     [urlReq setCachePolicy:NSURLRequestReloadIgnoringLocalCacheData];
     [urlReq setTimeoutInterval:req.timeout];
     [urlReq setHTTPShouldHandleCookies:NO];
-    NSString *paramsStr = [HttpRequest buildParamsString:req.params];
-    [urlReq setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    for (auto &pair : req.headers) {
+        NSString *name = [NSString stringWithUTF8String:pair.first.c_str()];
+        NSString *value = [NSString stringWithUTF8String:pair.second.c_str()];
+        [urlReq addValue:value forHTTPHeaderField:name];
+    }
+    
+    if (req.body) {
+        NSData *data = [NSData dataWithBytes:req.body->getBytes() length:(NSUInteger)req.body->getLength()];
+        [urlReq setHTTPBody:data];
+    }
     
     NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];

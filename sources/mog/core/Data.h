@@ -159,6 +159,7 @@ namespace mog {
         static std::shared_ptr<String> create(const std::shared_ptr<ByteArray> &bytes);
         virtual void write(std::ostream &out) override;
         virtual void read(std::istream &in) override;
+        std::shared_ptr<ByteArray> toByteArray();
 
         std::string getValue();
 
@@ -234,21 +235,6 @@ namespace mog {
         Dictionary();
         
         std::map<std::string, std::shared_ptr<Data>> datum;
-    };
-    
-    
-    class Json {
-    public:
-        template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
-        static std::shared_ptr<T> parse(std::string jsonText) {
-            auto data = _parse(jsonText);
-            return std::static_pointer_cast<T>(data);
-        }
-        
-        static std::string toJson(const std::shared_ptr<Data> &data);
-        
-    private:
-        static std::shared_ptr<Data> _parse(std::string jsonText);
     };
 }
 
