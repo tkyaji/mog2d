@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		B205EFF2228730440031B4B4 /* Screen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B205EFF0228730440031B4B4 /* Screen.cpp */; };
 		B215825222D10A3700B47A57 /* EntityCreator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B215825022D10A3700B47A57 /* EntityCreator.cpp */; };
+		B23F238A22E948FF0041FA1B /* DrawableGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B23F238822E948FF0041FA1B /* DrawableGroup.cpp */; };
 		B254E0D31F360B16008DD68C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2A103441ED7170200A2EB8A /* AudioToolbox.framework */; };
 		B26812FA20FDF94300AC7AAB /* App.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B268127720FDF94300AC7AAB /* App.cpp */; };
 		B26812FB20FDF94300AC7AAB /* Tween.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B268127F20FDF94300AC7AAB /* Tween.cpp */; };
@@ -46,7 +47,7 @@
 		B268131E20FDF94300AC7AAB /* Polygon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812CB20FDF94300AC7AAB /* Polygon.cpp */; };
 		B268131F20FDF94300AC7AAB /* Rectangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812CC20FDF94300AC7AAB /* Rectangle.cpp */; };
 		B268132020FDF94300AC7AAB /* Circle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812CD20FDF94300AC7AAB /* Circle.cpp */; };
-		B268132120FDF94400AC7AAB /* DrawableGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812D120FDF94300AC7AAB /* DrawableGroup.cpp */; };
+		B268132120FDF94400AC7AAB /* DrawableContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812D120FDF94300AC7AAB /* DrawableContainer.cpp */; };
 		B268132220FDF94400AC7AAB /* AppBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812D420FDF94300AC7AAB /* AppBase.cpp */; };
 		B268132320FDF94400AC7AAB /* Group.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812D520FDF94300AC7AAB /* Group.cpp */; };
 		B268132420FDF94400AC7AAB /* RoundedRectangle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B26812D620FDF94300AC7AAB /* RoundedRectangle.cpp */; };
@@ -67,6 +68,9 @@
 		B2A101851ED713DD00A2EB8A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B2A101831ED713DD00A2EB8A /* LaunchScreen.storyboard */; };
 		B2A103321ED7154000A2EB8A /* assets in Resources */ = {isa = PBXBuildFile; fileRef = B2A103311ED7154000A2EB8A /* assets */; };
 		B2A103411ED716D100A2EB8A /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2A103401ED716D100A2EB8A /* OpenAL.framework */; };
+		B2A783AF22E5EB4900F6F9CA /* VerticalGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2A783AD22E5EB4900F6F9CA /* VerticalGroup.cpp */; };
+		B2A783B322E69E1500F6F9CA /* AlignmentGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2A783B122E69E1500F6F9CA /* AlignmentGroup.cpp */; };
+		B2A783B622E6A10700F6F9CA /* HorizontalGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2A783B422E6A10700F6F9CA /* HorizontalGroup.cpp */; };
 		B2B4730B1F0E79930043D501 /* assets_ios in Resources */ = {isa = PBXBuildFile; fileRef = B2B4730A1F0E79930043D501 /* assets_ios */; };
 		B2D989B522760F4E00333277 /* IOSHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2D989B422760F4E00333277 /* IOSHelper.cpp */; };
 		B2E421882100D93A006F18A2 /* SampleScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2E421872100D93A006F18A2 /* SampleScene.cpp */; };
@@ -80,6 +84,8 @@
 		B215825022D10A3700B47A57 /* EntityCreator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = EntityCreator.cpp; sourceTree = "<group>"; };
 		B215825122D10A3700B47A57 /* EntityCreator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EntityCreator.h; sourceTree = "<group>"; };
 		B226B3A421CB75C800A3CFCF /* mogmalloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mogmalloc.h; sourceTree = "<group>"; };
+		B23F238822E948FF0041FA1B /* DrawableGroup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DrawableGroup.cpp; sourceTree = "<group>"; };
+		B23F238922E948FF0041FA1B /* DrawableGroup.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DrawableGroup.h; sourceTree = "<group>"; };
 		B2506FB11FFD073700237ECA /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		B25501F71F6D809E00D1353A /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		B26615671EF4FC9F004D1A1A /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
@@ -163,13 +169,13 @@
 		B26812CD20FDF94300AC7AAB /* Circle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Circle.cpp; sourceTree = "<group>"; };
 		B26812CF20FDF94300AC7AAB /* Line.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Line.h; sourceTree = "<group>"; };
 		B26812D020FDF94300AC7AAB /* SpriteSheet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpriteSheet.h; sourceTree = "<group>"; };
-		B26812D120FDF94300AC7AAB /* DrawableGroup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawableGroup.cpp; sourceTree = "<group>"; };
+		B26812D120FDF94300AC7AAB /* DrawableContainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawableContainer.cpp; sourceTree = "<group>"; };
 		B26812D220FDF94300AC7AAB /* Graphics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Graphics.h; sourceTree = "<group>"; };
 		B26812D320FDF94300AC7AAB /* Rectangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rectangle.h; sourceTree = "<group>"; };
 		B26812D420FDF94300AC7AAB /* AppBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AppBase.cpp; sourceTree = "<group>"; };
 		B26812D520FDF94300AC7AAB /* Group.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Group.cpp; sourceTree = "<group>"; };
 		B26812D620FDF94300AC7AAB /* RoundedRectangle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RoundedRectangle.cpp; sourceTree = "<group>"; };
-		B26812D720FDF94300AC7AAB /* DrawableGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DrawableGroup.h; sourceTree = "<group>"; };
+		B26812D720FDF94300AC7AAB /* DrawableContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DrawableContainer.h; sourceTree = "<group>"; };
 		B26812D820FDF94300AC7AAB /* Scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Scene.h; sourceTree = "<group>"; };
 		B26812DB20FDF94300AC7AAB /* ConstantsNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstantsNative.h; sourceTree = "<group>"; };
 		B26812DD20FDF94300AC7AAB /* PreferenceNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreferenceNative.h; sourceTree = "<group>"; };
@@ -211,6 +217,12 @@
 		B2A103421ED716DA00A2EB8A /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		B2A103441ED7170200A2EB8A /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		B2A1034A1ED725BD00A2EB8A /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		B2A783AD22E5EB4900F6F9CA /* VerticalGroup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VerticalGroup.cpp; sourceTree = "<group>"; };
+		B2A783AE22E5EB4900F6F9CA /* VerticalGroup.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VerticalGroup.h; sourceTree = "<group>"; };
+		B2A783B122E69E1500F6F9CA /* AlignmentGroup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AlignmentGroup.cpp; sourceTree = "<group>"; };
+		B2A783B222E69E1500F6F9CA /* AlignmentGroup.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlignmentGroup.h; sourceTree = "<group>"; };
+		B2A783B422E6A10700F6F9CA /* HorizontalGroup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HorizontalGroup.cpp; sourceTree = "<group>"; };
+		B2A783B522E6A10700F6F9CA /* HorizontalGroup.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HorizontalGroup.h; sourceTree = "<group>"; };
 		B2B4730A1F0E79930043D501 /* assets_ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets_ios; path = ../../assets_ios; sourceTree = "<group>"; };
 		B2D989B322760F4E00333277 /* IOSHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IOSHelper.h; sourceTree = "<group>"; };
 		B2D989B422760F4E00333277 /* IOSHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IOSHelper.cpp; sourceTree = "<group>"; };
@@ -355,14 +367,12 @@
 				B26812BE20FDF94300AC7AAB /* Circle.h */,
 				B26812C220FDF94300AC7AAB /* Drawable.cpp */,
 				B26812BC20FDF94300AC7AAB /* Drawable.h */,
-				B26812D120FDF94300AC7AAB /* DrawableGroup.cpp */,
-				B26812D720FDF94300AC7AAB /* DrawableGroup.h */,
+				B26812D120FDF94300AC7AAB /* DrawableContainer.cpp */,
+				B26812D720FDF94300AC7AAB /* DrawableContainer.h */,
 				B26812BF20FDF94300AC7AAB /* Entity.cpp */,
 				B26812CA20FDF94300AC7AAB /* Entity.h */,
 				B26812C520FDF94300AC7AAB /* Graphics.cpp */,
 				B26812D220FDF94300AC7AAB /* Graphics.h */,
-				B26812D520FDF94300AC7AAB /* Group.cpp */,
-				B26812C820FDF94300AC7AAB /* Group.h */,
 				B26812C620FDF94300AC7AAB /* Label.cpp */,
 				B26812BA20FDF94300AC7AAB /* Label.h */,
 				B26812B820FDF94300AC7AAB /* Line.cpp */,
@@ -383,8 +393,18 @@
 				B26812D020FDF94300AC7AAB /* SpriteSheet.h */,
 				B27A7ECC224B6431006FFE8D /* TiledSprite.cpp */,
 				B27A7ECB224B6431006FFE8D /* TiledSprite.h */,
+				B26812D520FDF94300AC7AAB /* Group.cpp */,
+				B26812C820FDF94300AC7AAB /* Group.h */,
 				B2ED15A5225F83E7009A7C26 /* ScrollGroup.cpp */,
 				B2ED15A6225F83E7009A7C26 /* ScrollGroup.h */,
+				B2A783AD22E5EB4900F6F9CA /* VerticalGroup.cpp */,
+				B2A783AE22E5EB4900F6F9CA /* VerticalGroup.h */,
+				B2A783B122E69E1500F6F9CA /* AlignmentGroup.cpp */,
+				B2A783B222E69E1500F6F9CA /* AlignmentGroup.h */,
+				B2A783B422E6A10700F6F9CA /* HorizontalGroup.cpp */,
+				B2A783B522E6A10700F6F9CA /* HorizontalGroup.h */,
+				B23F238822E948FF0041FA1B /* DrawableGroup.cpp */,
+				B23F238922E948FF0041FA1B /* DrawableGroup.h */,
 			);
 			path = base;
 			sourceTree = "<group>";
@@ -623,6 +643,7 @@
 				B215825222D10A3700B47A57 /* EntityCreator.cpp in Sources */,
 				B2ED15A7225F83E7009A7C26 /* ScrollGroup.cpp in Sources */,
 				B268130820FDF94300AC7AAB /* TextureAtlas.cpp in Sources */,
+				B2A783B622E6A10700F6F9CA /* HorizontalGroup.cpp in Sources */,
 				B268130020FDF94300AC7AAB /* Data.cpp in Sources */,
 				B268131C20FDF94300AC7AAB /* Label.cpp in Sources */,
 				B268132020FDF94300AC7AAB /* Circle.cpp in Sources */,
@@ -635,12 +656,14 @@
 				B268132820FDF94400AC7AAB /* mog_functions_native.mm in Sources */,
 				B268132C20FDF94400AC7AAB /* AudioPlayerNative.mm in Sources */,
 				B205EFF2228730440031B4B4 /* Screen.cpp in Sources */,
-				B268132120FDF94400AC7AAB /* DrawableGroup.cpp in Sources */,
+				B268132120FDF94400AC7AAB /* DrawableContainer.cpp in Sources */,
 				B268130320FDF94300AC7AAB /* Transform.cpp in Sources */,
 				B268130A20FDF94300AC7AAB /* Preference.cpp in Sources */,
 				B268130C20FDF94300AC7AAB /* Collision.cpp in Sources */,
+				B2A783AF22E5EB4900F6F9CA /* VerticalGroup.cpp in Sources */,
 				B268131020FDF94300AC7AAB /* json.c in Sources */,
 				B268132220FDF94400AC7AAB /* AppBase.cpp in Sources */,
+				B2A783B322E69E1500F6F9CA /* AlignmentGroup.cpp in Sources */,
 				B268131720FDF94300AC7AAB /* Entity.cpp in Sources */,
 				B268131120FDF94300AC7AAB /* aes.c in Sources */,
 				B26812FF20FDF94300AC7AAB /* FileUtils.cpp in Sources */,
@@ -649,6 +672,7 @@
 				B268132E20FDF94400AC7AAB /* MogEngineController.mm in Sources */,
 				B2A101771ED713DD00A2EB8A /* main.m in Sources */,
 				B268132A20FDF94400AC7AAB /* HttpNative.mm in Sources */,
+				B23F238A22E948FF0041FA1B /* DrawableGroup.cpp in Sources */,
 				B26812FA20FDF94300AC7AAB /* App.cpp in Sources */,
 				B268131B20FDF94300AC7AAB /* Graphics.cpp in Sources */,
 				B268130F20FDF94300AC7AAB /* mog_functions.cpp in Sources */,

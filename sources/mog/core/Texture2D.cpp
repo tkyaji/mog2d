@@ -82,6 +82,12 @@ Texture2D::~Texture2D() {
 void Texture2D::loadTextureAsset(std::string filename) {
     Density den = Density::x1_0;
     
+#ifdef NO_IMAGE
+    if (filename.length() == 0) {
+        filename = NO_IMAGE;
+    }
+#endif
+    
     auto data = this->readBytesAsset(filename, &den);
     unsigned char *value = nullptr;
     unsigned int length = 0;

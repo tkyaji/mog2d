@@ -14,15 +14,16 @@ namespace mog {
     class Scene : public std::enable_shared_from_this<Scene> {
         friend class AppBase;
     public:
-        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, unsigned char parentDirtyFlag = 0);
+        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, unsigned char parentDirtyFlag);
         virtual void drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches);
         void add(const std::shared_ptr<Drawable> &drawable);
-        void insertChildBefore(const std::shared_ptr<Drawable> &drawable, const std::shared_ptr<Drawable> &baseDrawable);
+        void insertBefore(const std::shared_ptr<Drawable> &drawable, const std::shared_ptr<Drawable> &baseDrawable);
+        void insertAfter(const std::shared_ptr<Drawable> &drawable, const std::shared_ptr<Drawable> &baseDrawable);
         void remove(const std::shared_ptr<Drawable> &drawable);
         void removeAll();
         std::shared_ptr<AppBase> getApp();
         std::shared_ptr<PubSub> getPubSub();
-        std::vector<std::shared_ptr<Drawable>> getChildDrawables();
+        std::shared_ptr<DrawableGroup> getRootDrawableGroup();
 
     protected:
         Scene();
@@ -34,7 +35,7 @@ namespace mog {
         virtual void onDisable() {};
         virtual void onUpdate(float delta) {};
         
-        std::shared_ptr<DrawableGroup> drawableGroup;
+        std::shared_ptr<DrawableGroup> rootGroup;
         std::shared_ptr<PubSub> pubsub;
         std::weak_ptr<AppBase> app;
         float matrix[20] = {
@@ -44,7 +45,7 @@ namespace mog {
             0, 0, 0, 1,
             1, 1, 1, 1,
         };
-        unsigned char dirtyFlag = 0;
+        unsigned char dirtyFlag = DIRTY_ALL;
         bool sortOrderDirty = false;
     };
 }

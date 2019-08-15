@@ -8,15 +8,15 @@ namespace mog {
     class Slice9Sprite : public Entity {
         friend class EntityCreator;
     public:
-        static std::shared_ptr<Slice9Sprite> create(std::string filename, const Rect &centerRect, const Size &size, const Rect &rect = Rect::zero);
-        static std::shared_ptr<Slice9Sprite> createWithTexture(const std::shared_ptr<Texture2D> &texture, const Rect &centerRect, const Size &size, const Rect &rect = Rect::zero);
+        static std::shared_ptr<Slice9Sprite> create(std::string filename, const Rect &centerRect, const Size &size = Size::zero, const Rect &rect = Rect::zero);
+        static std::shared_ptr<Slice9Sprite> createWithTexture(const std::shared_ptr<Texture2D> &texture, const Rect &centerRect, const Size &size = Size::zero, const Rect &rect = Rect::zero);
         static std::shared_ptr<Slice9Sprite> createWithSprite(const std::shared_ptr<Sprite> &sprite, const Rect &centerRect, const Size &size, const Rect &rect = Rect::zero);
 
         virtual void bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform = false) override;
         virtual void bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int *idx, int texIdx, float x, float y, float w, float h) override;
         
         std::string getFilename();
-        void setFilename(std::string filename);
+        void setFilename(std::string filename, bool withReset = false);
         Rect getRect();
         void setRect(const Rect &rect);
         Rect getCenterRect();

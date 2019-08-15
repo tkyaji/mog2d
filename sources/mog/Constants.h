@@ -31,13 +31,15 @@
 #define TEXTURE_MARGIN 1
 #define MULTI_TEXTURE_NUM 4
 
-#define DIRTY_VERTEX     0b00000001
-#define DIRTY_COLOR      0b00000010
-#define DIRTY_TEXTURE    0b00000100
-#define DIRTY_TEX_COORDS 0b00001000
-#define DIRTY_SIZE       0b00010000
-#define DIRTY_ANCHOR     0b00100000
-#define DIRTY_ALL        (DIRTY_VERTEX | DIRTY_COLOR | DIRTY_TEXTURE | DIRTY_TEX_COORDS | DIRTY_SIZE | DIRTY_ANCHOR)
+#define DIRTY_VERTEX        0b00000001
+#define DIRTY_COLOR         0b00000010
+#define DIRTY_TEXTURE       0b00000100
+#define DIRTY_TEX_COORDS    0b00001000
+#define DIRTY_RENDERER_ALL  (DIRTY_VERTEX | DIRTY_COLOR | DIRTY_TEXTURE | DIRTY_TEX_COORDS)
+#define DIRTY_SIZE          0b00010000
+#define DIRTY_ANCHOR        0b00100000
+#define DIRTY_ALL           (DIRTY_RENDERER_ALL | DIRTY_SIZE | DIRTY_ANCHOR)
+#define IN_BATCHING         0b01000000
 
 #define SET_IN_FIXED_VALUE      0b00000000
 #define SET_IN_RATIO_WIDTH      0b00000001
@@ -57,6 +59,7 @@
 #define PROP_KEY_SIZE_HEIGHT        "height"
 #define PROP_KEY_SIZE_SET_IN_RATIO  "sizeSetInRatio"
 #define PROP_KEY_COLOR              "color"
+#define PROP_KEY_ALPHA              "alpha"
 #define PROP_KEY_Z_INDEX            "zIndex"
 #define PROP_KEY_RADIUS             "radius"
 #define PROP_KEY_TEXT               "text"
@@ -81,6 +84,7 @@
 #define PROP_KEY_CENTER_RECT_HEIGHT "centerRect-height"
 #define PROP_KEY_ENABLE_BATCHING    "enableBatching"
 #define PROP_KEY_CHILD_ENTITIES     "childEntities"
+#define PROP_KEY_PADDING            "padding"
 
 #ifndef LOG_LEVEL
 #ifdef MOG_DEBUG

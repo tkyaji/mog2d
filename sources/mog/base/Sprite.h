@@ -25,7 +25,7 @@ namespace mog {
         static void clearCache();
         
         std::string getFilename();
-        void setFilename(std::string filename);
+        void setFilename(std::string filename, bool withReset = false);
         Rect getRect();
         void setRect(const Rect &rect);
         std::shared_ptr<Sprite> clone();

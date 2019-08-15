@@ -1,72 +1,87 @@
 #include "mog/base/DrawableGroup.h"
-#include <algorithm>
 
 using namespace mog;
 
-void DrawableGroup::addChild(const std::shared_ptr<Drawable> &drawable) {
-    if (this->drawableIdSet.count((uintptr_t)drawable.get()) > 0) return;
-    this->childDrawables.emplace_back(drawable);
-    this->drawableIdSet.insert((uintptr_t)drawable.get());
-    this->sortOrderDirty = true;
-    drawable->parentDrawableGroup = shared_from_this();
-    if (this->addChildListener) {
-        this->addChildListener(drawable);
+std::shared_ptr<DrawableGroup> DrawableGroup::create() {
+    auto group = std::shared_ptr<DrawableGroup>(new DrawableGroup());
+    group->init();
+    return group;
+}
+
+DrawableGroup::DrawableGroup() {
+    this->drawableContainer = std::make_shared<DrawableContainer>();
+    this->drawableContainer->addChildListener = [this](const std::shared_ptr<Drawable> &drawable) {
+        drawable->group = shared_from_this();
+    };
+    this->drawableContainer->removeChildListener = [this](const std::shared_ptr<Drawable> &drawable) {
+        drawable->group.reset();
+    };
+}
+
+void DrawableGroup::init() {
+    this->dirtyFlag |= DIRTY_ALL;
+}
+
+void DrawableGroup::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag) {
+    this->drawableContainer->sortChildDrawablesToDraw();
+    Drawable::updateFrame(engine, delta, parentMatrix, parentDirtyFlag);
+    for (const auto &drawable : this->drawableContainer->sortedChildDrawables) {
+        drawable->updateFrame(engine, delta, this->renderer->matrix, this->dirtyFlag);
     }
 }
 
-void DrawableGroup::insertChildBefore(const std::shared_ptr<Drawable> &drawable, const std::shared_ptr<Drawable> &baseDrawable) {
-    if (this->drawableIdSet.count((uintptr_t)drawable.get()) > 0) return;
-    auto it = std::find(this->childDrawables.begin(), this->childDrawables.end(), baseDrawable);
-    this->childDrawables.insert(it, drawable);
-    this->sortOrderDirty = true;
-    drawable->parentDrawableGroup = shared_from_this();
-    if (this->addChildListener) {
-        this->addChildListener(drawable);
-    }
-}
-
-void DrawableGroup::removeChild(const std::shared_ptr<Drawable> &drawable) {
-    this->childDrawables.erase(std::remove(this->childDrawables.begin(), this->childDrawables.end(), drawable), this->childDrawables.end());
-    this->drawableIdSet.erase((uintptr_t)drawable.get());
-    this->sortOrderDirty = true;
-    drawable->parentDrawableGroup.reset();
-    if (this->removeChildListener) {
-        this->removeChildListener(drawable);
-    }
-}
-
-void DrawableGroup::removeAllChildren() {
-    this->childDrawables.clear();
-    this->sortedChildDrawables.clear();
-    this->drawableIdSet.clear();
-    this->sortOrderDirty = true;
-    for (auto d : this->childDrawables) {
-        d->parentDrawableGroup.reset();
-        if (this->removeChildListener) {
-            this->removeChildListener(d);
+void DrawableGroup::drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches) {
+    if (!this->active) return;
+    
+    for (const auto &drawable : this->drawableContainer->sortedChildDrawables) {
+        if (((this->dirtyFlag | drawable->dirtyFlag) & DIRTY_VERTEX) == DIRTY_VERTEX) {
+            Transform::multiplyMatrix(drawable->transform->matrix, this->renderer->matrix, drawable->renderer->matrix);
         }
+        if (((this->dirtyFlag | drawable->dirtyFlag) & DIRTY_COLOR) == DIRTY_COLOR) {
+            Transform::multiplyColor(drawable->transform->matrix, this->renderer->matrix, drawable->renderer->matrix);
+        }
+
+        drawable->drawFrame(delta, touches);
+    }
+    
+    this->dirtyFlag = 0;
+}
+
+void DrawableGroup::updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) {
+    Drawable::updateMatrix(parentMatrix, parentDirtyFlag);
+    unsigned char dirtyFlag = (this->dirtyFlag | parentDirtyFlag);
+    float matrix[16];
+    Transform::multiplyMatrix(this->renderer->matrix, parentMatrix, matrix);
+    for (const auto &drawable : this->drawableContainer->sortedChildDrawables) {
+        drawable->updateMatrix(matrix, dirtyFlag);
     }
 }
 
-void DrawableGroup::sortChildDrawablesToDraw() {
-    if (!this->sortOrderDirty) return;
-    
-    this->sortedChildDrawables.clear();
-    this->sortedChildDrawables.reserve(this->childDrawables.size());
-    std::unordered_map<uintptr_t, unsigned int> drawableIndexes;
-    drawableIndexes.reserve(this->childDrawables.size());
-    for (int i = 0; i < this->childDrawables.size(); i++) {
-        auto drawable = this->childDrawables[i];
-        this->sortedChildDrawables.emplace_back(drawable);
-        drawableIndexes[(uintptr_t)drawable.get()] = i;
-    }
-    sort(this->sortedChildDrawables.begin(), this->sortedChildDrawables.end(),
-         [&drawableIndexes](const std::shared_ptr<Drawable> &d1, const std::shared_ptr<Drawable> &d2) {
-             if (d1->getZIndex() == d2->getZIndex()) {
-                 return drawableIndexes[(uintptr_t)d1.get()] < drawableIndexes[(uintptr_t)d2.get()];
-             }
-             return d1->getZIndex() < d2->getZIndex();
-         });
-    
-    this->sortOrderDirty = false;
+void DrawableGroup::add(const std::shared_ptr<Drawable> &drawable) {
+    this->drawableContainer->addChild(drawable);
+    this->dirtyFlag |= DIRTY_ALL;
+}
+
+void DrawableGroup::insertBefore(const std::shared_ptr<Drawable> &drawable, const std::shared_ptr<Drawable> &baseDrawable) {
+    this->drawableContainer->insertChildBefore(drawable, baseDrawable);
+    this->dirtyFlag |= DIRTY_ALL;
+}
+
+void DrawableGroup::insertAfter(const std::shared_ptr<Drawable> &drawable, const std::shared_ptr<Drawable> &baseDrawable) {
+    this->drawableContainer->insertChildAfter(drawable, baseDrawable);
+    this->dirtyFlag |= DIRTY_ALL;
+}
+
+void DrawableGroup::remove(const std::shared_ptr<Drawable> &drawable) {
+    this->drawableContainer->removeChild(drawable);
+    this->dirtyFlag |= DIRTY_ALL;
+}
+
+void DrawableGroup::removeAll() {
+    this->drawableContainer->removeAllChildren();
+    this->dirtyFlag |= DIRTY_ALL;
+}
+
+std::vector<std::shared_ptr<Drawable>> DrawableGroup::getChildDrawables() {
+    return this->drawableContainer->childDrawables;
 }

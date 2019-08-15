@@ -152,7 +152,23 @@ namespace mog {
         bool isReservedLoadScene = false;
         LoadSceneParams loadSceneParams;
         std::shared_ptr<SceneTransition> sceneTransition = nullptr;
-        
+        float currentMatrix[20] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1,
+            1, 1, 1, 1,
+        };
+        float nextMatrix[20] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1,
+            1, 1, 1, 1,
+        };
+        unsigned char currentDirtyFlag = 0;
+        unsigned char nextDirtyFlag = 0;
+
         void reserveLoadScene(const std::shared_ptr<Scene> &scene, Transition transition, float duration, Easing easing, LoadMode loadMode);
         bool doLoadScene();
         

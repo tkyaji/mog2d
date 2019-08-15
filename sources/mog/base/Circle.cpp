@@ -35,6 +35,8 @@ void Circle::init() {
     this->textures[0] = Texture2D::createWithRGBA(data, texWidth, texHeight, Screen::getDensity());
     this->rect = Rect(Point::zero, this->size);
     this->initRendererVertices(9, 12);
+    
+    this->dirtyFlag |= (DIRTY_ALL | DIRTY_SIZE | DIRTY_ANCHOR);
 }
 
 void Circle::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) {
@@ -100,7 +102,6 @@ float Circle::getRadius() {
 void Circle::setRadius(float radius) {
     this->radius = radius;
     this->init();
-    this->dirtyFlag |= DIRTY_ALL;
 }
 
 std::shared_ptr<CIRCLE> Circle::getCIRCLE() {

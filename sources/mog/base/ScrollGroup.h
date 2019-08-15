@@ -14,7 +14,7 @@ namespace mog {
     public:
         static std::shared_ptr<ScrollGroup> create(const Size &contentSize, unsigned char scrollFlag = SCROLL_BOTH);
         
-        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag = 0) override;
+        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, float *parentRendererMatrix, unsigned char parentDirtyFlag) override;
         virtual void drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches) override;
         virtual void add(const std::shared_ptr<Entity> &entity) override;
         virtual void remove(const std::shared_ptr<Entity> &entity) override;

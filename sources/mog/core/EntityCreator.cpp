@@ -10,6 +10,8 @@
 #include "mog/base/TiledSprite.h"
 #include "mog/base/Group.h"
 #include "mog/base/ScrollGroup.h"
+#include "mog/base/VerticalGroup.h"
+#include "mog/base/HorizontalGroup.h"
 
 using namespace mog;
 
@@ -63,6 +65,14 @@ std::shared_ptr<Entity> EntityCreator::create(EntityType entityType, const std::
 
         case EntityType::ScrollGroup:
             entity = std::shared_ptr<ScrollGroup>(new ScrollGroup());
+            break;
+            
+        case EntityType::VerticalGroup:
+            entity = std::shared_ptr<VerticalGroup>(new VerticalGroup());
+            break;
+
+        case EntityType::HorizontalGroup:
+            entity = std::shared_ptr<HorizontalGroup>(new HorizontalGroup());
             break;
     }
     

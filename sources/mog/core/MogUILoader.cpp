@@ -17,7 +17,18 @@ static std::unordered_map<int, std::string> entityTypeMap = {
     { (int)EntityType::TiledSprite,      "TiledSprite"},
     { (int)EntityType::Group,            "Group"},
     { (int)EntityType::ScrollGroup,      "ScrollGroup"},
+    { (int)EntityType::VerticalGroup,    "VerticalGroup"},
+    { (int)EntityType::HorizontalGroup,  "HorizontalGroup"},
 };
+
+static bool isGroupType(EntityType entityType) {
+    if (entityType == EntityType::Group) return true;
+    if (entityType == EntityType::ScrollGroup) return true;
+    if (entityType == EntityType::VerticalGroup) return true;
+    if (entityType == EntityType::HorizontalGroup) return true;
+
+    return false;
+}
 
 MogUILoader::Param::Param(std::string name, std::string propertyKey, const std::shared_ptr<Data> &propertyValue) {
     this->init(name, propertyKey, propertyValue);
@@ -101,7 +112,7 @@ void MogUILoader::dictToGroupJsonString(const std::shared_ptr<Dictionary> &dict,
         auto entityDict = childEntityList->at<Dictionary>(i);
         auto entityType = (EntityType)entityDict->get<Int>("entityType")->getValue();
         
-        if (entityType == EntityType::Group) {
+        if (isGroupType(entityType)) {
             dictToGroupJsonString(entityDict, jsonStr);
             
         } else {

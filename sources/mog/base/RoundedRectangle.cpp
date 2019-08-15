@@ -25,7 +25,6 @@ float RoundedRectangle::getCornerRadius() {
 void RoundedRectangle::setCornerRadius(float cornerRadius) {
     this->cornerRadius = cornerRadius;
     this->init();
-    this->dirtyFlag |= DIRTY_ALL;
 }
 
 unsigned char RoundedRectangle::getCornerFlag() {
@@ -35,7 +34,6 @@ unsigned char RoundedRectangle::getCornerFlag() {
 void RoundedRectangle::setCornerFlag(unsigned char cornerFlag) {
     this->cornerFlag = cornerFlag;
     this->init();
-    this->dirtyFlag |= DIRTY_ALL;
 }
 
 void RoundedRectangle::init() {
@@ -71,6 +69,8 @@ void RoundedRectangle::init() {
     this->textures[0] = Texture2D::createWithRGBA(data, texWidth, texHeight, Screen::getDensity());
     this->rect = Rect(Point::zero, this->size);
     this->initRendererVertices(25, 40);
+
+    this->dirtyFlag |= (DIRTY_ALL | DIRTY_SIZE | DIRTY_ANCHOR);
 }
 
 void RoundedRectangle::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) {

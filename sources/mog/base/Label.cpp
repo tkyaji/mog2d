@@ -36,10 +36,8 @@ void Label::init() {
     this->size.height = this->textures[0]->height / this->textures[0]->density.value;
 
     this->initRendererVertices(4, 4);
-    this->dirtyFlag |= DIRTY_ALL;
+    this->dirtyFlag |= (DIRTY_ALL | DIRTY_SIZE | DIRTY_ANCHOR);
 }
-
-
 
 void Label::setText(std::string text) {
     this->text = text;

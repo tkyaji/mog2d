@@ -132,7 +132,7 @@ void AppBase::loadSceneMain(const std::shared_ptr<Scene> &scene, Transition tran
 void AppBase::loadSceneWithFade(const std::shared_ptr<Scene> &scene, float duration, Easing easing, LoadMode loadMode) {
     auto f = [](std::shared_ptr<mog::Scene> current, std::shared_ptr<mog::Scene> next, float value) {
         if (value < 0.5f) {
-            float v = 1.0 - value / 0.5f;
+            float v = 1.0f - value / 0.5f;
             current->matrix[16] = v;
             current->matrix[17] = v;
             current->matrix[18] = v;
@@ -363,18 +363,18 @@ bool AppBase::SceneTransition::update(float delta) {
     std::map<unsigned int, TouchInput> touches;
     if (this->loaded) {
         if (this->sceneOrder == SceneOrder::CurrentNext) {
-            this->currentScene->updateFrame(engine, 0);
+            this->currentScene->updateFrame(engine, 0, 0);
             this->currentScene->drawFrame(0, touches);
-            this->nextScene->updateFrame(engine, 0);
+            this->nextScene->updateFrame(engine, 0, 0);
             this->nextScene->drawFrame(0, touches);
         } else {
-            this->nextScene->updateFrame(engine, 0);
+            this->nextScene->updateFrame(engine, 0, 0);
             this->nextScene->drawFrame(0, touches);
-            this->currentScene->updateFrame(engine, 0);
+            this->currentScene->updateFrame(engine, 0, 0);
             this->currentScene->drawFrame(0, touches);
         }
     } else {
-        this->currentScene->updateFrame(engine, 0);
+        this->currentScene->updateFrame(engine, 0, 0);
         this->currentScene->drawFrame(0, touches);
     }
     if (this->elapsedTime >= this->duration) {

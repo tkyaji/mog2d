@@ -30,6 +30,7 @@ std::shared_ptr<Slice9Sprite> Slice9Sprite::createWithSprite(const std::shared_p
 void Slice9Sprite::init() {
     auto texture = Texture2D::createWithAsset(filename);
     this->initWithTexture(texture);
+    this->dirtyFlag |= (DIRTY_ALL | DIRTY_SIZE | DIRTY_ANCHOR);
 }
 
 void Slice9Sprite::initWithTexture(const std::shared_ptr<Texture2D> &texture) {
@@ -48,12 +49,13 @@ std::string Slice9Sprite::getFilename() {
     return this->filename;
 }
 
-void Slice9Sprite::setFilename(std::string filename) {
+void Slice9Sprite::setFilename(std::string filename, bool withReset) {
     this->filename = filename;
-    this->rect = Rect::zero;
-    this->size = Size::zero;
+    if (withReset) {
+        this->rect = Rect::zero;
+        this->size = Size::zero;
+    }
     this->init();
-    this->dirtyFlag = DIRTY_ALL;
 }
 
 Rect Slice9Sprite::getRect() {
@@ -63,7 +65,6 @@ Rect Slice9Sprite::getRect() {
 void Slice9Sprite::setRect(const Rect &rect) {
     this->rect = rect;
     this->init();
-    this->dirtyFlag = DIRTY_ALL;
 }
 
 Rect Slice9Sprite::getCenterRect() {
@@ -73,7 +74,6 @@ Rect Slice9Sprite::getCenterRect() {
 void Slice9Sprite::setCenterRect(const Rect &centerRect) {
     this->centerRect = centerRect;
     this->init();
-    this->dirtyFlag = DIRTY_ALL;
 }
 
 void Slice9Sprite::bindVertices(const std::shared_ptr<Renderer> &renderer, int *verticesIdx, int *indicesIdx, bool bakeTransform) {
@@ -181,7 +181,7 @@ std::shared_ptr<Dictionary> Slice9Sprite::serialize() {
     dict->put(PROP_KEY_RECT_WIDTH, Float::create(this->rect.size.width));
     dict->put(PROP_KEY_RECT_HEIGHT, Float::create(this->rect.size.height));
     dict->put(PROP_KEY_CENTER_RECT_X, Float::create(this->centerRect.position.x));
-    dict->put(PROP_KEY_CENTER_RECT_Y, Float::create(this->centerRect.position.x));
+    dict->put(PROP_KEY_CENTER_RECT_Y, Float::create(this->centerRect.position.y));
     dict->put(PROP_KEY_CENTER_RECT_WIDTH, Float::create(this->centerRect.size.width));
     dict->put(PROP_KEY_CENTER_RECT_HEIGHT, Float::create(this->centerRect.size.height));
     return dict;

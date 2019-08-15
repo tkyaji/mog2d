@@ -1,5 +1,5 @@
 #include "mog/base/Drawable.h"
-#include "mog/base/DrawableGroup.h"
+#include "mog/base/DrawableContainer.h"
 #include "mog/core/MogStats.h"
 #include <string.h>
 
@@ -19,18 +19,28 @@ void Drawable::updateFrame(const std::shared_ptr<Engine> &engine, float delta, f
     this->onUpdate(delta);
     this->updateTween(delta);
     this->renderer->initScreenParameters();
-    this->dirtyFlag |= parentDirtyFlag;
-    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
-        this->dirtyFlag |= (DIRTY_SIZE | DIRTY_ANCHOR);
+
+    unsigned char mergedDirtyFlag = (this->dirtyFlag | parentDirtyFlag);
+    
+    if ((mergedDirtyFlag & (DIRTY_SIZE | DIRTY_ANCHOR)) > 0) {
         this->updateTransform();
+    }
+    
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
         this->transform->updateMatrix();
-        memcpy(this->renderer->matrix, this->transform->matrix, sizeof(float) * 16);
-        Transform::multiplyMatrix(this->transform->matrix, parentMatrix, this->matrix);
     }
     if ((this->dirtyFlag & DIRTY_COLOR) == DIRTY_COLOR) {
         this->transform->updateColor();
-        memcpy(&this->renderer->matrix[16], &this->transform->matrix[16], sizeof(float) * 4);
     }
+    
+    if ((mergedDirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
+        Transform::multiplyMatrix(this->transform->matrix, parentMatrix, this->renderer->matrix);
+    }
+    if ((mergedDirtyFlag & DIRTY_COLOR) == DIRTY_COLOR) {
+        Transform::multiplyColor(this->transform->matrix, parentMatrix, this->renderer->matrix);
+    }
+    
+    this->dirtyFlag |= parentDirtyFlag;
 }
 
 void Drawable::drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches) {
@@ -154,9 +164,12 @@ Point Drawable::getPosition() {
     return this->transform->position;
 }
 
-Point Drawable::getPosition(const Point &pivot) {
+Point Drawable::getPosition(const Point &pivot, const Point &anchor) {
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
+        this->updateTransform();
+    }
     Point basePosition = this->transform->position - this->transform->size * this->transform->scale * this->transform->pivot;
-    return basePosition + this->transform->size * this->transform->scale * pivot;
+    return basePosition + this->transform->size * this->transform->scale * pivot + this->transform->offset;
 }
 
 float Drawable::getPositionX() {
@@ -357,7 +370,7 @@ float Drawable::getRealHeight() {
 
 void Drawable::setZIndex(int zIndex) {
     if (this->zIndex != zIndex) {
-        if (auto dg = this->parentDrawableGroup.lock()) {
+        if (auto dg = this->parentDrawableContainer.lock()) {
             dg->sortOrderDirty = true;
         }
     }
@@ -375,6 +388,28 @@ void Drawable::setActive(bool active) {
 
 bool Drawable::isActive() {
     return this->active;
+}
+
+void Drawable::updateMatrix() {
+    if (auto g = this->group.lock()) {
+        g->updateMatrix();
+    } else {
+        this->updateMatrix(Renderer::identityMatrix, 0);
+    }
+}
+
+void Drawable::updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) {
+    unsigned char mergedDirtyFlag = (this->dirtyFlag | parentDirtyFlag);
+    
+    if ((mergedDirtyFlag & (DIRTY_SIZE | DIRTY_ANCHOR)) > 0) {
+        this->updateTransform();
+    }
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
+        this->transform->updateMatrix();
+    }
+    if ((dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
+        Transform::multiplyMatrix(this->transform->matrix, parentMatrix, this->renderer->matrix);
+    }
 }
 
 void Drawable::runTween(const std::shared_ptr<Tween> &tween) {
@@ -395,7 +430,7 @@ void Drawable::cancelAllTweens() {
 }
 
 void Drawable::removeFromParent() {
-    if (auto dg = this->parentDrawableGroup.lock()) {
+    if (auto dg = this->parentDrawableContainer.lock()) {
         dg->removeChild(shared_from_this());
     }
 }
@@ -408,12 +443,18 @@ std::shared_ptr<Transform> Drawable::getTransform() {
     return this->transform;
 }
 
-unsigned char Drawable::getDirtyFlag() {
-    return this->dirtyFlag;
+unsigned char Drawable::getDirtyFlag(bool withParent) {
+    unsigned char dirtyFlag = this->dirtyFlag;
+    if (withParent) {
+        if (auto g = this->group.lock()) {
+            dirtyFlag |= g->getDirtyFlag(true);
+        }
+    }
+    return dirtyFlag;
 }
 
 float *Drawable::getMatrix() {
-    return this->matrix;
+    return this->renderer->matrix;
 }
 
 std::shared_ptr<Texture2D> Drawable::getTexture(int textureIdx) {
@@ -427,17 +468,24 @@ void Drawable::setTexture(int textureIdx, const std::shared_ptr<Texture2D> &text
 }
 
 void Drawable::updateTransform() {
+    Size parentSize;
+    if (auto parent = this->group.lock()) {
+        parentSize = parent->getRealSize();
+    } else {
+        parentSize = Screen::getSize();
+    }
+
     if ((this->dirtyFlag & DIRTY_ANCHOR) == DIRTY_ANCHOR) {
-        this->transform->offset = Screen::getSize() * this->anchor;
+        this->transform->offset = parentSize* this->anchor;
     }
     
     if ((this->dirtyFlag & DIRTY_SIZE) == DIRTY_SIZE) {
         auto size = this->size;
         if ((this->sizeSetInRatioFlag & SET_IN_RATIO_WIDTH) == SET_IN_RATIO_WIDTH) {
-            size.width = Screen::getSize().width * size.width;
+            size.width = parentSize.width * size.width;
         }
         if ((this->sizeSetInRatioFlag & SET_IN_RATIO_HEIGHT) == SET_IN_RATIO_HEIGHT) {
-            size.height = Screen::getSize().height * size.height;
+            size.height = parentSize.height * size.height;
         }
         this->transform->size = size;
     }

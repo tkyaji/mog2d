@@ -5,11 +5,20 @@
 using namespace mog;
 
 void Entity::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag) {
-    Drawable::updateFrame(engine, delta, parentMatrix, parentDirtyFlag);
-    this->extractEvent(engine, delta);
-    if (((this->dirtyFlag | parentDirtyFlag) & DIRTY_VERTEX) == DIRTY_VERTEX) {
+    this->updateFrame(engine, delta, parentMatrix, parentMatrix, parentDirtyFlag);
+}
+
+void Entity::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, float *parentRendererMatrix, unsigned char parentDirtyFlag) {
+    this->dirtyFlag |= parentDirtyFlag;
+    Drawable::updateFrame(engine, delta, parentRendererMatrix, parentDirtyFlag);
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
+        Transform::multiplyMatrix(this->transform->matrix, parentMatrix, this->matrix);
         this->collider = nullptr;
     }
+    if ((this->dirtyFlag & DIRTY_COLOR) == DIRTY_COLOR) {
+        Transform::multiplyColor(this->transform->matrix, parentMatrix, this->matrix);
+    }
+    this->extractEvent(engine, delta);
 }
 
 void Entity::extractEvent(const std::shared_ptr<Engine> &engine, float delta) {
@@ -44,7 +53,7 @@ void Entity::bindVertex() {
         }
         if ((this->dirtyFlag & DIRTY_TEX_COORDS) == DIRTY_TEX_COORDS) {
             int vertexTexCoordsIdx = 0;
-            if (!this->renderer->vertexTexCoords[i]) this->renderer->newVertexTexCoordsArr();
+            if (!this->renderer->vertexTexCoords[i]) this->renderer->newVertexTexCoordsArr(i);
             this->bindVertexTexCoords(this->renderer, &vertexTexCoordsIdx, 0, 0, 0, 1.0f, 1.0f);
             this->renderer->bindVertexTexCoords(i);
             this->renderer->bindTexture(this->textures[i], i);
@@ -122,16 +131,17 @@ void Entity::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int 
     }
 }
 
-void Entity::updateMatrix() {
-    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
+void Entity::updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) {
+    unsigned char mergedDirtyFlag = (this->dirtyFlag | parentDirtyFlag);
+    
+    if ((mergedDirtyFlag & (DIRTY_SIZE | DIRTY_ANCHOR)) > 0) {
         this->updateTransform();
+    }
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
         this->transform->updateMatrix();
     }
-    if (auto parent = this->group.lock()) {
-        parent->updateMatrix();
-        Transform::multiplyMatrix(this->transform->matrix, parent->matrix, this->matrix);
-    } else {
-        memcpy(this->matrix, this->transform->matrix, sizeof(float) * 16);
+    if ((dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
+        Transform::multiplyMatrix(this->transform->matrix, parentMatrix, this->matrix);
     }
 }
 
@@ -152,8 +162,8 @@ void Entity::setTag(std::string tag) {
 }
 
 std::shared_ptr<Group> Entity::getGroup() {
-    if (auto dg = this->parentDrawableGroup.lock()) {
-        if (auto g = this->group.lock()) {
+    if (auto d = this->group.lock()) {
+        if (auto g = std::dynamic_pointer_cast<Group>(d)) {
             return g;
         }
     }
@@ -161,12 +171,12 @@ std::shared_ptr<Group> Entity::getGroup() {
 }
 
 Point Entity::getAbsolutePosition() {
-    this->updateMatrix();
+    Drawable::updateMatrix();
     return Point(this->matrix[12], this->matrix[13]);
 }
 
 Size Entity::getAbsoluteSize() {
-    this->updateMatrix();
+    Drawable::updateMatrix();
     float scaleX = sqrt(this->matrix[0] * this->matrix[0] +
                         this->matrix[1] * this->matrix[1]);
     float scaleY = sqrt(this->matrix[4] * this->matrix[4] +
@@ -175,7 +185,7 @@ Size Entity::getAbsoluteSize() {
 }
 
 Point Entity::getAbsoluteScale() {
-    this->updateMatrix();
+    Drawable::updateMatrix();
     float scaleX = sqrt(this->matrix[0] * this->matrix[0] +
                         this->matrix[1] * this->matrix[1]);
     float scaleY = sqrt(this->matrix[4] * this->matrix[4] +
@@ -255,6 +265,10 @@ bool Entity::isTouchEnable() {
     return this->touchEnable;
 }
 
+float *Entity::getMatrix() {
+    return this->matrix;
+}
+
 std::shared_ptr<Collider> Entity::getCollider() {
     if (this->collider) return this->collider;
     this->collider = std::shared_ptr<Collider>(new Collider(ColliderShape::Rect));
@@ -296,30 +310,6 @@ std::shared_ptr<AABB> Entity::getAABB() {
     return std::shared_ptr<AABB>(new AABB(offset.x + minP.x, offset.y + minP.y, offset.x + maxP.x, offset.y + maxP.y));
 }
 
-void Entity::updateTransform() {
-    if (auto parent = this->group.lock()) {
-        if ((this->dirtyFlag & DIRTY_ANCHOR) == DIRTY_ANCHOR) {
-            this->transform->offset = parent->getRealSize() * this->anchor;
-        }
-        
-        if ((this->dirtyFlag & DIRTY_SIZE) == DIRTY_SIZE) {
-            auto size = this->size;
-            if ((this->sizeSetInRatioFlag & SET_IN_RATIO_WIDTH) == SET_IN_RATIO_WIDTH) {
-                size.width = parent->getRealSize().width * size.width;
-            }
-            if ((this->sizeSetInRatioFlag & SET_IN_RATIO_HEIGHT) == SET_IN_RATIO_HEIGHT) {
-                size.height = parent->getRealSize().height * size.height;
-            }
-            this->transform->size = size;
-        }
-        
-        this->dirtyFlag = (this->dirtyFlag & ~(DIRTY_ANCHOR | DIRTY_SIZE));
-        
-    } else {
-        Drawable::updateTransform();
-    }
-}
-
 void Entity::copyProperties(const std::shared_ptr<Entity> &entity) {
     this->setTag(entity->getTag());
     this->setPivot(entity->getPivot());
@@ -349,6 +339,7 @@ std::shared_ptr<Dictionary> Entity::serialize() {
     dict->put(PROP_KEY_SIZE_HEIGHT, Float::create(this->size.height));
     dict->put(PROP_KEY_SIZE_SET_IN_RATIO, Int::create((int)this->sizeSetInRatioFlag));
     dict->put(PROP_KEY_COLOR, String::create(this->getColorCode()));
+    dict->put(PROP_KEY_ALPHA, Float::create(this->getColorA()));
     dict->put(PROP_KEY_Z_INDEX, Int::create(this->zIndex));
     return dict;
 }
@@ -366,5 +357,10 @@ void Entity::deserializeData(const std::shared_ptr<Dictionary> &dict, const std:
     this->size.height = this->getPropertyData<Float>(dict, PROP_KEY_SIZE_HEIGHT, params)->getValue();
     this->sizeSetInRatioFlag = (unsigned char)this->getPropertyData<Int>(dict, PROP_KEY_SIZE_SET_IN_RATIO, params)->getValue();
     this->transform->color = Color(this->getPropertyData<String>(dict, PROP_KEY_COLOR, params)->getValue());
+    this->transform->color.a = this->getPropertyData<Float>(dict, PROP_KEY_ALPHA, params)->getValue();
     this->zIndex = this->getPropertyData<Int>(dict, PROP_KEY_Z_INDEX, params)->getValue();
+}
+
+bool Entity::isGroup() {
+    return false;
 }

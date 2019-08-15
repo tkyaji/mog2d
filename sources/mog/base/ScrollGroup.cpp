@@ -69,13 +69,13 @@ void ScrollGroup::init() {
     this->addTouchEvent(listener);
 }
 
-void ScrollGroup::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag) {
+void ScrollGroup::updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, float *parentRendererMatrix, unsigned char parentDirtyFlag) {
     if (!this->dragging && (abs(this->velocity.x) >= 0.00001f || abs(this->velocity.y) >= 0.00001f)) {
         this->setScrollPosition(this->contentGroup->getPosition() + this->velocity);
         this->velocity *= 0.9f;
     }
 
-    Group::updateFrame(engine, delta, parentMatrix, parentDirtyFlag);
+    Group::updateFrame(engine, delta, parentMatrix, parentRendererMatrix, parentDirtyFlag);
 }
 
 void ScrollGroup::drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches) {

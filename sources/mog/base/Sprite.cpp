@@ -72,12 +72,13 @@ std::string Sprite::getFilename() {
     return this->filename;
 }
 
-void Sprite::setFilename(std::string filename) {
+void Sprite::setFilename(std::string filename, bool withReset) {
     this->filename = filename;
-    this->rect = Rect::zero;
-    this->size = Size::zero;
+    if (withReset) {
+        this->rect = Rect::zero;
+        this->size = Size::zero;
+    }
     this->init();
-    this->dirtyFlag = DIRTY_ALL;
 }
 
 Rect Sprite::getRect() {
@@ -87,7 +88,6 @@ Rect Sprite::getRect() {
 void Sprite::setRect(const Rect &rect) {
     this->rect = rect;
     this->init();
-    this->dirtyFlag = DIRTY_ALL;
 }
 
 void Sprite::init() {
@@ -108,6 +108,7 @@ void Sprite::init() {
     }
 
     this->initRendererVertices(4, 4);
+    this->dirtyFlag |= (DIRTY_ALL | DIRTY_SIZE | DIRTY_ANCHOR);
 }
 
 void Sprite::initWithFilePath(std::string filepath, const Rect &rect, Density density) {

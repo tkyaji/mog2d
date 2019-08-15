@@ -12,11 +12,14 @@
 extern void *enabler;
 
 namespace mog {
+    class DrawableContainer;
     class DrawableGroup;
     
     class Drawable : public std::enable_shared_from_this<Drawable> {
         friend class Scene;
+        friend class DrawableContainer;
         friend class DrawableGroup;
+        
     public:
         ~Drawable();
         
@@ -39,7 +42,7 @@ namespace mog {
         virtual void setPositionX(float x);
         virtual void setPositionY(float y);
         virtual Point getPosition();
-        virtual Point getPosition(const Point &pivot);
+        virtual Point getPosition(const Point &pivot, const Point &anchor);
         virtual float getPositionX();
         virtual float getPositionY();
         virtual void setScale(float scale);
@@ -84,7 +87,7 @@ namespace mog {
         void cancelTween(unsigned int tweenId);
         void cancelAllTweens();
         void removeFromParent();
-        
+
         template <class T, typename std::enable_if<std::is_base_of<Drawable, T>::value>::type*& = enabler>
         std::shared_ptr<T> cast() {
             return std::static_pointer_cast<T>(shared_from_this());
@@ -92,9 +95,11 @@ namespace mog {
         
         virtual std::shared_ptr<Renderer> getRenderer();
         virtual std::shared_ptr<Transform> getTransform();
-        virtual unsigned char getDirtyFlag();
+        virtual unsigned char getDirtyFlag(bool withParent = false);
         virtual float *getMatrix();
-        
+        virtual void updateMatrix();
+        virtual void updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag);
+
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         void setParam(const std::shared_ptr<T> &param) {
             this->param = param;
@@ -104,7 +109,7 @@ namespace mog {
             return std::static_pointer_cast<T>(this->param);
         }
 
-        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag = 0);
+        virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag);
         virtual void drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches);
         virtual void updateTween(float delta);
         std::shared_ptr<Texture2D> getTexture(int textureIdx = 0);
@@ -122,19 +127,14 @@ namespace mog {
         Point anchor = Point::zero;
         unsigned char sizeSetInRatioFlag = SET_IN_FIXED_VALUE;
         std::array<std::shared_ptr<Texture2D>, MULTI_TEXTURE_NUM> textures;
-        unsigned char dirtyFlag = DIRTY_ALL;
-        
-        std::weak_ptr<DrawableGroup> parentDrawableGroup;
+        unsigned char dirtyFlag = (DIRTY_ALL | DIRTY_SIZE | DIRTY_ANCHOR);
+        std::weak_ptr<Drawable> group;
+
+        std::weak_ptr<DrawableContainer> parentDrawableContainer;
         int zIndex = 0;
         
         std::shared_ptr<Data> param;
         bool active = true;
-        float matrix[16] = {
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1,
-        };
         std::unordered_map<unsigned int, std::shared_ptr<Tween>> tweens;
         std::vector<unsigned int> tweenIdsToRemove;
         

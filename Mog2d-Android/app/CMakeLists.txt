@@ -40,13 +40,18 @@ add_library(
     ${PROJ_DIR}/sources/mog/core/mog_functions.cpp
     ${PROJ_DIR}/sources/mog/libs/json.c
     ${PROJ_DIR}/sources/mog/libs/aes.c
+    ${PROJ_DIR}/sources/mog/libs/effekseer/EffekseerNative.cpp
+    ${PROJ_DIR}/sources/mog/libs/effekseer/EffekseerRendererNative.cpp
+    ${PROJ_DIR}/sources/mog/libs/effekseer/Effekseer.cpp
     ${PROJ_DIR}/sources/mog/libs/sha256.cpp
     ${PROJ_DIR}/sources/mog/base/Line.cpp
     ${PROJ_DIR}/sources/mog/base/SpriteSheet.cpp
     ${PROJ_DIR}/sources/mog/base/Scene.cpp
+    ${PROJ_DIR}/sources/mog/base/DrawableContainer.cpp
     ${PROJ_DIR}/sources/mog/base/Entity.cpp
     ${PROJ_DIR}/sources/mog/base/ScrollGroup.cpp
     ${PROJ_DIR}/sources/mog/base/Sprite.cpp
+    ${PROJ_DIR}/sources/mog/base/AlignmentGroup.cpp
     ${PROJ_DIR}/sources/mog/base/Drawable.cpp
     ${PROJ_DIR}/sources/mog/base/TiledSprite.cpp
     ${PROJ_DIR}/sources/mog/base/Slice9Sprite.cpp
@@ -57,8 +62,10 @@ add_library(
     ${PROJ_DIR}/sources/mog/base/Circle.cpp
     ${PROJ_DIR}/sources/mog/base/DrawableGroup.cpp
     ${PROJ_DIR}/sources/mog/base/AppBase.cpp
+    ${PROJ_DIR}/sources/mog/base/HorizontalGroup.cpp
     ${PROJ_DIR}/sources/mog/base/Group.cpp
     ${PROJ_DIR}/sources/mog/base/RoundedRectangle.cpp
+    ${PROJ_DIR}/sources/mog/base/VerticalGroup.cpp
     ${PROJ_DIR}/sources_android/mog/core/HttpNative.cpp
     ${PROJ_DIR}/sources_android/mog/core/AudioPlayerNative.cpp
     ${PROJ_DIR}/sources_android/mog/core/mog_functions_native.cpp
