@@ -110,6 +110,7 @@ std::shared_ptr<Dictionary> Json::parse(std::string jsonText) {
     auto obj = parseObject(json, i, len, hasError);
     if (hasError) {
         LOGE("Invalid Json.");
+        return nullptr;
     }
     return obj;
 }
@@ -159,6 +160,10 @@ static std::shared_ptr<Dictionary> parseObject(const char *json, int &i, int len
                     
                     dict->put(key, String::create(value));
                     state = 3;
+                    
+                } else {
+                    hasError = true;
+                    return nullptr;
                 }
                 break;
             }
@@ -329,6 +334,7 @@ static std::shared_ptr<Data> parseValue(const char *json, int &i, int len, bool 
                     json[i+2] == 'l' &&
                     json[i+3] == 'l') {
                     hasError = false;
+                    i += 3;
                     return Null::create();
                 }
                 break;
@@ -342,6 +348,7 @@ static std::shared_ptr<Data> parseValue(const char *json, int &i, int len, bool 
                     json[i+2] == 'u' &&
                     json[i+3] == 'e') {
                     hasError = false;
+                    i += 3;
                     return Bool::create(true);
                 }
                 break;
@@ -356,6 +363,7 @@ static std::shared_ptr<Data> parseValue(const char *json, int &i, int len, bool 
                     json[i+3] == 's' &&
                     json[i+4] == 'e') {
                     hasError = false;
+                    i += 4;
                     return Bool::create(false);
                 }
                 break;
