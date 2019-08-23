@@ -113,7 +113,7 @@ namespace mog {
         virtual void drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches);
         virtual void updateTween(float delta);
         std::shared_ptr<Texture2D> getTexture(int textureIdx = 0);
-        void setTexture(int textureIdx, const std::shared_ptr<Texture2D> &texture);
+        void setTexture(const std::shared_ptr<Texture2D> &texture, int textureIdx = 0);
 
     protected:
         Drawable();

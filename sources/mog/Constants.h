@@ -47,12 +47,15 @@
 #define SET_IN_RATIO_BOTH       (SET_IN_RATIO_WIDTH | SET_IN_RATIO_HEIGHT)
 
 #define PROP_KEY_ENTITY_TYPE        "entityType"
+#define PROP_KEY_ACTIVE             "active"
 #define PROP_KEY_NAME               "name"
 #define PROP_KEY_TAG                "tag"
 #define PROP_KEY_POSITION_X         "positionX"
 #define PROP_KEY_POSITION_Y         "positionY"
 #define PROP_KEY_PIVOT_X            "pivotX"
 #define PROP_KEY_PIVOT_Y            "pivotY"
+#define PROP_KEY_SCALE_X            "scaleX"
+#define PROP_KEY_SCALE_Y            "scaleY"
 #define PROP_KEY_ANCHOR_X           "anchorX"
 #define PROP_KEY_ANCHOR_Y           "anchorY"
 #define PROP_KEY_SIZE_WIDTH         "width"

@@ -327,12 +327,15 @@ void Entity::copyProperties(const std::shared_ptr<Entity> &entity) {
 
 std::shared_ptr<Dictionary> Entity::serialize() {
     auto dict = Dictionary::create();
+    dict->put(PROP_KEY_ACTIVE, Bool::create(this->active));
     dict->put(PROP_KEY_NAME, String::create(this->name));
     dict->put(PROP_KEY_TAG, String::create(this->tag));
     dict->put(PROP_KEY_POSITION_X, Float::create(this->transform->position.x));
     dict->put(PROP_KEY_POSITION_Y, Float::create(this->transform->position.y));
     dict->put(PROP_KEY_PIVOT_X, Float::create(this->transform->pivot.x));
     dict->put(PROP_KEY_PIVOT_Y, Float::create(this->transform->pivot.y));
+    dict->put(PROP_KEY_SCALE_X, Float::create(this->transform->scale.x));
+    dict->put(PROP_KEY_SCALE_Y, Float::create(this->transform->scale.y));
     dict->put(PROP_KEY_ANCHOR_X, Float::create(this->anchor.x));
     dict->put(PROP_KEY_ANCHOR_Y, Float::create(this->anchor.y));
     dict->put(PROP_KEY_SIZE_WIDTH, Float::create(this->size.width));
@@ -345,12 +348,15 @@ std::shared_ptr<Dictionary> Entity::serialize() {
 }
 
 void Entity::deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) {
+    this->active = dict->get<Bool>(PROP_KEY_ACTIVE)->getValue();
     this->name = dict->get<String>(PROP_KEY_NAME)->getValue();
     this->tag = this->getPropertyData<String>(dict, PROP_KEY_TAG, params)->getValue();
     this->transform->position.x = this->getPropertyData<Float>(dict, PROP_KEY_POSITION_X, params)->getValue();
     this->transform->position.y = this->getPropertyData<Float>(dict, PROP_KEY_POSITION_Y, params)->getValue();
     this->transform->pivot.x =  this->getPropertyData<Float>(dict, PROP_KEY_PIVOT_X, params)->getValue();
     this->transform->pivot.y = this->getPropertyData<Float>(dict, PROP_KEY_PIVOT_Y, params)->getValue();
+    this->transform->scale.x =  this->getPropertyData<Float>(dict, PROP_KEY_SCALE_X, params)->getValue();
+    this->transform->scale.y = this->getPropertyData<Float>(dict, PROP_KEY_SCALE_Y, params)->getValue();
     this->anchor.x = this->getPropertyData<Float>(dict, PROP_KEY_ANCHOR_X, params)->getValue();
     this->anchor.y = this->getPropertyData<Float>(dict, PROP_KEY_ANCHOR_Y, params)->getValue();
     this->size.width = this->getPropertyData<Float>(dict, PROP_KEY_SIZE_WIDTH, params)->getValue();

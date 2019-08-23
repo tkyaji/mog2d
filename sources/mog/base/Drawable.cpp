@@ -59,7 +59,9 @@ void Drawable::drawFrame(float delta, const std::map<unsigned int, TouchInput> &
 void Drawable::updateTween(float delta) {
     if (this->tweenIdsToRemove.size() > 0) {
         for (unsigned id : this->tweenIdsToRemove) {
-            this->tweens.erase(id);
+            if (this->tweens.count(id) > 0) {
+                this->tweens.erase(id);
+            }
         }
         this->tweenIdsToRemove.clear();
     }
@@ -422,11 +424,15 @@ void Drawable::runTween(const std::shared_ptr<Tween> &tween) {
 }
 
 void Drawable::cancelTween(unsigned int tweenId) {
-    this->tweens.erase(tweenId);
+//    this->tweens.erase(tweenId);
+    this->tweenIdsToRemove.emplace_back(tweenId);
 }
 
 void Drawable::cancelAllTweens() {
-    this->tweens.clear();
+    for (auto &pair : this->tweens) {
+        this->tweenIdsToRemove.emplace_back(pair.first);
+    }
+//    this->tweens.clear();
 }
 
 void Drawable::removeFromParent() {
@@ -462,7 +468,7 @@ std::shared_ptr<Texture2D> Drawable::getTexture(int textureIdx) {
     return this->textures[textureIdx];
 }
 
-void Drawable::setTexture(int textureIdx, const std::shared_ptr<Texture2D> &texture) {
+void Drawable::setTexture(const std::shared_ptr<Texture2D> &texture, int textureIdx) {
     this->textures[textureIdx] = texture;
     this->dirtyFlag |= (DIRTY_TEXTURE | DIRTY_TEX_COORDS);
 }

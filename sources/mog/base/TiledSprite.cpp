@@ -220,7 +220,7 @@ std::shared_ptr<Entity> TiledSprite::cloneEntity() {
 
 std::shared_ptr<Dictionary> TiledSprite::serialize() {
     auto dict = Entity::serialize();
-    dict->put(PROP_KEY_ENTITY_TYPE, Int::create((int)EntityType::Slice9Sprite));
+    dict->put(PROP_KEY_ENTITY_TYPE, Int::create((int)EntityType::TiledSprite));
     dict->put(PROP_KEY_FILENAME, String::create(this->filename));
     dict->put(PROP_KEY_RECT_X, Float::create(this->rect.position.x));
     dict->put(PROP_KEY_RECT_Y, Float::create(this->rect.position.x));
