@@ -23,7 +23,7 @@ namespace mog {
 
         virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, unsigned char parentDirtyFlag) override;
         virtual void drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches) override;
-        virtual void updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) override;
+//        virtual void updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) override;
 
     protected:
         std::shared_ptr<DrawableContainer> drawableContainer;

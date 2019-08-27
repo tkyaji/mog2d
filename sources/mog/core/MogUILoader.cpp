@@ -75,6 +75,10 @@ std::shared_ptr<Group> MogUILoader::load(std::string filename) {
 }
 
 std::shared_ptr<Group> MogUILoader::load(std::string filename, const std::vector<Param> &params) {
+    if (!FileUtils::existAsset(filename)) {
+        LOGE("Asset file not found. [%s]", filename.c_str());
+        return nullptr;
+    }
     auto bytes = FileUtils::readBytesAsset(filename);
     auto dict = DataStore::deserialize<Dictionary>(bytes);
     std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> paramMap;

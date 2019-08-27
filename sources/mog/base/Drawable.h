@@ -14,11 +14,13 @@ extern void *enabler;
 namespace mog {
     class DrawableContainer;
     class DrawableGroup;
+    class Entity;
     
     class Drawable : public std::enable_shared_from_this<Drawable> {
         friend class Scene;
         friend class DrawableContainer;
         friend class DrawableGroup;
+        friend class Entity;
         
     public:
         ~Drawable();
@@ -97,8 +99,9 @@ namespace mog {
         virtual std::shared_ptr<Transform> getTransform();
         virtual unsigned char getDirtyFlag(bool withParent = false);
         virtual float *getMatrix();
-        virtual void updateMatrix();
-        virtual void updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag);
+//        virtual void updateMatrix();
+//        virtual void updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag);
+        virtual void updateTransform();
 
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         void setParam(const std::shared_ptr<T> &param) {
@@ -118,8 +121,8 @@ namespace mog {
     protected:
         Drawable();
         virtual void bindVertex();
-        virtual void updateTransform();
         virtual void onUpdate(float delta) {};
+        virtual void getMatrix(float *matrix, Drawable *target);
 
         std::shared_ptr<Renderer> renderer = nullptr;
         std::shared_ptr<Transform> transform = nullptr;

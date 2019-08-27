@@ -33,7 +33,7 @@ Group::Group() {
 }
 
 void Group::init() {
-    this->dirtyFlag |= (DIRTY_ALL | DIRTY_SIZE | DIRTY_ANCHOR);
+    this->dirtyFlag |= DIRTY_ALL;
 }
 
 void Group::setEnableBatching(bool enableBatching) {
@@ -167,6 +167,7 @@ void Group::drawFrame(float delta, const std::map<unsigned int, TouchInput> &tou
     this->dirtyFlagChildren = 0;
 }
 
+/*
 void Group::updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) {
     Entity::updateMatrix(parentMatrix, parentDirtyFlag);
     unsigned char dirtyFlag = (this->dirtyFlag | parentDirtyFlag);
@@ -176,6 +177,7 @@ void Group::updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) {
         drawable->updateMatrix(matrix, dirtyFlag);
     }
 }
+*/
 
 void Group::bindVertex() {
     if (!this->enableBatching) return;

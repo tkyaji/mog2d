@@ -34,6 +34,7 @@ void AlignmentGroup::updateFrameForChild(const std::shared_ptr<Engine> &engine, 
     this->tmpDirtyFlag |= (entity->getDirtyFlag() & DIRTY_VERTEX);
 }
 
+/*
 void AlignmentGroup::updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) {
     Entity::updateMatrix(parentMatrix, parentDirtyFlag);
     unsigned char dirtyFlag = (this->dirtyFlag | parentDirtyFlag);
@@ -69,6 +70,74 @@ void AlignmentGroup::updateMatrix(float *parentMatrix, unsigned char parentDirty
         if (this->alignmentVertical) {
             offset.y += pos.y + size.height + this->padding;
         }
+    }
+}
+*/
+
+/*
+void AlignmentGroup::getParentMatrix(float *matrix, Entity *target) {
+    Entity::getParentMatrix(matrix, target);
+    
+    Point offset = Point::zero;
+    for (const auto &drawable : this->drawableContainer->sortedChildDrawables) {
+        if (drawable.get() == target) break;
+        
+        drawable->updateTransform();
+        auto childTransform = drawable->getTransform();
+        childTransform->updateMatrix();
+        float tmpMatrix[16];
+        Transform::multiplyMatrix(matrix, childTransform->matrix, tmpMatrix);
+        
+        if (this->alignmentHorizontal) {
+            float scaleX = sqrt(tmpMatrix[0] * tmpMatrix[0] +
+                                tmpMatrix[1] * tmpMatrix[1]);
+            offset.x += childTransform->matrix[12] + childTransform->size.width * scaleX + this->padding;
+        }
+        if (this->alignmentVertical) {
+            float scaleY = sqrt(tmpMatrix[4] * tmpMatrix[4] +
+                                tmpMatrix[5] * tmpMatrix[5]);
+            offset.y += childTransform->matrix[13] + childTransform->size.height * scaleY + this->padding;
+        }
+    }
+    
+    matrix[12] += offset.x;
+    matrix[13] += offset.y;
+}
+*/
+
+void AlignmentGroup::getMatrix(float *matrix, Drawable *target) {
+    Drawable::getMatrix(matrix, target);
+    
+    Point offset = Point::zero;
+    this->drawableContainer->sortChildDrawablesToDraw();
+    bool find = false;
+    for (const auto &drawable : this->drawableContainer->sortedChildDrawables) {
+        if (drawable.get() == target) {
+            find = true;
+            break;
+        }
+        
+        drawable->updateTransform();
+        auto childTransform = drawable->getTransform();
+        childTransform->updateMatrix();
+        float tmpMatrix[16];
+        Transform::multiplyMatrix(matrix, childTransform->matrix, tmpMatrix);
+        
+        if (this->alignmentHorizontal) {
+            float scaleX = sqrt(tmpMatrix[0] * tmpMatrix[0] +
+                                tmpMatrix[1] * tmpMatrix[1]);
+            offset.x += childTransform->matrix[12] + childTransform->size.width * scaleX + this->padding;
+        }
+        if (this->alignmentVertical) {
+            float scaleY = sqrt(tmpMatrix[4] * tmpMatrix[4] +
+                                tmpMatrix[5] * tmpMatrix[5]);
+            offset.y += childTransform->matrix[13] + childTransform->size.height * scaleY + this->padding;
+        }
+    }
+    
+    if (find) {
+        matrix[12] += offset.x;
+        matrix[13] += offset.y;
     }
 }
 

@@ -6,8 +6,6 @@
 #include <functional>
 #include "mog/core/plain_objects.h"
 
-extern void *enabler;
-
 namespace mog {
     
     class Drawable;
@@ -355,7 +353,7 @@ namespace mog {
     
     class TweenGroup : public Tween {
     public:
-        template<class First, class... Rest, typename std::enable_if<std::is_base_of<Tween, First>::value>::type*& = enabler>
+        template<class First, class... Rest>
         void addTween(const First &first, const Rest&... rest) {
             this->addTweenOne(first);
             this->addTween(rest...);
@@ -377,7 +375,7 @@ namespace mog {
     
     class TweenConcurrentGroup : public TweenGroup {
     public:
-        template<class First, class... Rest, typename std::enable_if<std::is_base_of<Tween, First>::value>::type*& = enabler>
+        template<class First, class... Rest>
         static std::shared_ptr<TweenConcurrentGroup> create(const First& first, const Rest&... rest) {
             auto m = std::shared_ptr<TweenConcurrentGroup>(new TweenConcurrentGroup());
             m->addTween(first, rest...);
@@ -398,7 +396,7 @@ namespace mog {
     
     class TweenSequenceGroup : public TweenGroup {
     public:
-        template<class First, class... Rest, typename std::enable_if<std::is_base_of<Tween, First>::value>::type*& = enabler>
+        template<class First, class... Rest>
         static std::shared_ptr<TweenSequenceGroup> create(const First& first, const Rest&... rest) {
             auto m = std::shared_ptr<TweenSequenceGroup>(new TweenSequenceGroup());
             m->addTween(first, rest...);
@@ -420,7 +418,7 @@ namespace mog {
     
     class TweenJoinGroup : public TweenGroup {
     public:
-        template<class First, class... Rest, typename std::enable_if<std::is_base_of<Tween, First>::value>::type*& = enabler>
+        template<class First, class... Rest>
         static std::shared_ptr<TweenJoinGroup> create(const First& first, const Rest&... rest) {
             auto m = std::shared_ptr<TweenJoinGroup>(new TweenJoinGroup());
             m->addTween(first, rest...);

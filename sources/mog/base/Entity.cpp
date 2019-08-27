@@ -131,6 +131,7 @@ void Entity::bindVertexTexCoords(const std::shared_ptr<Renderer> &renderer, int 
     }
 }
 
+/*
 void Entity::updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) {
     unsigned char mergedDirtyFlag = (this->dirtyFlag | parentDirtyFlag);
     
@@ -144,6 +145,7 @@ void Entity::updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) {
         Transform::multiplyMatrix(this->transform->matrix, parentMatrix, this->matrix);
     }
 }
+*/
 
 std::string Entity::getName() {
     return this->name;
@@ -171,25 +173,25 @@ std::shared_ptr<Group> Entity::getGroup() {
 }
 
 Point Entity::getAbsolutePosition() {
-    Drawable::updateMatrix();
-    return Point(this->matrix[12], this->matrix[13]);
+//    Drawable::updateMatrix();
+    float matrix[16];
+    Drawable::getMatrix(matrix, this);
+    return Point(matrix[12], matrix[13]);
 }
 
 Size Entity::getAbsoluteSize() {
-    Drawable::updateMatrix();
-    float scaleX = sqrt(this->matrix[0] * this->matrix[0] +
-                        this->matrix[1] * this->matrix[1]);
-    float scaleY = sqrt(this->matrix[4] * this->matrix[4] +
-                        this->matrix[5] * this->matrix[5]);
-    return this->transform->size * Point(scaleX, scaleY);
+    auto scale = this->getAbsoluteScale();
+    return this->getSize() * scale;
 }
 
 Point Entity::getAbsoluteScale() {
-    Drawable::updateMatrix();
-    float scaleX = sqrt(this->matrix[0] * this->matrix[0] +
-                        this->matrix[1] * this->matrix[1]);
-    float scaleY = sqrt(this->matrix[4] * this->matrix[4] +
-                        this->matrix[5] * this->matrix[5]);
+    float matrix[16];
+    Drawable::getMatrix(matrix, this);
+    
+    float scaleX = sqrt(matrix[0] * matrix[0] +
+                        matrix[1] * matrix[1]);
+    float scaleY = sqrt(matrix[4] * matrix[4] +
+                        matrix[5] * matrix[5]);
     return Point(scaleX, scaleY);
 }
 

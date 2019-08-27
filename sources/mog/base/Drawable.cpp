@@ -22,11 +22,8 @@ void Drawable::updateFrame(const std::shared_ptr<Engine> &engine, float delta, f
 
     unsigned char mergedDirtyFlag = (this->dirtyFlag | parentDirtyFlag);
     
-    if ((mergedDirtyFlag & (DIRTY_SIZE | DIRTY_ANCHOR)) > 0) {
-        this->updateTransform();
-    }
-    
     if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
+        this->updateTransform();
         this->transform->updateMatrix();
     }
     if ((this->dirtyFlag & DIRTY_COLOR) == DIRTY_COLOR) {
@@ -167,11 +164,20 @@ Point Drawable::getPosition() {
 }
 
 Point Drawable::getPosition(const Point &pivot, const Point &anchor) {
-    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
-        this->updateTransform();
+    this->updateTransform();
+    Point basePosition = this->transform->position - this->transform->size * this->transform->scale * this->transform->pivot + this->transform->offset;
+    
+    auto offset = Point::zero;
+    if (anchor.x != 0 || anchor.y != 0) {
+        Size parentSize;
+        if (auto parent = this->group.lock()) {
+            parentSize = parent->getSize();
+        } else {
+            parentSize = Screen::getSize();
+        }
+        offset = parentSize * anchor;
     }
-    Point basePosition = this->transform->position - this->transform->size * this->transform->scale * this->transform->pivot;
-    return basePosition + this->transform->size * this->transform->scale * pivot + this->transform->offset;
+    return basePosition + this->transform->size * this->transform->scale * pivot + offset;
 }
 
 float Drawable::getPositionX() {
@@ -320,14 +326,29 @@ void Drawable::setSize(float width, float height, unsigned char setInRatioFlag) 
 }
 
 Size Drawable::getSize() {
-    return this->size;
+    if ((this->sizeSetInRatioFlag & SET_IN_RATIO_BOTH) == 0) {
+        return this->size;
+        
+    } else {
+        Size parentSize;
+        if (auto parent = this->group.lock()) {
+            parentSize = parent->getSize();
+        } else {
+            parentSize = Screen::getSize();
+        }
+        auto size = this->size;
+        if ((this->sizeSetInRatioFlag & SET_IN_RATIO_WIDTH) == SET_IN_RATIO_WIDTH) {
+            size.width = parentSize.width * size.width;
+        }
+        if ((this->sizeSetInRatioFlag & SET_IN_RATIO_HEIGHT) == SET_IN_RATIO_HEIGHT) {
+            size.height = parentSize.height * size.height;
+        }
+        return size;
+    }
 }
 
 Size Drawable::getRealSize() {
-    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
-        this->updateTransform();
-    }
-    return this->transform->size;
+    return this->size;
 }
 
 unsigned char Drawable::getSizeSetInRatioFlag() {
@@ -345,7 +366,7 @@ void Drawable::setWidth(float width, bool setInRatio) {
 }
 
 float Drawable::getWidth() {
-    return this->size.width;
+    return this->getSize().width;
 }
 
 float Drawable::getRealWidth() {
@@ -363,7 +384,7 @@ void Drawable::setHeight(float height, bool setInRatio) {
 }
 
 float Drawable::getHeight() {
-    return this->size.height;
+    return this->getSize().height;
 }
 
 float Drawable::getRealHeight() {
@@ -392,6 +413,7 @@ bool Drawable::isActive() {
     return this->active;
 }
 
+/*
 void Drawable::updateMatrix() {
     if (auto g = this->group.lock()) {
         g->updateMatrix();
@@ -399,7 +421,9 @@ void Drawable::updateMatrix() {
         this->updateMatrix(Renderer::identityMatrix, 0);
     }
 }
+*/
 
+/*
 void Drawable::updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) {
     unsigned char mergedDirtyFlag = (this->dirtyFlag | parentDirtyFlag);
     
@@ -413,6 +437,7 @@ void Drawable::updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) 
         Transform::multiplyMatrix(this->transform->matrix, parentMatrix, this->renderer->matrix);
     }
 }
+*/
 
 void Drawable::runTween(const std::shared_ptr<Tween> &tween) {
     this->tweens[tween->getTweenId()] = tween;
@@ -474,27 +499,35 @@ void Drawable::setTexture(const std::shared_ptr<Texture2D> &texture, int texture
 }
 
 void Drawable::updateTransform() {
-    Size parentSize;
-    if (auto parent = this->group.lock()) {
-        parentSize = parent->getRealSize();
-    } else {
-        parentSize = Screen::getSize();
-    }
-
-    if ((this->dirtyFlag & DIRTY_ANCHOR) == DIRTY_ANCHOR) {
-        this->transform->offset = parentSize* this->anchor;
-    }
-    
     if ((this->dirtyFlag & DIRTY_SIZE) == DIRTY_SIZE) {
-        auto size = this->size;
-        if ((this->sizeSetInRatioFlag & SET_IN_RATIO_WIDTH) == SET_IN_RATIO_WIDTH) {
-            size.width = parentSize.width * size.width;
-        }
-        if ((this->sizeSetInRatioFlag & SET_IN_RATIO_HEIGHT) == SET_IN_RATIO_HEIGHT) {
-            size.height = parentSize.height * size.height;
-        }
-        this->transform->size = size;
+        this->transform->size = this->getSize();
     }
     
-    this->dirtyFlag = (this->dirtyFlag & ~(DIRTY_ANCHOR | DIRTY_SIZE));
+    if ((this->dirtyFlag & (DIRTY_SIZE | DIRTY_ANCHOR)) > 0) {
+        if (this->anchor.x != 0 || this->anchor.y != 0) {
+            Size parentSize;
+            if (auto parent = this->group.lock()) {
+                parentSize = parent->transform->size;
+            } else {
+                parentSize = Screen::getSize();
+            }
+            this->transform->offset = parentSize * this->anchor;
+        } else {
+            this->transform->offset = Point::zero;
+        }
+    }
+}
+
+void Drawable::getMatrix(float *matrix, Drawable *target) {
+    float parentMatrix[16];
+    if (auto parent = this->group.lock()) {
+        parent->getMatrix(parentMatrix, this);
+    } else {
+        memcpy(parentMatrix, Renderer::identityMatrix, sizeof(float) * 16);
+    }
+    if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
+        this->updateTransform();
+        this->transform->updateMatrix();
+    }
+    Transform::multiplyMatrix(this->transform->matrix, parentMatrix, matrix);
 }

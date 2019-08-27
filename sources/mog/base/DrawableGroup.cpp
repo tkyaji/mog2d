@@ -47,6 +47,7 @@ void DrawableGroup::drawFrame(float delta, const std::map<unsigned int, TouchInp
     this->dirtyFlag = 0;
 }
 
+/*
 void DrawableGroup::updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) {
     Drawable::updateMatrix(parentMatrix, parentDirtyFlag);
     unsigned char dirtyFlag = (this->dirtyFlag | parentDirtyFlag);
@@ -56,6 +57,7 @@ void DrawableGroup::updateMatrix(float *parentMatrix, unsigned char parentDirtyF
         drawable->updateMatrix(matrix, dirtyFlag);
     }
 }
+*/
 
 void DrawableGroup::add(const std::shared_ptr<Drawable> &drawable) {
     this->drawableContainer->addChild(drawable);

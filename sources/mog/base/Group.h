@@ -37,7 +37,7 @@ namespace mog {
         virtual void updateFrame(const std::shared_ptr<Engine> &engine, float delta, float *parentMatrix, float *parentRendererMatrix, unsigned char parentDirtyFlag) override;
         virtual void updateFrameForChild(const std::shared_ptr<Engine> &engine, float delta, const std::shared_ptr<Entity> &entity, float *parentMatrix, float *parentRendererMatrix, unsigned char parentDirtyFlag);
         virtual void drawFrame(float delta, const std::map<unsigned int, TouchInput> &touches) override;
-        virtual void updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) override;
+//        virtual void updateMatrix(float *parentMatrix, unsigned char parentDirtyFlag) override;
 
         virtual std::shared_ptr<Dictionary> serialize() override;
 
