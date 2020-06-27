@@ -135,10 +135,10 @@ void Group::drawFrame(float delta, const std::map<unsigned int, TouchInput> &tou
     
     if (this->enableBatching) {
         if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
-            this->renderer->shader->setUniformMatrix(this->renderer->matrix);
+            this->renderer->getShader()->setUniformMatrix(this->renderer->matrix);
         }
         if ((this->dirtyFlag & DIRTY_COLOR) == DIRTY_COLOR) {
-            this->renderer->shader->setUniformColor(this->renderer->matrix[16], this->renderer->matrix[17], this->renderer->matrix[18], this->renderer->matrix[19]);
+            this->renderer->getShader()->setUniformColor(this->renderer->matrix[16], this->renderer->matrix[17], this->renderer->matrix[18], this->renderer->matrix[19]);
         }
         if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
             this->bindVertex();

@@ -102,7 +102,7 @@ void MogStats::updatePosition() {
             break;
     }
     this->transform->updateMatrix();
-    this->renderer->shader->setUniformMatrix(this->transform->matrix);
+    this->renderer->getShader()->setUniformMatrix(this->transform->matrix);
 
     this->dirtyPosition = false;
 }

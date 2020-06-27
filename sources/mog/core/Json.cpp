@@ -1,5 +1,4 @@
 #include "mog/core/Json.h"
-#include "mog/core/mog_functions.h"
 
 using namespace mog;
 
@@ -109,7 +108,6 @@ std::shared_ptr<Dictionary> Json::parse(std::string jsonText) {
     bool hasError;
     auto obj = parseObject(json, i, len, hasError);
     if (hasError) {
-        LOGE("Invalid Json.");
         return nullptr;
     }
     return obj;

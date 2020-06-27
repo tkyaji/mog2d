@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "mog_functions.h"
 
 extern void *enabler;
 
@@ -181,7 +182,17 @@ namespace mog {
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         std::shared_ptr<T> at(int idx) const {
             if (idx < this->datum.size()) {
-                return std::static_pointer_cast<T>(this->datum[idx]);
+                auto d = this->datum[idx];
+#ifdef MOG_DEBUG
+                auto dr = d.get();
+                const std::type_info &t1 = typeid(*dr);
+                const std::type_info &t2 = typeid(T);
+                if (t1 != t2) {
+                    LOGE("Type Error : %s, %s\n", t1.name(), t2.name());
+                    return nullptr;
+                }
+#endif
+                return std::static_pointer_cast<T>(d);
             } else {
                 return nullptr;
             }
@@ -213,6 +224,15 @@ namespace mog {
         std::shared_ptr<T> get(std::string key) const {
             if (this->datum.count(key) > 0) {
                 auto d = this->datum.at(key);
+#ifdef MOG_DEBUG
+                auto dr = d.get();
+                const std::type_info &t1 = typeid(*dr);
+                const std::type_info &t2 = typeid(T);
+                if (t1 != t2) {
+                    LOGE("Type Error : %s, %s\n", t1.name(), t2.name());
+                    return nullptr;
+                }
+#endif
                 return std::static_pointer_cast<T>(d);
                 
             } else {

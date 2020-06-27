@@ -21,11 +21,22 @@ static void checkGLError(const char *label) {
 
 #pragma - ShaderUnit
 
+std::unordered_map<intptr_t, std::weak_ptr<ShaderUnit>> ShaderUnit::allShaderUnits;
+
+void ShaderUnit::releaseAllBufferes() {
+    for (auto &pair : allShaderUnits) {
+        if (auto shaderUnit = pair.second.lock()) {
+            shaderUnit->releaseBuffer();
+        }
+    }
+}
+
 std::shared_ptr<ShaderUnit> ShaderUnit::create(const GLchar *shaderSource, ShaderType shaderType) {
     auto shaderUnit = std::shared_ptr<ShaderUnit>(new ShaderUnit());
     shaderUnit->shaderType = shaderType;
     shaderUnit->shaderSource = (GLchar *)mogmalloc(sizeof(GLchar) * strlen(shaderSource) + 1);
     strcpy(shaderUnit->shaderSource, shaderSource);
+    allShaderUnits[(intptr_t)shaderUnit.get()] = shaderUnit;
     return shaderUnit;
 }
 
@@ -70,12 +81,16 @@ void ShaderUnit::releaseBuffer() {
 
 ShaderUnit::~ShaderUnit() {
     this->releaseBuffer();
+    mogfree(this->shaderSource);
+    
+    allShaderUnits.erase((intptr_t)this);
 }
 
 
 
 #pragma - Shader
 
+/*
 std::unordered_map<intptr_t, std::weak_ptr<Shader>> Shader::allShaders;
 
 void Shader::releaseAllBufferes() {
@@ -85,10 +100,11 @@ void Shader::releaseAllBufferes() {
         }
     }
 }
+*/
 
 std::shared_ptr<Shader> Shader::create() {
     auto shader = std::shared_ptr<Shader>(new Shader());
-    allShaders[(intptr_t)shader.get()] = shader;
+//    allShaders[(intptr_t)shader.get()] = shader;
     shader->setUniformMatrix(Renderer::identityMatrix);
     shader->setUniformColor(1.0f, 1.0f, 1.0f, 1.0f);
     return shader;
@@ -106,7 +122,12 @@ void Shader::compileIfNeed() {
     glAttachShader(this->glShaderProgram, this->fragmentShader->glShader);
     checkGLError("Shader::glAttachShader");
 
+    int max;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max);
     for (auto pair : this->attributeLocationMap) {
+        if (pair.second >= max) {
+            LOGE("glBindAttribLocation: attribute index is overflow (max=%d)\n", max);
+        }
         glBindAttribLocation(this->glShaderProgram, pair.second, pair.first.c_str());
     }
     checkGLError("Shader::glBindAttribLocation");
@@ -130,15 +151,18 @@ void Shader::compileIfNeed() {
 
 void Shader::setParameters() {
     for (auto pair : this->vertexAttributeParamsMap) {
-        pair.second.setVertexAttribute(pair.first);
-    }
-    if (this->dirtyUniformParamsMap.size() > 0) {
-        for (auto pair : this->dirtyUniformParamsMap) {
-            auto uniform = this->uniformParamsMap[pair.first];
-            uniform.setUniform(this->glShaderProgram, pair.first);
+        auto attrParam = pair.second;
+        int bufferIndex = 0;
+        if (attrParam.type == VertexAttributeParameter::Type::VertexPointer) {
+            bufferIndex = this->getBufferIndex(pair.first);
         }
-        this->dirtyUniformParamsMap.clear();
+        attrParam.setVertexAttribute(pair.first, bufferIndex);
     }
+    for (auto pair : this->dirtyUniformParamsMap) {
+        auto uniform = this->uniformParamsMap[pair.first];
+        uniform.setUniform(this->glShaderProgram, pair.first);
+    }
+    this->dirtyUniformParamsMap.clear();
 }
 
 void Shader::setLineWidth(float width) {
@@ -198,65 +222,84 @@ void Shader::setUniformParameter(std::string name, const float *matrix, int size
     this->setUniformParameter(name, UniformParameter(matrix, size));
 }
 
-void Shader::setVertexAttributeParameter(unsigned int location, float f1) {
-    this->setVertexAttributeParameter(location, VertexAttributeParameter(f1));
+void Shader::setVertexAttributeParameter(std::string name, float f1) {
+    this->setVertexAttributeParameter(name, VertexAttributeParameter(f1));
 }
 
-void Shader::setVertexAttributeParameter(unsigned int location, float f1, float f2) {
-    this->setVertexAttributeParameter(location, VertexAttributeParameter(f1, f2));
+void Shader::setVertexAttributeParameter(std::string name, float f1, float f2) {
+    this->setVertexAttributeParameter(name, VertexAttributeParameter(f1, f2));
 }
 
-void Shader::setVertexAttributeParameter(unsigned int location, float f1, float f2, float f3) {
-    this->setVertexAttributeParameter(location, VertexAttributeParameter(f1, f2, f3));
+void Shader::setVertexAttributeParameter(std::string name, float f1, float f2, float f3) {
+    this->setVertexAttributeParameter(name, VertexAttributeParameter(f1, f2, f3));
 }
 
-void Shader::setVertexAttributeParameter(unsigned int location, float f1, float f2, float f3, float f4) {
-    this->setVertexAttributeParameter(location, VertexAttributeParameter(f1, f2, f3, f4));
+void Shader::setVertexAttributeParameter(std::string name, float f1, float f2, float f3, float f4) {
+    this->setVertexAttributeParameter(name, VertexAttributeParameter(f1, f2, f3, f4));
 }
 
-void Shader::setVertexAttributeParameter(unsigned int location, float *values, int arrSize, int size, bool dynamicDraw, bool normalized, int stride) {
-    int index = this->getBufferIndex(location);
+void Shader::setVertexAttributeParameter(std::string name, float *values, int arrLength, int size, bool dynamicDraw, bool normalized, int stride) {
+//    int index = this->getBufferIndex(location);
     
+    /*
     glBindBuffer(GL_ARRAY_BUFFER, index);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * arrSize, values, (dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     checkGLError("Shader::setVertexAttributeParameter0");
-
-    this->setVertexAttributeParameter(location, VertexAttributeParameter(index, GL_FLOAT, size, normalized, stride));
+     */
+    
+    this->setVertexAttributeParameter(name, VertexAttributeParameter(GL_FLOAT, values, sizeof(float) * arrLength, size, dynamicDraw, normalized, stride));
 }
 
-void Shader::setVertexAttributeParameter(unsigned int location, int *values, int arrSize, int size, bool dynamicDraw, bool normalized, int stride) {
-    int index = this->getBufferIndex(location);
-    
+void Shader::setVertexAttributeParameter(std::string name, int *values, int arrLength, int size, bool dynamicDraw, bool normalized, int stride) {
+//    int index = this->getBufferIndex(location);
+
+    /*
     glBindBuffer(GL_ARRAY_BUFFER, index);
     glBufferData(GL_ARRAY_BUFFER, sizeof(int) * arrSize, values, (dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     checkGLError("Shader::setVertexAttributeParameter1");
+     */
 
-    this->setVertexAttributeParameter(location, VertexAttributeParameter(index, GL_INT, size, normalized, stride));
+    this->setVertexAttributeParameter(name, VertexAttributeParameter(GL_INT, values, sizeof(int) * arrLength, size, dynamicDraw, normalized, stride));
 }
 
-void Shader::setVertexAttributeParameter(unsigned int location, short *values, int arrSize, int size, bool dynamicDraw, bool normalized, int stride) {
-    int index = this->getBufferIndex(location);
+void Shader::setVertexAttributeParameter(std::string name, short *values, int arrLength, int size, bool dynamicDraw, bool normalized, int stride) {
+//    int index = this->getBufferIndex(location);
     
+    /*
     glBindBuffer(GL_ARRAY_BUFFER, index);
     glBufferData(GL_ARRAY_BUFFER, sizeof(short) * arrSize, values, (dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     checkGLError("Shader::setVertexAttributeParameter2");
+     */
 
-    this->setVertexAttributeParameter(location, VertexAttributeParameter(index, GL_SHORT, size, normalized, stride));
+    this->setVertexAttributeParameter(name, VertexAttributeParameter(GL_SHORT, values, sizeof(short) * arrLength, size, dynamicDraw, normalized, stride));
 }
 
-void Shader::bindVertexAttributePointerSub(unsigned int location, float *value, int arrSize, int offset) {
+void Shader::setVertexAttributeParameter(std::string name, const VertexAttributeParameter &param) {
+    unsigned int location = this->bindAttributeLocation(name);
+    this->vertexAttributeParamsMap[location] = param;
+}
+
+void Shader::bindVertexAttributeParameter(unsigned int location, float *values, int arrLength, int size, bool dynamicDraw, bool normalized, int stride) {
     int index = this->getBufferIndex(location);
+    
     glBindBuffer(GL_ARRAY_BUFFER, index);
-    glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * offset, sizeof(float) * arrSize, value);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * arrLength, values, (dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    checkGLError("Shader::bindVertexAttributeParameter");
+    
+    this->vertexAttributeParamsMap[location] = VertexAttributeParameter(GL_FLOAT, nullptr, 0, size, dynamicDraw, normalized, stride);
+}
+
+void Shader::bindVertexAttributePointerSub(unsigned int location, float *value, int arrLength, int offset) {
+    int index = this->getBufferIndex(location);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, index);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * offset, sizeof(float) * arrLength, value);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     checkGLError("Shader::bindVertexAttributePointerSub");
-}
-
-void Shader::setVertexAttributeParameter(unsigned int location, const VertexAttributeParameter &param) {
-    this->vertexAttributeParamsMap[location] = param;
 }
 
 unsigned int Shader::bindAttributeLocation(std::string name) {
@@ -435,16 +478,21 @@ Shader::VertexAttributeParameter::VertexAttributeParameter(float f1, float f2, f
     this->f[3] = f4;
 }
 
-Shader::VertexAttributeParameter::VertexAttributeParameter(int index, GLenum glType, int size, bool normalized, int stride) {
+Shader::VertexAttributeParameter::VertexAttributeParameter(GLenum glType, void *values, size_t valueSize, int size, bool dynamicDraw, bool normalized, int stride) {
     this->type = Type::VertexPointer;
-    this->index = index;
     this->glType = glType;
     this->size = size;
+    this->dynamicDraw = dynamicDraw;
     this->normalized = normalized;
     this->stride = stride;
+    if (valueSize > 0) {
+        this->data = std::make_shared<Data>(values, valueSize);
+        this->dirty = true;
+    }
 }
 
-void Shader::VertexAttributeParameter::setVertexAttribute(unsigned int location) {
+
+void Shader::VertexAttributeParameter::setVertexAttribute(unsigned int location, int bufferIndex) {
     glEnableVertexAttribArray(location);
     switch (this->type) {
         case Type::Float1:
@@ -460,16 +508,44 @@ void Shader::VertexAttributeParameter::setVertexAttribute(unsigned int location)
             glVertexAttrib4f(location, this->f[0], this->f[1], this->f[2], this->f[3]);
             break;
         case Type::VertexPointer:
-            glBindBuffer(GL_ARRAY_BUFFER, this->index);
+            glBindBuffer(GL_ARRAY_BUFFER, bufferIndex);
+            if (this->dirty) {
+                glBufferData(GL_ARRAY_BUFFER, this->data->valueSize, this->data->values, (this->dynamicDraw ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
+                this->dirty = false;
+            }
             glVertexAttribPointer(location, this->size, this->glType, this->normalized, this->stride, 0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
             break;
     }
     checkGLError("Shader::VertexAttributeParameter::setVertexAttribute");
 }
 
+Shader::VertexAttributeParameter::Data::Data(void *values, size_t valueSize) {
+    this->valueSize = valueSize;
+    this->values = mogmalloc(valueSize);
+    memcpy(this->values, values, valueSize);
+}
+
+Shader::VertexAttributeParameter::Data::~Data() {
+    if (this->values) {
+        mogfree(this->values);
+    }
+}
+
+
 Shader::~Shader() {
     this->releaseBuffer();
-    allShaders.erase((intptr_t)this);
+//    allShaders.erase((intptr_t)this);
+}
+
+void Shader::attachVertexShader(const std::shared_ptr<ShaderUnit> &vertexShader) {
+    this->releaseBuffer();
+    this->vertexShader = vertexShader;
+}
+
+void Shader::attachFragmentShader(const std::shared_ptr<ShaderUnit> &fragmentShader) {
+    this->releaseBuffer();
+    this->fragmentShader = fragmentShader;
 }
 
 void Shader::releaseBuffer() {
@@ -484,12 +560,10 @@ void Shader::releaseBuffer() {
     if (this->glShaderProgram > 0) {
         if (this->vertexShader && this->vertexShader->glShader) {
             glDetachShader(this->glShaderProgram, this->vertexShader->glShader);
-            this->vertexShader = nullptr;
             checkGLError("Shader::releaseBuffer glDetachShader(vertexShader)");
         }
         if (this->fragmentShader && this->fragmentShader->glShader) {
             glDetachShader(this->glShaderProgram, this->fragmentShader->glShader);
-            this->fragmentShader = nullptr;
             checkGLError("Shader::releaseBuffer glDetachShader(fragmentShader)");
         }
         
@@ -497,11 +571,18 @@ void Shader::releaseBuffer() {
         this->glShaderProgram = 0;
         checkGLError("Shader::releaseBuffer glDeleteProgram");
     }
+    /*
     if (this->vertexShader) {
         this->vertexShader->releaseBuffer();
     }
     if (this->fragmentShader) {
         this->fragmentShader->releaseBuffer();
+    }
+     */
+    for (auto &pair : this->vertexAttributeParamsMap) {
+        if (pair.second.data != nullptr) {
+            pair.second.dirty = true;
+        }
     }
     for (auto &pair : this->uniformParamsMap) {
         this->dirtyUniformParamsMap[pair.first] = true;

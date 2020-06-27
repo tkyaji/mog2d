@@ -47,6 +47,8 @@ namespace mog {
         static float getDeviceDensityValue();
         static float getScreenScale();
         static void setSize(float width, float height);
+        static void setSizeBasedOnHeight(float height);
+        static void setSizeBasedOnWidth(float width);
 
         void setDisplaySize(const Size &displaySize, const Size &viewSize, float deviceDensity);
         void setResizeCallback(std::function<void()> callback);

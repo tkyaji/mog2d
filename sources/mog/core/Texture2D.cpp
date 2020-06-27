@@ -1,11 +1,10 @@
-#include "mog/Constants.h"
 #include "mog/core/Texture2D.h"
+#include "mog/Constants.h"
+#include "mog/core/TextureLoader.h"
 #include "mog/core/Texture2DNative.h"
 #include "mog/core/FileUtils.h"
 #include <stdlib.h>
 #include <vector>
-#define STB_IMAGE_IMPLEMENTATION
-#include "mog/libs/stb_image.h"
 
 using namespace mog;
 
@@ -231,20 +230,20 @@ void Texture2D::loadColorTexture(TextureType textureType, const Color &color, in
 }
 
 void Texture2D::loadImageFromBuffer(unsigned char *buffer, int len) {
-    int x = 0;
-    int y = 0;
-    int _n = 0;
-    int n = 4;  // fixed RGBA
-    unsigned char *data = stbi_load_from_memory(buffer, len, &x, &y, &_n, n);
-    if (data == nullptr) {
-        LOGE("Texture2D::loadImageFromBuffer: This image format is not supported.\n");
-        LOGE(filename.c_str());
-        return;
-    };
+    unsigned char *imageData;
+    int imageWidth;
+    int imageHeight;
+    int imageBitsPerPixel;
+    bool ret = TextureLoader::load(buffer, len, &imageData, &imageWidth, &imageHeight, &imageBitsPerPixel);
     
-    if (n == 4) {
+    if (!ret) {
+        LOGE("Texture2D::loadImageFromBuffer: This image format is not supported.\n");
+        return;
+    }
+    
+    if (imageBitsPerPixel == 4) {
         this->textureType = TextureType::RGBA;
-    } else if (n == 3) {
+    } else if (imageBitsPerPixel == 3) {
         this->textureType = TextureType::RGB;
     } else {
         LOGE("Texture2D::loadImageFromBuffer: This image format is not supported.\n");
@@ -252,11 +251,11 @@ void Texture2D::loadImageFromBuffer(unsigned char *buffer, int len) {
         return;
     }
     
-    this->data = data;
-    this->width = x;
-    this->height = y;
-    this->bitsPerPixel = n;
-    this->dataLength = x * y * n;
+    this->data = imageData;
+    this->width = imageWidth;
+    this->height = imageHeight;
+    this->bitsPerPixel = imageBitsPerPixel;
+    this->dataLength = imageWidth * imageHeight * imageBitsPerPixel;
 }
 
 GLenum Texture2D::getTextureEnum(int textureIdx) {

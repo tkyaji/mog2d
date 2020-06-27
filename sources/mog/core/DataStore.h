@@ -40,8 +40,7 @@ namespace mog {
         
         template <class T, typename std::enable_if<std::is_base_of<Data, T>::value>::type*& = enabler>
         static std::shared_ptr<T> getData(std::string key) {
-            auto defaultValue = std::shared_ptr<T>(new T());
-            return getData<T>(key, defaultValue);
+            return getData<T>(key, nullptr);
         }
         
         static void setData(std::string key, const std::shared_ptr<Data> &value, bool immediatelySave = false);

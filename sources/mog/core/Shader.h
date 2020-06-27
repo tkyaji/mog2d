@@ -13,7 +13,7 @@
 #define ATTR_LOCATION_IDX_UV2 4
 #define ATTR_LOCATION_IDX_UV3 5
 #define ATTR_LOCATION_IDX_UV_START 2
-#define ATTR_LOCATION_IDX_USER_START 11
+#define ATTR_LOCATION_IDX_USER_START 6
 
 namespace mog {
     enum class ShaderType {
@@ -26,6 +26,7 @@ namespace mog {
 
     class ShaderUnit {
     public:
+        static void releaseAllBufferes();
         static std::shared_ptr<ShaderUnit> create(const GLchar *shaderSource, ShaderType shaderType);
         static std::shared_ptr<ShaderUnit> createWithAsset(std::string vertexShaderSourceFilename, ShaderType shaderType);
         ~ShaderUnit();
@@ -38,6 +39,7 @@ namespace mog {
         GLuint glShader = 0;
         
     private:
+        static std::unordered_map<intptr_t, std::weak_ptr<ShaderUnit>> allShaderUnits;
         ShaderUnit() {}
     };
         
@@ -45,6 +47,7 @@ namespace mog {
 #pragma - Shader
 
     class Shader {
+        friend class Renderer;
     private:
         class UniformParameter {
         public:
@@ -91,6 +94,15 @@ namespace mog {
         
         class VertexAttributeParameter {
         public:
+            class Data {
+            public:
+                void *values = nullptr;
+                size_t valueSize = 0;
+                
+                Data(void *values, size_t valueSize);
+                ~Data();
+            };
+            
             enum class Type {
                 Float1,
                 Float2,
@@ -101,20 +113,22 @@ namespace mog {
             
             Type type = Type::Float1;
             int f[4] = {0, 0, 0, 0};
-            int index = 0;
             GLenum glType = GL_FLOAT;
             int size = 0;
+            std::shared_ptr<Data> data = nullptr;
+            bool dynamicDraw = true;
             bool normalized = false;
             int stride = 0;
-            
+            bool dirty = false;
+
             VertexAttributeParameter();
             VertexAttributeParameter(float f1);
             VertexAttributeParameter(float f1, float f2);
             VertexAttributeParameter(float f1, float f2, float f3);
             VertexAttributeParameter(float f1, float f2, float f3, float f4);
-            VertexAttributeParameter(int index, GLenum glType, int size, bool normalized, int stride);
-            
-            void setVertexAttribute(unsigned int location);
+            VertexAttributeParameter(GLenum glType, void *values, size_t valueSize, int size, bool dynamicDraw, bool normalized, int stride);
+
+            void setVertexAttribute(unsigned int location, int bufferIndex = 0);
         };
         
         
@@ -127,7 +141,7 @@ namespace mog {
         static std::shared_ptr<Shader> createWithAsset(std::string vertexShaderSourceFilename, std::string fragmentShaderSourceFilename);
          */
         
-        static void releaseAllBufferes();
+//        static void releaseAllBufferes();
 
         ~Shader();
         
@@ -150,14 +164,16 @@ namespace mog {
         void setUniformParameter(std::string name, int i1, int i2, int i3, int i4);
         void setUniformParameter(std::string name, const float *matrix, int size = 4);
         
-        void setVertexAttributeParameter(unsigned int location, float f1);
-        void setVertexAttributeParameter(unsigned int location, float f1, float f2);
-        void setVertexAttributeParameter(unsigned int location, float f1, float f2, float f3);
-        void setVertexAttributeParameter(unsigned int location, float f1, float f2, float f3, float f4);
-        void setVertexAttributeParameter(unsigned int location, float *values, int arrSize, int size, bool dynamicDraw = false, bool normalized = false, int stride = 0);
-        void setVertexAttributeParameter(unsigned int location, int *values, int arrSize, int size, bool dynamicDraw = false, bool normalized = false, int stride = 0);
-        void setVertexAttributeParameter(unsigned int location, short *values, int arrSize, int size, bool dynamicDraw = false, bool normalized = false, int stride = 0);
-        void bindVertexAttributePointerSub(unsigned int location, float *value, int arrSize, int offset);
+        void setVertexAttributeParameter(std::string name, float f1);
+        void setVertexAttributeParameter(std::string name, float f1, float f2);
+        void setVertexAttributeParameter(std::string name, float f1, float f2, float f3);
+        void setVertexAttributeParameter(std::string name, float f1, float f2, float f3, float f4);
+        void setVertexAttributeParameter(std::string name, float *values, int arrLength, int size, bool dynamicDraw = false, bool normalized = false, int stride = 0);
+        void setVertexAttributeParameter(std::string name, int *values, int arrLength, int size, bool dynamicDraw = false, bool normalized = false, int stride = 0);
+        void setVertexAttributeParameter(std::string name, short *values, int arrLength, int size, bool dynamicDraw = false, bool normalized = false, int stride = 0);
+        
+        void bindVertexAttributeParameter(unsigned int location, float *values, int arrLength, int size, bool dynamicDraw = false, bool normalized = false, int stride = 0);
+        void bindVertexAttributePointerSub(unsigned int location, float *value, int arrLength, int offset);
         
         unsigned int bindAttributeLocation(std::string name);
         void bindAttributeLocation(std::string name, unsigned int location);
@@ -165,14 +181,17 @@ namespace mog {
         float getMaxLineWidth();
         float getMaxPointSize();
         void releaseBuffer();
+        
+        void attachVertexShader(const std::shared_ptr<ShaderUnit> &vertexShader);
+        void attachFragmentShader(const std::shared_ptr<ShaderUnit> &fragmentShader);
+
+    private:
+//        static std::unordered_map<intptr_t, std::weak_ptr<Shader>> allShaders;
 
         std::shared_ptr<ShaderUnit> vertexShader = nullptr;
         std::shared_ptr<ShaderUnit> fragmentShader = nullptr;
         GLuint glShaderProgram = 0;
-        
-    private:
-        static std::unordered_map<intptr_t, std::weak_ptr<Shader>> allShaders;
-        
+
         std::unordered_map<unsigned int, unsigned int> bufferIndexMap;
         std::unordered_map<std::string, UniformParameter> uniformParamsMap;
         std::unordered_map<std::string, bool> dirtyUniformParamsMap;
@@ -182,9 +201,8 @@ namespace mog {
 
         Shader() {}
         void setUniformParameter(std::string name, const UniformParameter &param);
-        void setVertexAttributeParameter(unsigned int location, const VertexAttributeParameter &param);
+        void setVertexAttributeParameter(std::string name, const VertexAttributeParameter &param);
         unsigned int getBufferIndex(unsigned int location);
-
     };
     
     

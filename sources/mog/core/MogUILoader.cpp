@@ -90,6 +90,13 @@ std::shared_ptr<Group> MogUILoader::load(std::string filename, const std::vector
         paramMap[p.name][p.propertyKey] = p.propertyValue;
     }
     auto entity = EntityCreator::create(EntityType::Group, dict, paramMap);
+    
+    int start = (int)filename.find("/") + 1;
+    int end = (int)filename.find(".");
+    if (end < -1) end = (int)filename.size() - 1;
+    std::string entityName = filename.substr(start, end - start);
+    entity->setName(entityName);
+    
     return std::static_pointer_cast<Group>(entity);
 }
 

@@ -47,7 +47,7 @@ void Engine::startEngine() {
     this->lastElapsedSec = this->getTimerElapsedSec();
     
     if (!this->stats) {
-#ifdef MOG_DEBUG
+#if defined(MOG_DEBUG) && MOG_STATS_ENABLE
         bool statsEnable = true;
 #else
         bool statsEnable = false;
@@ -279,7 +279,9 @@ void Engine::releaseAllBuffers() {
     this->dirtyFlag = DIRTY_ALL;
     Texture2D::releaseAllBufferes();
     Renderer::releaseAllBufferes();
-    Shader::releaseAllBufferes();
+    ShaderUnit::releaseAllBufferes();
+
+//    Shader::releaseAllBufferes();
 }
 
 unsigned int Engine::registerOnUpdateFunc(std::function<void(unsigned int funcId)> onUpdateFunc) {

@@ -1,6 +1,5 @@
 #include "mog/Constants.h"
 #include "mog/core/Data.h"
-#include "mog/core/mog_functions.h"
 #include <vector>
 #include <stdlib.h>
 #include <string.h>

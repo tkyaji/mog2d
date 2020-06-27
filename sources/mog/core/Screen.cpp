@@ -132,6 +132,20 @@ void Screen::setSize(float width, float height) {
     }
 }
 
+void Screen::setSizeBasedOnHeight(float height) {
+    if (auto screen = instance.lock()) {
+        float width = (screen->displaySize.width / screen->displaySize.height) * height;
+        screen->setScreenSize(width, height);
+    }
+}
+
+void Screen::setSizeBasedOnWidth(float width) {
+    if (auto screen = instance.lock()) {
+        float height = (screen->displaySize.height / screen->displaySize.width) * width;
+        screen->setScreenSize(width, height);
+    }
+}
+
 void Screen::setScreenSize(float width, float height) {
     if (width == 0) {
         float scale = height / this->displaySize.height;

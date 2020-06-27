@@ -350,8 +350,8 @@ std::shared_ptr<Dictionary> Entity::serialize() {
 }
 
 void Entity::deserializeData(const std::shared_ptr<Dictionary> &dict, const std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<Data>>> &params) {
-    this->active = dict->get<Bool>(PROP_KEY_ACTIVE)->getValue();
     this->name = dict->get<String>(PROP_KEY_NAME)->getValue();
+    this->active = this->getPropertyData<Bool>(dict, PROP_KEY_ACTIVE, params)->getValue();
     this->tag = this->getPropertyData<String>(dict, PROP_KEY_TAG, params)->getValue();
     this->transform->position.x = this->getPropertyData<Float>(dict, PROP_KEY_POSITION_X, params)->getValue();
     this->transform->position.y = this->getPropertyData<Float>(dict, PROP_KEY_POSITION_Y, params)->getValue();

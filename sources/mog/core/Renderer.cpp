@@ -102,13 +102,13 @@ void Renderer::bindVertexTexCoords(int textureIdx, bool dynamicDraw) {
     char uvStr[8];
     sprintf(uvStr, "a_uv%d", textureIdx);
     this->shader->bindAttributeLocation(uvStr, ATTR_LOCATION_IDX_UV_START + textureIdx);
-    this->shader->setVertexAttributeParameter(ATTR_LOCATION_IDX_UV_START + textureIdx, this->vertexTexCoords[textureIdx], this->verticesNum * 2, 2, dynamicDraw);
+    this->shader->bindVertexAttributeParameter(ATTR_LOCATION_IDX_UV_START + textureIdx, this->vertexTexCoords[textureIdx], this->verticesNum * 2, 2, dynamicDraw);
     checkGLError("Renderer::bindTextureVertex");
 }
 
 void Renderer::bindVertexColors(bool dynamicDraw) {
     this->shader->bindAttributeLocation("a_color", ATTR_LOCATION_IDX_COLOR);
-    this->shader->setVertexAttributeParameter(ATTR_LOCATION_IDX_COLOR, this->vertexColors, this->verticesNum * 4, 4, dynamicDraw);
+    this->shader->bindVertexAttributeParameter(ATTR_LOCATION_IDX_COLOR, this->vertexColors, this->verticesNum * 4, 4, dynamicDraw);
     this->enableVertexColor = true;
     checkGLError("Renderer::bindColorsVertex");
 }
@@ -173,8 +173,12 @@ void Renderer::newVertexTexCoordsArr(int textureIdx) {
 }
 
 void Renderer::drawFrame() {
-    if (!this->shader->vertexShader) this->shader->vertexShader = this->getDefaultShader(ShaderType::VertexShader);
-    if (!this->shader->fragmentShader) this->shader->fragmentShader = this->getDefaultShader(ShaderType::FragmentShader);
+    if (this->shader->vertexShader == nullptr) {
+        this->shader->vertexShader = this->getDefaultShader(ShaderType::VertexShader);
+    }
+    if (this->shader->fragmentShader == nullptr) {
+        this->shader->fragmentShader = this->getDefaultShader(ShaderType::FragmentShader);
+    }
     this->shader->compileIfNeed();
     
     glBlendFunc((GLenum)this->blendingFactorSrc, (GLenum)this->blendingFactorDest);
@@ -238,9 +242,14 @@ void Renderer::releaseBuffer() {
         this->vertexBuffer[0] = 0;
         this->vertexBuffer[1] = 0;
     }
+    if (this->shader) {
+        this->shader->releaseBuffer();
+    }
     this->screenParameterInitialized = false;
 
     checkGLError("Renderer::releaseBuffer");
 }
 
-
+std::shared_ptr<Shader> Renderer::getShader() {
+    return this->shader;
+}

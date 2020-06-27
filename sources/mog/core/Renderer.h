@@ -70,7 +70,6 @@ namespace mog {
             0, 0, 0, 1,
             1, 1, 1, 1,
         };
-        std::shared_ptr<Shader> shader = nullptr;
 
         ~Renderer();
         
@@ -94,7 +93,8 @@ namespace mog {
         void newIndicesArr();
         void newVertexColorsArr();
         void newVertexTexCoordsArr(int textureIdx = 0);
-        
+        std::shared_ptr<Shader> getShader();
+
         void drawFrame();
         
     private:
@@ -110,6 +110,7 @@ namespace mog {
         std::unordered_map<std::string, bool> dirtyUniformParamsMap;
         std::unordered_map<unsigned int, VertexAttributeParameter> vertexAttributeParamsMap;
          */
+        std::shared_ptr<Shader> shader = nullptr;
         bool screenParameterInitialized = false;
         bool enableVertexColor = false;
 

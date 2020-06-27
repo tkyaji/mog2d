@@ -3,10 +3,10 @@
 
 #define LOG_TAG "MOG"
 
-#define PLATFORM_ANDROID "android"
-#define PLATFORM_IOS     "ios"
-#define PLATFORM_OSX     "osx"
-#define PLATFORM_QT      "qt"
+#define PLATFORM_ANDROID 1
+#define PLATFORM_IOS     2
+#define PLATFORM_OSX     3
+#define PLATFORM_QT      4
 
 #ifdef MOG_IOS
 #define PLATFORM PLATFORM_IOS
@@ -21,6 +21,7 @@
 #define DEFAULT_FPS 60
 #define BASE_SCREEN_HEIGHT 640
 #define BASE_SCREEN_WIDTH 0
+#define MOG_STATS_ENABLE 0
 
 #define LOG_DEBUG       1
 #define LOG_INFO        2

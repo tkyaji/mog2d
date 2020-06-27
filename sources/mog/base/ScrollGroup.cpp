@@ -39,8 +39,8 @@ void ScrollGroup::init() {
     this->contentGroup->setSize(this->contentSize);
     Group::add(this->contentGroup);
     
-    this->renderer->shader->vertexShader = BasicShader::getShaderUnit(BasicShader::Type::VertexColorWithTexture, ShaderType::VertexShader);
-    this->renderer->shader->fragmentShader = ShaderUnit::create(fragmentShaderSource, ShaderType::FragmentShader);
+    this->renderer->getShader()->attachVertexShader(BasicShader::getShaderUnit(BasicShader::Type::VertexColorWithTexture, ShaderType::VertexShader));
+    this->renderer->getShader()->attachFragmentShader(ShaderUnit::create(fragmentShaderSource, ShaderType::FragmentShader));
     
     auto listener = TouchEventListener::create();
     listener->setOnTouchMoveEvent([this](const Touch &t, const std::shared_ptr<Entity> &e) {
@@ -82,8 +82,8 @@ void ScrollGroup::drawFrame(float delta, const std::map<unsigned int, TouchInput
     if ((this->dirtyFlag & DIRTY_VERTEX) == DIRTY_VERTEX) {
         auto pos = this->getAbsolutePosition();
         auto size = this->getAbsoluteSize();
-        this->renderer->shader->setUniformParameter("u_position", pos.x, pos.y);
-        this->renderer->shader->setUniformParameter("u_size", size.width, size.height);
+        this->renderer->getShader()->setUniformParameter("u_position", pos.x, pos.y);
+        this->renderer->getShader()->setUniformParameter("u_size", size.width, size.height);
     }
     Group::drawFrame(delta, touches);
 }
